@@ -30,7 +30,10 @@ import {
   ListItemText,
   Avatar,
   AvatarGroup,
-  Divider
+  Divider,
+  MenuItem,
+  Alert,
+  Fab
 } from '@mui/material';
 import { 
   Search as SearchIcon,
@@ -42,10 +45,13 @@ import {
   DirectionsCar as CarIcon,
   LocalGasStation as FuelIcon,
   Speed as SpeedIcon,
-  Upload as UploadIcon
+  Upload as UploadIcon,
+  Save as SaveIcon,
+  Cancel as CancelIcon,
+  Add as AddIcon
 } from '@mui/icons-material';
 import { db } from '../firebase/config';
-import { collection, getDocs, query, doc, deleteDoc, orderBy, getDoc } from 'firebase/firestore';
+import { collection, getDocs, query, doc, deleteDoc, orderBy, getDoc, updateDoc, addDoc } from 'firebase/firestore';
 
 export default function Teams() {
   const [teams, setTeams] = useState([]);
@@ -60,6 +66,24 @@ export default function Teams() {
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [teamMembers, setTeamMembers] = useState([]);
   const [actionLoading, setActionLoading] = useState(false);
+  const [openCreateDialog, setOpenCreateDialog] = useState(false);
+  const [newTeam, setNewTeam] = useState({
+    teamName: '',
+    teamCode: '',
+    ownerId: '',
+    activeMembers: 0,
+    memberCount: 0,
+    pendingRequests: 0,
+    teamStats: {
+      totalUploads: 0,
+      totalDistance: 0,
+      totalVisits: 0,
+      fuelConsumption: 0
+    },
+    createdAt: new Date(),
+    isDummy: false
+  });
+  const [error, setError] = useState('');
 
   // Fetch teams data
   useEffect(() => {
@@ -192,6 +216,72 @@ export default function Teams() {
     setTeamMembers([]);
   };
 
+  // Create team handlers
+  const handleOpenCreateDialog = () => {
+    setNewTeam({
+      teamName: '',
+      teamCode: '',
+      ownerId: '',
+      activeMembers: 0,
+      memberCount: 0,
+      pendingRequests: 0,
+      teamStats: {
+        totalUploads: 0,
+        totalDistance: 0,
+        totalVisits: 0,
+        fuelConsumption: 0
+      },
+      createdAt: new Date(),
+      isDummy: false
+    });
+    setOpenCreateDialog(true);
+  };
+
+  const handleCloseCreateDialog = () => {
+    setOpenCreateDialog(false);
+  };
+
+  const handleCreateChange = (field, value) => {
+    if (field.includes('.')) {
+      const [parent, child] = field.split('.');
+      setNewTeam(prev => ({
+        ...prev,
+        [parent]: {
+          ...prev[parent],
+          [child]: value
+        }
+      }));
+    } else {
+      setNewTeam(prev => ({
+        ...prev,
+        [field]: value
+      }));
+    }
+  };
+
+  const handleCreateTeam = async () => {
+    setActionLoading(true);
+    try {
+      const teamsRef = collection(db, 'teams');
+      const docRef = await addDoc(teamsRef, newTeam);
+      
+      // Add the new team to the local state
+      const createdTeam = {
+        id: docRef.id,
+        ...newTeam
+      };
+      
+      setTeams(prevTeams => [...prevTeams, createdTeam]);
+      
+      setActionLoading(false);
+      handleCloseCreateDialog();
+    } catch (error) {
+      console.error('Error creating team:', error);
+      setError(error.message);
+      setActionLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
@@ -202,9 +292,19 @@ export default function Teams() {
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>
-        Team Management
-      </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Typography variant="h4">
+          Team Management
+        </Typography>
+        <Fab
+          color="primary"
+          size="medium"
+          onClick={handleOpenCreateDialog}
+          sx={{ ml: 2 }}
+        >
+          <AddIcon />
+        </Fab>
+      </Box>
       
       {/* Search Bar */}
       <Box sx={{ mb: 3 }}>
@@ -448,6 +548,145 @@ export default function Teams() {
             </DialogActions>
           </>
         )}
+      </Dialog>
+
+      {/* Create Team Dialog */}
+      <Dialog
+        open={openCreateDialog}
+        onClose={handleCloseCreateDialog}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>Create New Team</DialogTitle>
+        <DialogContent>
+          <Grid container spacing={2} sx={{ mt: 1 }}>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Team Name"
+                value={newTeam.teamName}
+                onChange={(e) => handleCreateChange('teamName', e.target.value)}
+                margin="normal"
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Team Code"
+                value={newTeam.teamCode}
+                onChange={(e) => handleCreateChange('teamCode', e.target.value)}
+                margin="normal"
+                required
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Owner ID"
+                value={newTeam.ownerId}
+                onChange={(e) => handleCreateChange('ownerId', e.target.value)}
+                margin="normal"
+                required
+                helperText="Enter the user ID of the team owner"
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                type="number"
+                label="Active Members"
+                value={newTeam.activeMembers}
+                onChange={(e) => handleCreateChange('activeMembers', parseInt(e.target.value))}
+                margin="normal"
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                type="number"
+                label="Member Count"
+                value={newTeam.memberCount}
+                onChange={(e) => handleCreateChange('memberCount', parseInt(e.target.value))}
+                margin="normal"
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                type="number"
+                label="Pending Requests"
+                value={newTeam.pendingRequests}
+                onChange={(e) => handleCreateChange('pendingRequests', parseInt(e.target.value))}
+                margin="normal"
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                type="number"
+                label="Total Uploads"
+                value={newTeam.teamStats.totalUploads}
+                onChange={(e) => handleCreateChange('teamStats.totalUploads', parseInt(e.target.value))}
+                margin="normal"
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                type="number"
+                label="Total Distance"
+                value={newTeam.teamStats.totalDistance}
+                onChange={(e) => handleCreateChange('teamStats.totalDistance', parseInt(e.target.value))}
+                margin="normal"
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                type="number"
+                label="Total Visits"
+                value={newTeam.teamStats.totalVisits}
+                onChange={(e) => handleCreateChange('teamStats.totalVisits', parseInt(e.target.value))}
+                margin="normal"
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                type="number"
+                label="Fuel Consumption"
+                value={newTeam.teamStats.fuelConsumption}
+                onChange={(e) => handleCreateChange('teamStats.fuelConsumption', parseInt(e.target.value))}
+                margin="normal"
+                required
+              />
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button 
+            onClick={handleCloseCreateDialog}
+            startIcon={<CancelIcon />}
+            disabled={actionLoading}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleCreateTeam}
+            variant="contained"
+            startIcon={actionLoading ? <CircularProgress size={20} /> : <SaveIcon />}
+            disabled={actionLoading}
+          >
+            {actionLoading ? 'Creating...' : 'Create Team'}
+          </Button>
+        </DialogActions>
       </Dialog>
     </Box>
   );

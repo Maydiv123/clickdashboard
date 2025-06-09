@@ -26,7 +26,9 @@ import {
   CardActions,
   Alert,
   Stack,
-  LinearProgress
+  LinearProgress,
+  MenuItem,
+  Fab
 } from '@mui/material';
 import { 
   Search as SearchIcon,
@@ -35,8 +37,10 @@ import {
   LocationOn as LocationIcon,
   Edit as EditIcon,
   CheckCircle as VerifiedIcon,
-  Cancel as UnverifiedIcon,
-  Upload as UploadIcon
+  Cancel as CancelIcon,
+  Upload as UploadIcon,
+  Save as SaveIcon,
+  Add as AddIcon
 } from '@mui/icons-material';
 import { db } from '../firebase/config';
 import { collection, getDocs, query, doc, updateDoc, deleteDoc, orderBy, addDoc } from 'firebase/firestore';
@@ -63,6 +67,30 @@ export default function PetrolPumps() {
   const [importProgress, setImportProgress] = useState(0);
   const [importStatus, setImportStatus] = useState(null);
   const [importError, setImportError] = useState(null);
+  const [openCreateDialog, setOpenCreateDialog] = useState(false);
+  const [newPump, setNewPump] = useState({
+    customerName: '',
+    dealerName: '',
+    address: {
+      line1: '',
+      line2: '',
+      city: '',
+      district: '',
+      state: '',
+      pincode: ''
+    },
+    location: {
+      latitude: '',
+      longitude: ''
+    },
+    contactDetails: {
+      phone: '',
+      email: ''
+    },
+    company: '',
+    status: 'active',
+    createdAt: new Date()
+  });
 
   // Fetch pumps data
   useEffect(() => {
@@ -240,7 +268,7 @@ export default function PetrolPumps() {
     }
   };
 
-  const handleImportDialogClose = () => {
+  const handleCloseImportDialog = () => {
     setImportDialogOpen(false);
     setImportFile(null);
     setImportProgress(0);
@@ -325,6 +353,79 @@ export default function PetrolPumps() {
     }
   };
 
+  // Create pump handlers
+  const handleOpenCreateDialog = () => {
+    setNewPump({
+      customerName: '',
+      dealerName: '',
+      address: {
+        line1: '',
+        line2: '',
+        city: '',
+        district: '',
+        state: '',
+        pincode: ''
+      },
+      location: {
+        latitude: '',
+        longitude: ''
+      },
+      contactDetails: {
+        phone: '',
+        email: ''
+      },
+      company: '',
+      status: 'active',
+      createdAt: new Date()
+    });
+    setOpenCreateDialog(true);
+  };
+
+  const handleCloseCreateDialog = () => {
+    setOpenCreateDialog(false);
+  };
+
+  const handleCreateChange = (field, value) => {
+    if (field.includes('.')) {
+      const [parent, child] = field.split('.');
+      setNewPump(prev => ({
+        ...prev,
+        [parent]: {
+          ...prev[parent],
+          [child]: value
+        }
+      }));
+    } else {
+      setNewPump(prev => ({
+        ...prev,
+        [field]: value
+      }));
+    }
+  };
+
+  const handleCreatePump = async () => {
+    setActionLoading(true);
+    try {
+      const pumpsRef = collection(db, 'map_locations');
+      const docRef = await addDoc(pumpsRef, newPump);
+      
+      // Add the new pump to the local state
+      const createdPump = {
+        id: docRef.id,
+        ...newPump
+      };
+      
+      setPumps(prevPumps => [...prevPumps, createdPump]);
+      
+      setActionLoading(false);
+      handleCloseCreateDialog();
+    } catch (error) {
+      console.error('Error creating petrol pump:', error);
+      setError(error.message);
+      setActionLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
@@ -349,7 +450,7 @@ export default function PetrolPumps() {
         </Typography>
         <Stack direction="row" spacing={2}>
           <Button
-            variant="contained"
+            variant="outlined"
             startIcon={<UploadIcon />}
             onClick={() => setImportDialogOpen(true)}
           >
@@ -361,6 +462,14 @@ export default function PetrolPumps() {
           >
             {viewMode === 'table' ? 'Grid View' : 'Table View'}
           </Button>
+          <Fab
+            color="primary"
+            size="medium"
+            onClick={handleOpenCreateDialog}
+            sx={{ ml: 2 }}
+          >
+            <AddIcon />
+          </Fab>
         </Stack>
       </Box>
       
@@ -443,10 +552,11 @@ export default function PetrolPumps() {
                             <ViewIcon />
                           </IconButton>
                           <IconButton 
+                            size="small" 
                             color={pump.isVerified ? "warning" : "success"}
                             onClick={() => handleOpenVerifyDialog(pump)}
                           >
-                            {pump.isVerified ? <UnverifiedIcon /> : <VerifiedIcon />}
+                            {pump.isVerified ? <CancelIcon /> : <VerifiedIcon />}
                           </IconButton>
                           <IconButton 
                             color="error"
@@ -496,7 +606,7 @@ export default function PetrolPumps() {
                           label="Unverified" 
                           color="warning" 
                           size="small"
-                          icon={<UnverifiedIcon />}
+                          icon={<CancelIcon />}
                         />
                       )}
                     </Box>
@@ -522,11 +632,11 @@ export default function PetrolPumps() {
                     </Button>
                     <Button 
                       size="small" 
-                      startIcon={pump.isVerified ? <UnverifiedIcon /> : <VerifiedIcon />}
+                      startIcon={pump.isVerified ? <CancelIcon /> : <VerifiedIcon />}
                       color={pump.isVerified ? "warning" : "success"}
                       onClick={() => handleOpenVerifyDialog(pump)}
                     >
-                      {pump.isVerified ? 'Unverify' : 'Verify'}
+                      {pump.isVerified ? "Unverify" : "Verify"}
                     </Button>
                     <Button 
                       size="small" 
@@ -615,7 +725,7 @@ export default function PetrolPumps() {
           >
             {actionLoading 
               ? 'Processing...' 
-              : (pumpToToggleVerify && pumpToToggleVerify.isVerified ? 'Unverify' : 'Verify')}
+              : (pumpToToggleVerify && pumpToToggleVerify.isVerified ? "Unverify" : "Verify")}
           </Button>
         </DialogActions>
       </Dialog>
@@ -719,7 +829,7 @@ export default function PetrolPumps() {
                   handleOpenVerifyDialog(selectedPump);
                 }}
               >
-                {selectedPump.isVerified ? 'Unverify' : 'Verify'}
+                {selectedPump.isVerified ? "Unverify" : "Verify"}
               </Button>
               <Button 
                 color="error"
@@ -738,7 +848,7 @@ export default function PetrolPumps() {
       {/* Import Dialog */}
       <Dialog
         open={importDialogOpen}
-        onClose={handleImportDialogClose}
+        onClose={handleCloseImportDialog}
         maxWidth="sm"
         fullWidth
       >
@@ -807,16 +917,193 @@ export default function PetrolPumps() {
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleImportDialogClose}>
+          <Button 
+            onClick={handleCloseImportDialog}
+            startIcon={<CancelIcon />}
+            disabled={actionLoading}
+          >
             Cancel
           </Button>
           <Button
             onClick={handleImport}
-            disabled={!importFile || importStatus === 'processing'}
             variant="contained"
-            startIcon={importStatus === 'processing' ? <CircularProgress size={20} /> : null}
+            startIcon={actionLoading ? <CircularProgress size={20} /> : <UploadIcon />}
+            disabled={actionLoading || !importFile}
           >
-            {importStatus === 'processing' ? 'Importing...' : 'Import'}
+            {actionLoading ? 'Importing...' : 'Import'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Create Pump Dialog */}
+      <Dialog
+        open={openCreateDialog}
+        onClose={handleCloseCreateDialog}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>Create New Petrol Pump</DialogTitle>
+        <DialogContent>
+          <Grid container spacing={2} sx={{ mt: 1 }}>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Customer Name"
+                value={newPump.customerName}
+                onChange={(e) => handleCreateChange('customerName', e.target.value)}
+                margin="normal"
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Dealer Name"
+                value={newPump.dealerName}
+                onChange={(e) => handleCreateChange('dealerName', e.target.value)}
+                margin="normal"
+                required
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Address Line 1"
+                value={newPump.address.line1}
+                onChange={(e) => handleCreateChange('address.line1', e.target.value)}
+                margin="normal"
+                required
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Address Line 2"
+                value={newPump.address.line2}
+                onChange={(e) => handleCreateChange('address.line2', e.target.value)}
+                margin="normal"
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="City"
+                value={newPump.address.city}
+                onChange={(e) => handleCreateChange('address.city', e.target.value)}
+                margin="normal"
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="District"
+                value={newPump.address.district}
+                onChange={(e) => handleCreateChange('address.district', e.target.value)}
+                margin="normal"
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="State"
+                value={newPump.address.state}
+                onChange={(e) => handleCreateChange('address.state', e.target.value)}
+                margin="normal"
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Pincode"
+                value={newPump.address.pincode}
+                onChange={(e) => handleCreateChange('address.pincode', e.target.value)}
+                margin="normal"
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Latitude"
+                value={newPump.location.latitude}
+                onChange={(e) => handleCreateChange('location.latitude', e.target.value)}
+                margin="normal"
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Longitude"
+                value={newPump.location.longitude}
+                onChange={(e) => handleCreateChange('location.longitude', e.target.value)}
+                margin="normal"
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Phone"
+                value={newPump.contactDetails.phone}
+                onChange={(e) => handleCreateChange('contactDetails.phone', e.target.value)}
+                margin="normal"
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Email"
+                value={newPump.contactDetails.email}
+                onChange={(e) => handleCreateChange('contactDetails.email', e.target.value)}
+                margin="normal"
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Company"
+                value={newPump.company}
+                onChange={(e) => handleCreateChange('company', e.target.value)}
+                margin="normal"
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                select
+                label="Status"
+                value={newPump.status}
+                onChange={(e) => handleCreateChange('status', e.target.value)}
+                margin="normal"
+              >
+                <MenuItem value="active">Active</MenuItem>
+                <MenuItem value="inactive">Inactive</MenuItem>
+                <MenuItem value="pending">Pending</MenuItem>
+              </TextField>
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button 
+            onClick={handleCloseCreateDialog}
+            startIcon={<CancelIcon />}
+            disabled={actionLoading}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleCreatePump}
+            variant="contained"
+            startIcon={actionLoading ? <CircularProgress size={20} /> : <SaveIcon />}
+            disabled={actionLoading}
+          >
+            {actionLoading ? 'Creating...' : 'Create Pump'}
           </Button>
         </DialogActions>
       </Dialog>

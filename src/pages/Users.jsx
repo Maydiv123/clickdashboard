@@ -22,7 +22,8 @@ import {
   Chip,
   Grid,
   MenuItem,
-  Alert
+  Alert,
+  Fab
 } from '@mui/material';
 import { 
   Search as SearchIcon,
@@ -31,10 +32,11 @@ import {
   CheckCircle as ActiveIcon,
   Edit as EditIcon,
   Save as SaveIcon,
-  Cancel as CancelIcon
+  Cancel as CancelIcon,
+  Add as AddIcon
 } from '@mui/icons-material';
 import { db } from '../firebase/config';
-import { collection, getDocs, query, where, doc, updateDoc, deleteDoc, orderBy } from 'firebase/firestore';
+import { collection, getDocs, query, where, doc, updateDoc, deleteDoc, orderBy, addDoc } from 'firebase/firestore';
 
 export default function Users() {
   const [users, setUsers] = useState([]);
@@ -52,6 +54,21 @@ export default function Users() {
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [editedUser, setEditedUser] = useState(null);
+  const [openCreateDialog, setOpenCreateDialog] = useState(false);
+  const [newUser, setNewUser] = useState({
+    firstName: '',
+    lastName: '',
+    mobile: '',
+    email: '',
+    userType: 'user',
+    teamMemberStatus: 'inactive',
+    address: '',
+    aadharNo: '',
+    dob: '',
+    preferredCompanies: [],
+    createdAt: new Date(),
+    isDummy: false
+  });
 
   // Fetch users data
   useEffect(() => {
@@ -268,6 +285,60 @@ export default function Users() {
     }
   };
 
+  // Create user handlers
+  const handleOpenCreateDialog = () => {
+    setNewUser({
+      firstName: '',
+      lastName: '',
+      mobile: '',
+      email: '',
+      userType: 'user',
+      teamMemberStatus: 'inactive',
+      address: '',
+      aadharNo: '',
+      dob: '',
+      preferredCompanies: [],
+      createdAt: new Date(),
+      isDummy: false
+    });
+    setOpenCreateDialog(true);
+  };
+
+  const handleCloseCreateDialog = () => {
+    setOpenCreateDialog(false);
+  };
+
+  const handleCreateChange = (field, value) => {
+    setNewUser(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleCreateUser = async () => {
+    setActionLoading(true);
+    try {
+      const usersRef = collection(db, 'users');
+      const docRef = await addDoc(usersRef, newUser);
+      
+      // Add the new user to the local state
+      const createdUser = {
+        id: docRef.id,
+        ...newUser
+      };
+      
+      setUsers(prevUsers => [...prevUsers, createdUser]);
+      setFilteredUsers(prevUsers => [...prevUsers, createdUser]);
+      
+      setActionLoading(false);
+      handleCloseCreateDialog();
+    } catch (error) {
+      console.error('Error creating user:', error);
+      setError(error.message);
+      setActionLoading(false);
+    }
+  };
+
   const getUserType = (user) => {
     if (user.isTeamOwner) return 'Team Owner';
     if (user.userType === 'UserType.teamMember') return 'Team Member';
@@ -291,9 +362,19 @@ export default function Users() {
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>
-        Users Management
-      </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Typography variant="h4">
+          User Management
+        </Typography>
+        <Fab
+          color="primary"
+          size="medium"
+          onClick={handleOpenCreateDialog}
+          sx={{ ml: 2 }}
+        >
+          <AddIcon />
+        </Fab>
+      </Box>
       
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
@@ -582,6 +663,137 @@ export default function Users() {
             {actionLoading 
               ? 'Processing...' 
               : (userToToggleBlock && userToToggleBlock.isBlocked ? 'Unblock' : 'Block')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+      
+      {/* Create User Dialog */}
+      <Dialog
+        open={openCreateDialog}
+        onClose={handleCloseCreateDialog}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>Create New User</DialogTitle>
+        <DialogContent>
+          <Grid container spacing={2} sx={{ mt: 1 }}>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="First Name"
+                value={newUser.firstName}
+                onChange={(e) => handleCreateChange('firstName', e.target.value)}
+                margin="normal"
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Last Name"
+                value={newUser.lastName}
+                onChange={(e) => handleCreateChange('lastName', e.target.value)}
+                margin="normal"
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Mobile"
+                value={newUser.mobile}
+                onChange={(e) => handleCreateChange('mobile', e.target.value)}
+                margin="normal"
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Email"
+                value={newUser.email}
+                onChange={(e) => handleCreateChange('email', e.target.value)}
+                margin="normal"
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                select
+                label="User Type"
+                value={newUser.userType}
+                onChange={(e) => handleCreateChange('userType', e.target.value)}
+                margin="normal"
+              >
+                <MenuItem value="user">User</MenuItem>
+                <MenuItem value="admin">Admin</MenuItem>
+              </TextField>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                select
+                label="Team Status"
+                value={newUser.teamMemberStatus}
+                onChange={(e) => handleCreateChange('teamMemberStatus', e.target.value)}
+                margin="normal"
+              >
+                <MenuItem value="active">Active</MenuItem>
+                <MenuItem value="inactive">Inactive</MenuItem>
+                <MenuItem value="pending">Pending</MenuItem>
+              </TextField>
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Address"
+                value={newUser.address}
+                onChange={(e) => handleCreateChange('address', e.target.value)}
+                margin="normal"
+                multiline
+                rows={2}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Aadhar Number"
+                value={newUser.aadharNo}
+                onChange={(e) => handleCreateChange('aadharNo', e.target.value)}
+                margin="normal"
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Date of Birth"
+                type="date"
+                value={newUser.dob}
+                onChange={(e) => handleCreateChange('dob', e.target.value)}
+                margin="normal"
+                InputLabelProps={{
+                  shrink: true,
+                }}
+              />
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button 
+            onClick={handleCloseCreateDialog}
+            startIcon={<CancelIcon />}
+            disabled={actionLoading}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleCreateUser}
+            variant="contained"
+            startIcon={actionLoading ? <CircularProgress size={20} /> : <SaveIcon />}
+            disabled={actionLoading}
+          >
+            {actionLoading ? 'Creating...' : 'Create User'}
           </Button>
         </DialogActions>
       </Dialog>
