@@ -62,7 +62,10 @@ import {
   FilterList as FilterIcon,
   MoreVert as MoreVertIcon,
   PersonAdd as PersonAddIcon,
-  ContentCopy as CopyIcon
+  ContentCopy as CopyIcon,
+  Group as GroupIcon,
+  Code as CodeIcon,
+  Numbers as NumbersIcon
 } from '@mui/icons-material';
 import { db } from '../firebase/config';
 import { collection, getDocs, query, doc, deleteDoc, orderBy, getDoc, updateDoc, addDoc } from 'firebase/firestore';
@@ -640,135 +643,161 @@ export default function Teams() {
         onClose={handleCloseCreateDialog}
         maxWidth="md"
         fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.1)'
+          }
+        }}
       >
-        <DialogTitle>Create New Team</DialogTitle>
-        <DialogContent>
-          <Grid container spacing={2} sx={{ mt: 1 }}>
-            <Grid item xs={12} sm={6}>
+        <DialogTitle sx={{ pb: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <GroupIcon color="primary" />
+            <Typography variant="h6" fontWeight={600}>
+              Create New Team
+            </Typography>
+          </Box>
+        </DialogTitle>
+        
+        <DialogContent dividers>
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
                 label="Team Name"
                 value={newTeam.teamName}
                 onChange={(e) => handleCreateChange('teamName', e.target.value)}
-                margin="normal"
-                required
+                variant="outlined"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <GroupIcon color="action" />
+                    </InputAdornment>
+                  ),
+                }}
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
                 label="Team Code"
                 value={newTeam.teamCode}
                 onChange={(e) => handleCreateChange('teamCode', e.target.value)}
-                margin="normal"
-                required
+                variant="outlined"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <CodeIcon color="action" />
+                    </InputAdornment>
+                  ),
+                }}
               />
             </Grid>
+            
+            <Grid item xs={12}>
+              <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <PersonIcon color="primary" />
+                Team Leader
+              </Typography>
+            </Grid>
+            
             <Grid item xs={12}>
               <TextField
                 fullWidth
                 label="Owner ID"
                 value={newTeam.ownerId}
                 onChange={(e) => handleCreateChange('ownerId', e.target.value)}
-                margin="normal"
-                required
+                variant="outlined"
                 helperText="Enter the user ID of the team owner"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <PersonIcon color="action" />
+                    </InputAdornment>
+                  ),
+                }}
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            
+            <Grid item xs={12}>
+              <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <NumbersIcon color="primary" />
+                Team Statistics
+              </Typography>
+            </Grid>
+            
+            <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
                 type="number"
                 label="Active Members"
                 value={newTeam.activeMembers}
                 onChange={(e) => handleCreateChange('activeMembers', parseInt(e.target.value))}
-                margin="normal"
-                required
+                variant="outlined"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <NumbersIcon color="action" />
+                    </InputAdornment>
+                  ),
+                }}
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
                 type="number"
                 label="Member Count"
                 value={newTeam.memberCount}
                 onChange={(e) => handleCreateChange('memberCount', parseInt(e.target.value))}
-                margin="normal"
-                required
+                variant="outlined"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <NumbersIcon color="action" />
+                    </InputAdornment>
+                  ),
+                }}
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
                 type="number"
                 label="Pending Requests"
                 value={newTeam.pendingRequests}
                 onChange={(e) => handleCreateChange('pendingRequests', parseInt(e.target.value))}
-                margin="normal"
-                required
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                type="number"
-                label="Total Uploads"
-                value={newTeam.teamStats.totalUploads}
-                onChange={(e) => handleCreateChange('teamStats.totalUploads', parseInt(e.target.value))}
-                margin="normal"
-                required
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                type="number"
-                label="Total Distance"
-                value={newTeam.teamStats.totalDistance}
-                onChange={(e) => handleCreateChange('teamStats.totalDistance', parseInt(e.target.value))}
-                margin="normal"
-                required
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                type="number"
-                label="Total Visits"
-                value={newTeam.teamStats.totalVisits}
-                onChange={(e) => handleCreateChange('teamStats.totalVisits', parseInt(e.target.value))}
-                margin="normal"
-                required
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                type="number"
-                label="Fuel Consumption"
-                value={newTeam.teamStats.fuelConsumption}
-                onChange={(e) => handleCreateChange('teamStats.fuelConsumption', parseInt(e.target.value))}
-                margin="normal"
-                required
+                variant="outlined"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <NumbersIcon color="action" />
+                    </InputAdornment>
+                  ),
+                }}
               />
             </Grid>
           </Grid>
         </DialogContent>
-        <DialogActions>
+        
+        <DialogActions sx={{ px: 3, py: 2 }}>
           <Button 
-            onClick={handleCloseCreateDialog}
+            onClick={handleCloseCreateDialog} 
+            variant="outlined"
+            color="inherit"
             startIcon={<CancelIcon />}
-            disabled={actionLoading}
+            sx={{ borderRadius: 2, px: 3 }}
           >
             Cancel
           </Button>
-          <Button
-            onClick={handleCreateTeam}
+          <Button 
+            onClick={handleCreateTeam} 
             variant="contained"
-            startIcon={actionLoading ? <CircularProgress size={20} /> : <SaveIcon />}
             disabled={actionLoading}
+            startIcon={actionLoading ? <CircularProgress size={20} /> : <SaveIcon />}
+            sx={{ borderRadius: 2, px: 3 }}
           >
-            {actionLoading ? 'Creating...' : 'Create Team'}
+            Create Team
           </Button>
         </DialogActions>
       </Dialog>

@@ -37,7 +37,10 @@ import {
   Stack,
   Menu,
   ListItemIcon,
-  ListItemText
+  ListItemText,
+  Stepper,
+  Step,
+  StepLabel
 } from '@mui/material';
 import { styled, alpha } from '@mui/material/styles';
 import { 
@@ -52,7 +55,14 @@ import {
   FilterList as FilterIcon,
   MoreVert as MoreVertIcon,
   Visibility as ViewIcon,
-  PersonAdd as PersonAddIcon
+  PersonAdd as PersonAddIcon,
+  Person as PersonIcon,
+  Badge as BadgeIcon,
+  Group as GroupIcon,
+  Email as EmailIcon,
+  Phone as PhoneIcon,
+  LocationOn as LocationOnIcon,
+  CalendarToday as CalendarTodayIcon
 } from '@mui/icons-material';
 import { db } from '../firebase/config';
 import { collection, getDocs, query, where, doc, updateDoc, deleteDoc, orderBy, addDoc } from 'firebase/firestore';
@@ -148,6 +158,8 @@ export default function Users() {
   const [tabValue, setTabValue] = useState(0);
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedRow, setSelectedRow] = useState(null);
+  const [activeStep, setActiveStep] = useState(0);
+  const steps = ['Basic Information', 'Contact Details', 'Additional Information'];
 
   // Menu handlers
   const handleOpenMenu = (event, user) => {
@@ -806,125 +818,208 @@ export default function Users() {
       </Dialog>
 
       {/* Create User Dialog */}
-      <Dialog open={openCreateDialog} onClose={handleCloseCreateDialog} maxWidth="md" fullWidth>
-        <DialogTitle>
-          <Typography variant="h6" fontWeight={600}>
-            Create New User
-          </Typography>
+      <Dialog 
+        open={openCreateDialog} 
+        onClose={handleCloseCreateDialog} 
+        maxWidth="md" 
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.1)'
+          }
+        }}
+      >
+        <DialogTitle sx={{ pb: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <PersonAddIcon color="primary" />
+            <Typography variant="h6" fontWeight={600}>
+              Create New User
+            </Typography>
+          </Box>
         </DialogTitle>
+        
+        <Stepper activeStep={activeStep} sx={{ px: 3, py: 2 }}>
+          {steps.map((label) => (
+            <Step key={label}>
+              <StepLabel>{label}</StepLabel>
+            </Step>
+          ))}
+        </Stepper>
+        
         <DialogContent dividers>
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="First Name"
-                value={newUser.firstName}
-                onChange={(e) => handleCreateChange('firstName', e.target.value)}
-                margin="normal"
-                variant="outlined"
-                sx={{ mb: 2 }}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Last Name"
-                value={newUser.lastName}
-                onChange={(e) => handleCreateChange('lastName', e.target.value)}
-                margin="normal"
-                variant="outlined"
-                sx={{ mb: 2 }}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Email"
-                type="email"
-                value={newUser.email}
-                onChange={(e) => handleCreateChange('email', e.target.value)}
-                margin="normal"
-                variant="outlined"
-                sx={{ mb: 2 }}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Mobile"
-                value={newUser.mobile}
-                onChange={(e) => handleCreateChange('mobile', e.target.value)}
-                margin="normal"
-                variant="outlined"
-                sx={{ mb: 2 }}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <FormControl fullWidth margin="normal" sx={{ mb: 2 }}>
-                <InputLabel>User Type</InputLabel>
-                <Select
-                  value={newUser.userType}
-                  onChange={(e) => handleCreateChange('userType', e.target.value)}
-                  label="User Type"
-                >
-                  <MenuItem value="user">User</MenuItem>
-                  <MenuItem value="team_leader">Team Leader</MenuItem>
-                  <MenuItem value="admin">Admin</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <FormControl fullWidth margin="normal" sx={{ mb: 2 }}>
-                <InputLabel>Team Member Status</InputLabel>
-                <Select
-                  value={newUser.teamMemberStatus}
-                  onChange={(e) => handleCreateChange('teamMemberStatus', e.target.value)}
-                  label="Team Member Status"
-                >
-                  <MenuItem value="active">Active</MenuItem>
-                  <MenuItem value="inactive">Inactive</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Address"
-                value={newUser.address}
-                onChange={(e) => handleCreateChange('address', e.target.value)}
-                margin="normal"
-                variant="outlined"
-                multiline
-                rows={2}
-                sx={{ mb: 2 }}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Aadhar Number"
-                value={newUser.aadharNo}
-                onChange={(e) => handleCreateChange('aadharNo', e.target.value)}
-                margin="normal"
-                variant="outlined"
-                sx={{ mb: 2 }}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Date of Birth"
-                type="date"
-                value={newUser.dob}
-                onChange={(e) => handleCreateChange('dob', e.target.value)}
-                margin="normal"
-                variant="outlined"
-                InputLabelProps={{ shrink: true }}
-                sx={{ mb: 2 }}
-              />
-            </Grid>
-          </Grid>
+          <Box sx={{ mt: 2 }}>
+            {activeStep === 0 && (
+              <Grid container spacing={3}>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="First Name"
+                    value={newUser.firstName}
+                    onChange={(e) => handleCreateChange('firstName', e.target.value)}
+                    variant="outlined"
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <PersonIcon color="action" />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Last Name"
+                    value={newUser.lastName}
+                    onChange={(e) => handleCreateChange('lastName', e.target.value)}
+                    variant="outlined"
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <PersonIcon color="action" />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <FormControl fullWidth>
+                    <InputLabel>User Type</InputLabel>
+                    <Select
+                      value={newUser.userType}
+                      onChange={(e) => handleCreateChange('userType', e.target.value)}
+                      label="User Type"
+                      startAdornment={
+                        <InputAdornment position="start">
+                          <BadgeIcon color="action" />
+                        </InputAdornment>
+                      }
+                    >
+                      <MenuItem value="user">User</MenuItem>
+                      <MenuItem value="team_leader">Team Leader</MenuItem>
+                      <MenuItem value="admin">Admin</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <FormControl fullWidth>
+                    <InputLabel>Team Member Status</InputLabel>
+                    <Select
+                      value={newUser.teamMemberStatus}
+                      onChange={(e) => handleCreateChange('teamMemberStatus', e.target.value)}
+                      label="Team Member Status"
+                      startAdornment={
+                        <InputAdornment position="start">
+                          <GroupIcon color="action" />
+                        </InputAdornment>
+                      }
+                    >
+                      <MenuItem value="active">Active</MenuItem>
+                      <MenuItem value="inactive">Inactive</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+              </Grid>
+            )}
+
+            {activeStep === 1 && (
+              <Grid container spacing={3}>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Email"
+                    type="email"
+                    value={newUser.email}
+                    onChange={(e) => handleCreateChange('email', e.target.value)}
+                    variant="outlined"
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <EmailIcon color="action" />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Mobile"
+                    value={newUser.mobile}
+                    onChange={(e) => handleCreateChange('mobile', e.target.value)}
+                    variant="outlined"
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <PhoneIcon color="action" />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Address"
+                    value={newUser.address}
+                    onChange={(e) => handleCreateChange('address', e.target.value)}
+                    variant="outlined"
+                    multiline
+                    rows={2}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <LocationOnIcon color="action" />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Grid>
+              </Grid>
+            )}
+
+            {activeStep === 2 && (
+              <Grid container spacing={3}>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Aadhar Number"
+                    value={newUser.aadharNo}
+                    onChange={(e) => handleCreateChange('aadharNo', e.target.value)}
+                    variant="outlined"
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <BadgeIcon color="action" />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Date of Birth"
+                    type="date"
+                    value={newUser.dob}
+                    onChange={(e) => handleCreateChange('dob', e.target.value)}
+                    variant="outlined"
+                    InputLabelProps={{ shrink: true }}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <CalendarTodayIcon color="action" />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Grid>
+              </Grid>
+            )}
+          </Box>
         </DialogContent>
+        
         <DialogActions sx={{ px: 3, py: 2 }}>
           <Button 
             onClick={handleCloseCreateDialog} 
@@ -934,15 +1029,35 @@ export default function Users() {
           >
             Cancel
           </Button>
-          <Button 
-            onClick={handleCreateUser} 
-            variant="contained"
-            disabled={actionLoading}
-            startIcon={actionLoading ? <CircularProgress size={20} /> : <AddIcon />}
-            sx={{ borderRadius: 2, px: 3 }}
-          >
-            Create User
-          </Button>
+          <Box sx={{ flex: 1 }} />
+          {activeStep > 0 && (
+            <Button
+              onClick={() => setActiveStep((prev) => prev - 1)}
+              variant="outlined"
+              sx={{ borderRadius: 2, px: 3, mr: 1 }}
+            >
+              Back
+            </Button>
+          )}
+          {activeStep < steps.length - 1 ? (
+            <Button
+              onClick={() => setActiveStep((prev) => prev + 1)}
+              variant="contained"
+              sx={{ borderRadius: 2, px: 3 }}
+            >
+              Next
+            </Button>
+          ) : (
+            <Button 
+              onClick={handleCreateUser} 
+              variant="contained"
+              disabled={actionLoading}
+              startIcon={actionLoading ? <CircularProgress size={20} /> : <AddIcon />}
+              sx={{ borderRadius: 2, px: 3 }}
+            >
+              Create User
+            </Button>
+          )}
         </DialogActions>
       </Dialog>
 

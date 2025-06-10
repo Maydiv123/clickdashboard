@@ -65,11 +65,26 @@ import {
   Place as PlaceIcon,
   Phone as PhoneIcon,
   Email as EmailIcon,
-  Business as BusinessIcon
+  Business as BusinessIcon,
+  Person as PersonIcon,
+  Map as MapIcon,
+  Clear as ClearIcon,
+  MyLocation as MyLocationIcon
 } from '@mui/icons-material';
 import { db } from '../firebase/config';
 import { collection, getDocs, query, doc, updateDoc, deleteDoc, orderBy, addDoc } from 'firebase/firestore';
 import * as XLSX from 'xlsx';
+import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+
+// Fix for default marker icon
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
 
 // Styled components
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
@@ -145,6 +160,58 @@ const StatusChip = styled(Chip)(({ theme, status }) => ({
   })
 }));
 
+// Update the mapContainerStyle
+const mapContainerStyle = {
+  width: '100%',
+  height: '100%',
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0
+};
+
+// Add a styled component for the map container
+const MapWrapper = styled(Box)(({ theme }) => ({
+  position: 'relative',
+  width: '100%',
+  height: '500px',
+  marginBottom: theme.spacing(2),
+  borderRadius: theme.shape.borderRadius * 2,
+  overflow: 'hidden',
+  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+  '& .leaflet-container': {
+    width: '100% !important',
+    height: '100% !important',
+    position: 'absolute !important',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0
+  },
+  '& .leaflet-control-container': {
+    zIndex: 2
+  },
+  '& .leaflet-pane': {
+    zIndex: 1
+  },
+  '& .leaflet-top, & .leaflet-bottom': {
+    zIndex: 2
+  }
+}));
+
+// Add a styled component for the map section
+const MapSection = styled(Box)(({ theme }) => ({
+  width: '100%',
+  marginBottom: theme.spacing(3),
+  '& .map-controls': {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: theme.spacing(2)
+  }
+}));
+
 export default function PetrolPumps() {
   const [pumps, setPumps] = useState([]);
   const [filteredPumps, setFilteredPumps] = useState([]);
@@ -193,6 +260,17 @@ export default function PetrolPumps() {
   const [tabValue, setTabValue] = useState(0);
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedRow, setSelectedRow] = useState(null);
+  const [selectedLocation, setSelectedLocation] = useState(null);
+  const [showMap, setShowMap] = useState(false);
+  const [manualLocation, setManualLocation] = useState({
+    latitude: '',
+    longitude: ''
+  });
+
+  const defaultCenter = {
+    lat: 20.5937, // Default to India's center
+    lng: 78.9629
+  };
 
   // Menu handlers
   const handleOpenMenu = (event, pump) => {
@@ -560,6 +638,36 @@ export default function PetrolPumps() {
     }
   };
 
+  // Map click handler component
+  function LocationMarker() {
+    const map = useMapEvents({
+      click(e) {
+        setSelectedLocation(e.latlng);
+        handleCreateChange('location', {
+          lat: e.latlng.lat,
+          lng: e.latlng.lng
+        });
+      },
+    });
+
+    return selectedLocation ? (
+      <Marker
+        position={selectedLocation}
+        draggable={true}
+        eventHandlers={{
+          dragend: (e) => {
+            const newPosition = e.target.getLatLng();
+            setSelectedLocation(newPosition);
+            handleCreateChange('location', {
+              lat: newPosition.lat,
+              lng: newPosition.lng
+            });
+          },
+        }}
+      />
+    ) : null;
+  }
+
   // Render address function
   const renderAddress = (pump) => {
     let address = '';
@@ -584,6 +692,34 @@ export default function PetrolPumps() {
   // Get petrol pump status
   const getPumpStatus = (pump) => {
     return pump.isVerified ? 'verified' : 'unverified';
+  };
+
+  const handleManualLocationChange = (field, value) => {
+    const newValue = value === '' ? '' : parseFloat(value);
+    setManualLocation(prev => ({
+      ...prev,
+      [field]: newValue
+    }));
+    
+    if (field === 'latitude' && manualLocation.longitude !== '') {
+      handleCreateChange('location', {
+        lat: newValue,
+        lng: manualLocation.longitude
+      });
+      setSelectedLocation({ lat: newValue, lng: manualLocation.longitude });
+    } else if (field === 'longitude' && manualLocation.latitude !== '') {
+      handleCreateChange('location', {
+        lat: manualLocation.latitude,
+        lng: newValue
+      });
+      setSelectedLocation({ lat: manualLocation.latitude, lng: newValue });
+    }
+  };
+
+  const handleRemoveLocation = () => {
+    setSelectedLocation(null);
+    setManualLocation({ latitude: '', longitude: '' });
+    handleCreateChange('location', null);
   };
 
   if (loading) {
@@ -1167,30 +1303,100 @@ export default function PetrolPumps() {
               </Grid>
               
               <Grid item xs={12}>
-                <Typography variant="subtitle1" fontWeight={600} gutterBottom>
-                  Location
-                </Typography>
-              </Grid>
-              
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Latitude"
-                  value={selectedPump.latitude || selectedPump.location?.latitude || ''}
-                  InputProps={{ readOnly: true }}
-                  margin="normal"
-                  variant="outlined"
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Longitude"
-                  value={selectedPump.longitude || selectedPump.location?.longitude || ''}
-                  InputProps={{ readOnly: true }}
-                  margin="normal"
-                  variant="outlined"
-                />
+                <MapSection>
+                  <Box className="map-controls">
+                    <Typography variant="subtitle1" fontWeight={600} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <MyLocationIcon color="primary" />
+                      Location Coordinates
+                    </Typography>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      startIcon={<MapIcon />}
+                      onClick={() => setShowMap(!showMap)}
+                    >
+                      {showMap ? 'Hide Map' : 'Show Map'}
+                    </Button>
+                  </Box>
+
+                  <Grid container spacing={2} sx={{ mb: 2 }}>
+                    <Grid item xs={12} md={6}>
+                      <TextField
+                        fullWidth
+                        label="Latitude"
+                        type="number"
+                        value={manualLocation.latitude}
+                        onChange={(e) => handleManualLocationChange('latitude', e.target.value)}
+                        variant="outlined"
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <MyLocationIcon color="action" />
+                            </InputAdornment>
+                          ),
+                        }}
+                        helperText="Enter latitude (e.g., 20.5937)"
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <TextField
+                        fullWidth
+                        label="Longitude"
+                        type="number"
+                        value={manualLocation.longitude}
+                        onChange={(e) => handleManualLocationChange('longitude', e.target.value)}
+                        variant="outlined"
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <MyLocationIcon color="action" />
+                            </InputAdornment>
+                          ),
+                        }}
+                        helperText="Enter longitude (e.g., 78.9629)"
+                      />
+                    </Grid>
+                  </Grid>
+
+                  {showMap && (
+                    <MapWrapper>
+                      <MapContainer
+                        center={selectedLocation || defaultCenter}
+                        zoom={5}
+                        style={mapContainerStyle}
+                        scrollWheelZoom={true}
+                        zoomControl={true}
+                        attributionControl={true}
+                        doubleClickZoom={true}
+                        dragging={true}
+                        touchZoom={true}
+                      >
+                        <TileLayer
+                          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                        />
+                        <LocationMarker />
+                      </MapContainer>
+                    </MapWrapper>
+                  )}
+
+                  {selectedLocation && (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 2 }}>
+                      <Typography variant="body2" color="text.secondary">
+                        Selected Location: {selectedLocation.lat.toFixed(6)}, {selectedLocation.lng.toFixed(6)}
+                      </Typography>
+                      <Button
+                        size="small"
+                        color="error"
+                        startIcon={<ClearIcon />}
+                        onClick={handleRemoveLocation}
+                        sx={{ ml: 'auto' }}
+                      >
+                        Remove Location
+                      </Button>
+                    </Box>
+                  )}
+                </MapSection>
               </Grid>
               
               <Grid item xs={12}>
@@ -1256,22 +1462,51 @@ export default function PetrolPumps() {
       </Dialog>
 
       {/* Create Petrol Pump Dialog */}
-      <Dialog open={openCreateDialog} onClose={handleCloseCreateDialog} maxWidth="md" fullWidth>
-        <DialogTitle>
-          <Typography variant="h6" fontWeight={600}>
-            Create New Petrol Pump
-          </Typography>
+      <Dialog 
+        open={openCreateDialog} 
+        onClose={handleCloseCreateDialog} 
+        maxWidth="md" 
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.1)'
+          }
+        }}
+      >
+        <DialogTitle sx={{ pb: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <BusinessIcon color="primary" />
+            <Typography variant="h6" fontWeight={600}>
+              Create New Petrol Pump
+            </Typography>
+          </Box>
         </DialogTitle>
+        
         <DialogContent dividers>
           <Grid container spacing={3}>
+            {/* Basic Information */}
+            <Grid item xs={12}>
+              <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <BusinessIcon color="primary" />
+                Basic Information
+              </Typography>
+            </Grid>
+            
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
                 label="Customer Name"
                 value={newPump.customerName}
                 onChange={(e) => handleCreateChange('customerName', e.target.value)}
-                margin="normal"
                 variant="outlined"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <PersonIcon color="action" />
+                    </InputAdornment>
+                  ),
+                }}
               />
             </Grid>
             <Grid item xs={12} md={6}>
@@ -1280,14 +1515,22 @@ export default function PetrolPumps() {
                 label="Dealer Name"
                 value={newPump.dealerName}
                 onChange={(e) => handleCreateChange('dealerName', e.target.value)}
-                margin="normal"
                 variant="outlined"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <PersonIcon color="action" />
+                    </InputAdornment>
+                  ),
+                }}
               />
             </Grid>
             
+            {/* Address Information */}
             <Grid item xs={12}>
-              <Typography variant="subtitle1" fontWeight={600} gutterBottom>
-                Address
+              <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <LocationIcon color="primary" />
+                Address Information
               </Typography>
             </Grid>
             
@@ -1297,8 +1540,14 @@ export default function PetrolPumps() {
                 label="Address Line 1"
                 value={newPump.address.line1}
                 onChange={(e) => handleCreateChange('address.line1', e.target.value)}
-                margin="normal"
                 variant="outlined"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <LocationIcon color="action" />
+                    </InputAdornment>
+                  ),
+                }}
               />
             </Grid>
             <Grid item xs={12} md={6}>
@@ -1307,8 +1556,14 @@ export default function PetrolPumps() {
                 label="Address Line 2"
                 value={newPump.address.line2}
                 onChange={(e) => handleCreateChange('address.line2', e.target.value)}
-                margin="normal"
                 variant="outlined"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <LocationIcon color="action" />
+                    </InputAdornment>
+                  ),
+                }}
               />
             </Grid>
             
@@ -1318,8 +1573,14 @@ export default function PetrolPumps() {
                 label="City"
                 value={newPump.address.city}
                 onChange={(e) => handleCreateChange('address.city', e.target.value)}
-                margin="normal"
                 variant="outlined"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <LocationIcon color="action" />
+                    </InputAdornment>
+                  ),
+                }}
               />
             </Grid>
             <Grid item xs={12} md={4}>
@@ -1328,8 +1589,14 @@ export default function PetrolPumps() {
                 label="District"
                 value={newPump.address.district}
                 onChange={(e) => handleCreateChange('address.district', e.target.value)}
-                margin="normal"
                 variant="outlined"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <LocationIcon color="action" />
+                    </InputAdornment>
+                  ),
+                }}
               />
             </Grid>
             <Grid item xs={12} md={4}>
@@ -1338,52 +1605,137 @@ export default function PetrolPumps() {
                 label="State"
                 value={newPump.address.state}
                 onChange={(e) => handleCreateChange('address.state', e.target.value)}
-                margin="normal"
                 variant="outlined"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <LocationIcon color="action" />
+                    </InputAdornment>
+                  ),
+                }}
               />
             </Grid>
             
-            <Grid item xs={12} md={4}>
+            <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
                 label="Pincode"
                 value={newPump.address.pincode}
                 onChange={(e) => handleCreateChange('address.pincode', e.target.value)}
-                margin="normal"
                 variant="outlined"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <LocationIcon color="action" />
+                    </InputAdornment>
+                  ),
+                }}
               />
             </Grid>
             
+            {/* Location */}
             <Grid item xs={12}>
-              <Typography variant="subtitle1" fontWeight={600} gutterBottom>
-                Location
-              </Typography>
+              <MapSection>
+                <Box className="map-controls">
+                  <Typography variant="subtitle1" fontWeight={600} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <MyLocationIcon color="primary" />
+                    Location Coordinates
+                  </Typography>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    startIcon={<MapIcon />}
+                    onClick={() => setShowMap(!showMap)}
+                  >
+                    {showMap ? 'Hide Map' : 'Show Map'}
+                  </Button>
+                </Box>
+
+                <Grid container spacing={2} sx={{ mb: 2 }}>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Latitude"
+                      type="number"
+                      value={manualLocation.latitude}
+                      onChange={(e) => handleManualLocationChange('latitude', e.target.value)}
+                      variant="outlined"
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <MyLocationIcon color="action" />
+                          </InputAdornment>
+                        ),
+                      }}
+                      helperText="Enter latitude (e.g., 20.5937)"
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Longitude"
+                      type="number"
+                      value={manualLocation.longitude}
+                      onChange={(e) => handleManualLocationChange('longitude', e.target.value)}
+                      variant="outlined"
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <MyLocationIcon color="action" />
+                          </InputAdornment>
+                        ),
+                      }}
+                      helperText="Enter longitude (e.g., 78.9629)"
+                    />
+                  </Grid>
+                </Grid>
+
+                {showMap && (
+                  <MapWrapper>
+                    <MapContainer
+                      center={selectedLocation || defaultCenter}
+                      zoom={5}
+                      style={mapContainerStyle}
+                      scrollWheelZoom={true}
+                      zoomControl={true}
+                      attributionControl={true}
+                      doubleClickZoom={true}
+                      dragging={true}
+                      touchZoom={true}
+                    >
+                      <TileLayer
+                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                      />
+                      <LocationMarker />
+                    </MapContainer>
+                  </MapWrapper>
+                )}
+
+                {selectedLocation && (
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 2 }}>
+                    <Typography variant="body2" color="text.secondary">
+                      Selected Location: {selectedLocation.lat.toFixed(6)}, {selectedLocation.lng.toFixed(6)}
+                    </Typography>
+                    <Button
+                      size="small"
+                      color="error"
+                      startIcon={<ClearIcon />}
+                      onClick={handleRemoveLocation}
+                      sx={{ ml: 'auto' }}
+                    >
+                      Remove Location
+                    </Button>
+                  </Box>
+                )}
+              </MapSection>
             </Grid>
             
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Latitude"
-                value={newPump.location.latitude}
-                onChange={(e) => handleCreateChange('location.latitude', e.target.value)}
-                margin="normal"
-                variant="outlined"
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Longitude"
-                value={newPump.location.longitude}
-                onChange={(e) => handleCreateChange('location.longitude', e.target.value)}
-                margin="normal"
-                variant="outlined"
-              />
-            </Grid>
-            
+            {/* Contact Information */}
             <Grid item xs={12}>
-              <Typography variant="subtitle1" fontWeight={600} gutterBottom>
-                Contact Details
+              <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <PhoneIcon color="primary" />
+                Contact Information
               </Typography>
             </Grid>
             
@@ -1393,63 +1745,78 @@ export default function PetrolPumps() {
                 label="Phone"
                 value={newPump.contactDetails.phone}
                 onChange={(e) => handleCreateChange('contactDetails.phone', e.target.value)}
-                margin="normal"
                 variant="outlined"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <PhoneIcon color="action" />
+                    </InputAdornment>
+                  ),
+                }}
               />
             </Grid>
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
                 label="Email"
+                type="email"
                 value={newPump.contactDetails.email}
                 onChange={(e) => handleCreateChange('contactDetails.email', e.target.value)}
-                margin="normal"
                 variant="outlined"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <EmailIcon color="action" />
+                    </InputAdornment>
+                  ),
+                }}
               />
             </Grid>
             
-            <Grid item xs={12} md={6}>
+            {/* Company Information */}
+            <Grid item xs={12}>
+              <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <BusinessIcon color="primary" />
+                Company Information
+              </Typography>
+            </Grid>
+            
+            <Grid item xs={12}>
               <TextField
                 fullWidth
                 label="Company"
                 value={newPump.company}
                 onChange={(e) => handleCreateChange('company', e.target.value)}
-                margin="normal"
                 variant="outlined"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <BusinessIcon color="action" />
+                    </InputAdornment>
+                  ),
+                }}
               />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <FormControl fullWidth margin="normal">
-                <InputLabel>Status</InputLabel>
-                <Select
-                  value={newPump.status}
-                  onChange={(e) => handleCreateChange('status', e.target.value)}
-                  label="Status"
-                >
-                  <MenuItem value="active">Active</MenuItem>
-                  <MenuItem value="inactive">Inactive</MenuItem>
-                </Select>
-              </FormControl>
             </Grid>
           </Grid>
         </DialogContent>
+        
         <DialogActions sx={{ px: 3, py: 2 }}>
           <Button 
-            onClick={handleCloseCreateDialog}
+            onClick={handleCloseCreateDialog} 
             variant="outlined"
             color="inherit"
-            sx={{ borderRadius: 2 }}
+            sx={{ borderRadius: 2, px: 3 }}
           >
             Cancel
           </Button>
           <Button 
-            onClick={handleCreatePump}
+            onClick={handleCreatePump} 
             variant="contained"
             disabled={actionLoading}
             startIcon={actionLoading ? <CircularProgress size={20} /> : <AddIcon />}
-            sx={{ borderRadius: 2 }}
+            sx={{ borderRadius: 2, px: 3 }}
           >
-            Create Pump
+            Create Petrol Pump
           </Button>
         </DialogActions>
       </Dialog>
