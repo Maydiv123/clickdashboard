@@ -32,7 +32,8 @@ import {
   Settings as SettingsIcon,
   Search as SearchIcon,
   Notifications as NotificationsIcon,
-  ExitToApp as LogoutIcon
+  ExitToApp as LogoutIcon,
+  RequestPage as RequestPageIcon
 } from '@mui/icons-material';
 import { auth } from '../firebase/config';
 import { signOut } from 'firebase/auth';
@@ -153,6 +154,7 @@ const menuItems = [
   { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
   { text: 'Users', icon: <PeopleIcon />, path: '/users' },
   { text: 'Petrol Pumps', icon: <PetrolPumpIcon />, path: '/petrol-pumps' },
+  { text: 'Petrol Pump Requests', icon: <RequestPageIcon />, path: '/petrol-pump-requests' },
   { text: 'Teams', icon: <TeamIcon />, path: '/teams' },
   { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },
 ];

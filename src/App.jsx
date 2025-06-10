@@ -4,6 +4,7 @@ import { auth } from './firebase/config';
 import { onAuthStateChanged } from 'firebase/auth';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
+import RequestPageIcon from '@mui/icons-material/RequestPage';
 
 // Layouts
 import DashboardLayout from './layouts/DashboardLayout';
@@ -13,6 +14,7 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Users from './pages/Users';
 import PetrolPumps from './pages/PetrolPumps';
+import PetrolPumpRequests from './pages/PetrolPumpRequests';
 import Teams from './pages/Teams';
 import Settings from './pages/Settings';
 
@@ -113,6 +115,7 @@ function App() {
             <Route index element={<Dashboard />} />
             <Route path="users" element={<Users />} />
             <Route path="petrol-pumps" element={<PetrolPumps />} />
+            <Route path="petrol-pump-requests" element={<PetrolPumpRequests />} />
             <Route path="teams" element={<Teams />} />
             <Route path="settings" element={<Settings />} />
           </Route>
