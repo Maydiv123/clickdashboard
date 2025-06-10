@@ -6,20 +6,82 @@ import {
   Typography, 
   Card, 
   CardContent,
-  CircularProgress
+  CircularProgress,
+  Divider,
+  IconButton,
+  Avatar,
+  List,
+  ListItem,
+  ListItemAvatar,
+  ListItemText,
+  LinearProgress,
+  Button
 } from '@mui/material';
 import { 
   PeopleOutline as PeopleIcon, 
   LocalGasStationOutlined as PetrolPumpIcon,
   GroupsOutlined as TeamIcon,
-  CameraAltOutlined as PhotoIcon
+  CameraAltOutlined as PhotoIcon,
+  TrendingUp as TrendingUpIcon,
+  MoreVert as MoreVertIcon,
+  ArrowForward as ArrowForwardIcon
 } from '@mui/icons-material';
 import { db } from '../firebase/config';
 import { collection, getDocs, query, limit, orderBy } from 'firebase/firestore';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, LineChart, Line, CartesianGrid } from 'recharts';
 
 // Colors for charts
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
+
+const StatCard = ({ icon, title, value, color, trend }) => (
+  <Card sx={{ 
+    height: '100%', 
+    borderRadius: 3,
+    transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
+    '&:hover': {
+      transform: 'translateY(-5px)',
+      boxShadow: '0 10px 20px rgba(0,0,0,0.12)',
+    },
+  }}>
+    <CardContent>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+        <Box sx={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center',
+          p: 1.5,
+          borderRadius: 2,
+          bgcolor: `${color}15`,
+          color: color,
+        }}>
+          {icon}
+        </Box>
+        {trend && (
+          <Box sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            px: 1, 
+            py: 0.5, 
+            borderRadius: 1, 
+            bgcolor: '#e6f7ea', 
+            color: '#2e7d32',
+            fontSize: '0.75rem',
+            fontWeight: 'bold'
+          }}>
+            <TrendingUpIcon fontSize="small" sx={{ mr: 0.5 }} />
+            {trend}
+          </Box>
+        )}
+      </Box>
+      <Typography variant="h3" component="div" sx={{ mb: 1, fontWeight: 'bold' }}>
+        {value}
+      </Typography>
+      <Typography variant="body2" color="text.secondary">
+        {title}
+      </Typography>
+    </CardContent>
+  </Card>
+);
 
 export default function Dashboard() {
   const [stats, setStats] = useState({
@@ -48,19 +110,10 @@ export default function Dashboard() {
           ...doc.data()
         }));
         
-        console.log('Recent Users Data:', recentUsersData);
-        
         // Fetch petrol pump count
         const petrolPumpsRef = collection(db, 'petrolPumps');
         const petrolPumpsSnapshot = await getDocs(petrolPumpsRef);
         const petrolPumpCount = petrolPumpsSnapshot.size;
-        
-        // Log petrol pumps data
-        const petrolPumpsData = petrolPumpsSnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        console.log('Petrol Pumps Data:', petrolPumpsData);
         
         // Fetch team count
         const teamsRef = collection(db, 'teams');
@@ -72,7 +125,6 @@ export default function Dashboard() {
           id: doc.id,
           ...doc.data()
         }));
-        console.log('Teams Data:', teamsData);
         
         // Transform teams data for chart
         const chartTeamData = teamsData.map(team => ({
@@ -84,13 +136,6 @@ export default function Dashboard() {
         const photosRef = collection(db, 'photos');
         const photosSnapshot = await getDocs(photosRef);
         const photoCount = photosSnapshot.size;
-        
-        // Log photos data
-        const photosData = photosSnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        console.log('Photos Data:', photosData);
         
         // Update state
         setStats({
@@ -131,6 +176,16 @@ export default function Dashboard() {
     { name: 'Sun', count: 6 },
   ];
 
+  const lineChartData = [
+    { name: 'Jan', users: 65, pumps: 28 },
+    { name: 'Feb', users: 59, pumps: 48 },
+    { name: 'Mar', users: 80, pumps: 40 },
+    { name: 'Apr', users: 81, pumps: 47 },
+    { name: 'May', users: 56, pumps: 36 },
+    { name: 'Jun', users: 55, pumps: 27 },
+    { name: 'Jul', users: 40, pumps: 30 },
+  ];
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
@@ -141,159 +196,263 @@ export default function Dashboard() {
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>
-        Dashboard Overview
-      </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+        <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold', color: 'text.primary', m: 0 }}>
+          Dashboard Overview
+        </Typography>
+        
+        <Button 
+          variant="contained" 
+          disableElevation
+          endIcon={<ArrowForwardIcon />}
+          sx={{ borderRadius: 2, px: 3 }}
+        >
+          View Reports
+        </Button>
+      </Box>
       
       {/* Stats Cards */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
         <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ height: '100%' }}>
+          <StatCard 
+            icon={<PeopleIcon sx={{ fontSize: 28 }} />} 
+            title="Total Users" 
+            value={stats.userCount}
+            color={COLORS[0]}
+            trend="+12.5%"
+          />
+        </Grid>
+        
+        <Grid item xs={12} sm={6} md={3}>
+          <StatCard 
+            icon={<PetrolPumpIcon sx={{ fontSize: 28 }} />} 
+            title="Petrol Pumps" 
+            value={stats.petrolPumpCount}
+            color={COLORS[1]}
+            trend="+5.8%"
+          />
+        </Grid>
+        
+        <Grid item xs={12} sm={6} md={3}>
+          <StatCard 
+            icon={<TeamIcon sx={{ fontSize: 28 }} />} 
+            title="Total Teams" 
+            value={stats.teamCount}
+            color={COLORS[2]}
+            trend="+7.2%"
+          />
+        </Grid>
+        
+        <Grid item xs={12} sm={6} md={3}>
+          <StatCard 
+            icon={<PhotoIcon sx={{ fontSize: 28 }} />} 
+            title="Total Photos" 
+            value={stats.photoCount}
+            color={COLORS[3]}
+            trend="+14.6%"
+          />
+        </Grid>
+      </Grid>
+      
+      {/* Charts */}
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        {/* Growth Chart */}
+        <Grid item xs={12} md={8}>
+          <Card sx={{ borderRadius: 3, height: '100%' }}>
             <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <PeopleIcon sx={{ fontSize: 40, color: COLORS[0], mr: 2 }} />
-                <Typography variant="h5" component="div">
-                  Users
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                <Typography variant="h6" fontWeight="bold">
+                  Growth Overview
                 </Typography>
+                <IconButton size="small">
+                  <MoreVertIcon />
+                </IconButton>
               </Box>
-              <Typography variant="h3" component="div">
-                {stats.userCount}
-              </Typography>
+              
+              <Box sx={{ height: 300 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart
+                    data={lineChartData}
+                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} />
+                    <YAxis axisLine={false} tickLine={false} />
+                    <Tooltip 
+                      contentStyle={{
+                        borderRadius: 8,
+                        border: 'none',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                      }}
+                    />
+                    <Legend />
+                    <Line 
+                      type="monotone" 
+                      dataKey="users" 
+                      stroke={COLORS[0]} 
+                      strokeWidth={3}
+                      activeDot={{ r: 8 }}
+                      dot={{ r: 4 }}
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="pumps" 
+                      stroke={COLORS[1]} 
+                      strokeWidth={3}
+                      dot={{ r: 4 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </Box>
             </CardContent>
           </Card>
         </Grid>
         
-        <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ height: '100%' }}>
+        {/* Team Members Chart */}
+        <Grid item xs={12} md={4}>
+          <Card sx={{ borderRadius: 3, height: '100%' }}>
             <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <PetrolPumpIcon sx={{ fontSize: 40, color: COLORS[1], mr: 2 }} />
-                <Typography variant="h5" component="div">
-                  Pumps
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                <Typography variant="h6" fontWeight="bold">
+                  Team Distribution
                 </Typography>
+                <IconButton size="small">
+                  <MoreVertIcon />
+                </IconButton>
               </Box>
-              <Typography variant="h3" component="div">
-                {stats.petrolPumpCount}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        
-        <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ height: '100%' }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <TeamIcon sx={{ fontSize: 40, color: COLORS[2], mr: 2 }} />
-                <Typography variant="h5" component="div">
-                  Teams
-                </Typography>
+              
+              <Box sx={{ height: 300 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={teamData.length > 0 ? teamData : dummyTeamData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={90}
+                      fill="#8884d8"
+                      paddingAngle={2}
+                      dataKey="members"
+                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                      labelLine={false}
+                    >
+                      {(teamData.length > 0 ? teamData : dummyTeamData).map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip 
+                      contentStyle={{
+                        borderRadius: 8,
+                        border: 'none',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
               </Box>
-              <Typography variant="h3" component="div">
-                {stats.teamCount}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        
-        <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ height: '100%' }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <PhotoIcon sx={{ fontSize: 40, color: COLORS[3], mr: 2 }} />
-                <Typography variant="h5" component="div">
-                  Photos
-                </Typography>
-              </Box>
-              <Typography variant="h3" component="div">
-                {stats.photoCount}
-              </Typography>
             </CardContent>
           </Card>
         </Grid>
       </Grid>
       
-      {/* Charts */}
+      {/* Bottom Row */}
       <Grid container spacing={3}>
-        {/* Team Members Chart */}
-        <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 2, height: 300 }}>
-            <Typography variant="h6" gutterBottom>
-              Team Members Distribution
-            </Typography>
-            <ResponsiveContainer width="100%" height="90%">
-              <PieChart>
-                <Pie
-                  data={teamData.length > 0 ? teamData : dummyTeamData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="members"
-                >
-                  {(teamData.length > 0 ? teamData : dummyTeamData).map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </Paper>
-        </Grid>
-        
-        {/* Weekly Activity Chart */}
-        <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 2, height: 300 }}>
-            <Typography variant="h6" gutterBottom>
-              Weekly Activity
-            </Typography>
-            <ResponsiveContainer width="100%" height="90%">
-              <BarChart
-                data={activityData}
-                margin={{
-                  top: 5,
-                  right: 30,
-                  left: 20,
-                  bottom: 5,
-                }}
-              >
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="count" fill="#8884d8">
-                  {activityData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </Paper>
-        </Grid>
-        
         {/* Recent Users */}
-        <Grid item xs={12}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>
-              Recent Users
-            </Typography>
-            <Box>
-              {recentUsers.length > 0 ? (
-                recentUsers.map((user) => (
-                  <Box key={user.id} sx={{ display: 'flex', py: 1, borderBottom: '1px solid #eee' }}>
-                    <Box sx={{ mr: 2 }}>
-                      <Typography variant="body1">{user.name || user.email || 'Unknown User'}</Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {user.email}
-                      </Typography>
+        <Grid item xs={12} md={6}>
+          <Card sx={{ borderRadius: 3 }}>
+            <CardContent>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                <Typography variant="h6" fontWeight="bold">
+                  Recent Users
+                </Typography>
+                <Button 
+                  endIcon={<ArrowForwardIcon />}
+                  sx={{ textTransform: 'none' }}
+                >
+                  View All
+                </Button>
+              </Box>
+              
+              <List sx={{ p: 0 }}>
+                {recentUsers.length > 0 ? (
+                  recentUsers.map((user, index) => (
+                    <Box key={user.id || index}>
+                      <ListItem alignItems="center" sx={{ px: 0, py: 1.5 }}>
+                        <ListItemAvatar>
+                          <Avatar 
+                            src={user.photoURL} 
+                            alt={user.name || 'User'}
+                            sx={{ bgcolor: COLORS[index % COLORS.length] }}
+                          >
+                            {(user.name || 'U')[0]}
+                          </Avatar>
+                        </ListItemAvatar>
+                        <ListItemText
+                          primary={
+                            <Typography variant="subtitle1" fontWeight="medium">
+                              {user.name || 'Unknown User'}
+                            </Typography>
+                          }
+                          secondary={
+                            <Typography variant="body2" color="text.secondary">
+                              {user.email || 'No email provided'}
+                            </Typography>
+                          }
+                        />
+                        <Typography variant="caption" color="text.secondary">
+                          {user.createdAt?.toDate?.().toLocaleDateString() || 'Recent'}
+                        </Typography>
+                      </ListItem>
+                      {index < recentUsers.length - 1 && <Divider />}
                     </Box>
-                  </Box>
-                ))
-              ) : (
-                <Typography variant="body2">No recent users found.</Typography>
-              )}
-            </Box>
-          </Paper>
+                  ))
+                ) : (
+                  <Typography variant="body2" color="text.secondary" sx={{ py: 2, textAlign: 'center' }}>
+                    No recent users found
+                  </Typography>
+                )}
+              </List>
+            </CardContent>
+          </Card>
+        </Grid>
+        
+        {/* Weekly Activity */}
+        <Grid item xs={12} md={6}>
+          <Card sx={{ borderRadius: 3 }}>
+            <CardContent>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                <Typography variant="h6" fontWeight="bold">
+                  Weekly Activity
+                </Typography>
+                <IconButton size="small">
+                  <MoreVertIcon />
+                </IconButton>
+              </Box>
+              
+              <Box sx={{ height: 250 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={activityData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} />
+                    <YAxis axisLine={false} tickLine={false} />
+                    <Tooltip 
+                      contentStyle={{
+                        borderRadius: 8,
+                        border: 'none',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                      }}
+                    />
+                    <Bar 
+                      dataKey="count" 
+                      fill={COLORS[0]} 
+                      radius={[4, 4, 0, 0]} 
+                      barSize={35}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </Box>
+            </CardContent>
+          </Card>
         </Grid>
       </Grid>
     </Box>

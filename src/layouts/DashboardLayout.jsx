@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { styled } from '@mui/material/styles';
+import { styled, alpha } from '@mui/material/styles';
 import { 
   Box, 
   Drawer, 
@@ -16,7 +16,11 @@ import {
   ListItemText,
   Avatar,
   Menu,
-  MenuItem
+  MenuItem,
+  Badge,
+  InputBase,
+  Tooltip,
+  Button
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -25,12 +29,15 @@ import {
   People as PeopleIcon,
   LocalGasStation as PetrolPumpIcon,
   Group as TeamIcon,
-  Settings as SettingsIcon
+  Settings as SettingsIcon,
+  Search as SearchIcon,
+  Notifications as NotificationsIcon,
+  ExitToApp as LogoutIcon
 } from '@mui/icons-material';
 import { auth } from '../firebase/config';
 import { signOut } from 'firebase/auth';
 
-const drawerWidth = 240;
+const drawerWidth = 260;
 
 const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(
   ({ theme, open }) => ({
@@ -48,6 +55,8 @@ const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(
       }),
       marginLeft: 0,
     }),
+    background: theme.palette.background.default,
+    minHeight: '100vh',
   }),
 );
 
@@ -58,6 +67,9 @@ const AppBarStyled = styled(AppBar, {
     easing: theme.transitions.easing.sharp,
     duration: theme.transitions.duration.leavingScreen,
   }),
+  boxShadow: '0 4px 20px 0 rgba(0,0,0,0.05)',
+  background: theme.palette.background.paper,
+  color: theme.palette.text.primary,
   ...(open && {
     width: `calc(100% - ${drawerWidth}px)`,
     marginLeft: `${drawerWidth}px`,
@@ -71,9 +83,70 @@ const AppBarStyled = styled(AppBar, {
 const DrawerHeader = styled('div')(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
-  padding: theme.spacing(0, 1),
+  padding: theme.spacing(0, 2),
   ...theme.mixins.toolbar,
-  justifyContent: 'flex-end',
+  justifyContent: 'space-between',
+  background: theme.palette.primary.main,
+  color: theme.palette.primary.contrastText,
+}));
+
+const Search = styled('div')(({ theme }) => ({
+  position: 'relative',
+  borderRadius: 8,
+  backgroundColor: alpha(theme.palette.common.black, 0.04),
+  '&:hover': {
+    backgroundColor: alpha(theme.palette.common.black, 0.08),
+  },
+  marginRight: theme.spacing(2),
+  marginLeft: 0,
+  width: '100%',
+  [theme.breakpoints.up('sm')]: {
+    marginLeft: theme.spacing(3),
+    width: 'auto',
+  },
+}));
+
+const SearchIconWrapper = styled('div')(({ theme }) => ({
+  padding: theme.spacing(0, 2),
+  height: '100%',
+  position: 'absolute',
+  pointerEvents: 'none',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  color: theme.palette.text.secondary,
+}));
+
+const StyledInputBase = styled(InputBase)(({ theme }) => ({
+  color: theme.palette.text.primary,
+  '& .MuiInputBase-input': {
+    padding: theme.spacing(1, 1, 1, 0),
+    paddingLeft: `calc(1em + ${theme.spacing(4)})`,
+    transition: theme.transitions.create('width'),
+    width: '100%',
+    [theme.breakpoints.up('md')]: {
+      width: '20ch',
+    },
+  },
+}));
+
+const StyledListItemButton = styled(ListItemButton)(({ theme }) => ({
+  borderRadius: 8,
+  margin: theme.spacing(0.5, 1),
+  padding: theme.spacing(1, 2),
+  '&.Mui-selected': {
+    backgroundColor: alpha(theme.palette.primary.main, 0.1),
+    color: theme.palette.primary.main,
+    '& .MuiListItemIcon-root': {
+      color: theme.palette.primary.main,
+    },
+    '&:hover': {
+      backgroundColor: alpha(theme.palette.primary.main, 0.15),
+    },
+  },
+  '&:hover': {
+    backgroundColor: alpha(theme.palette.primary.main, 0.05),
+  },
 }));
 
 const menuItems = [
@@ -129,46 +202,86 @@ export default function DashboardLayout() {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-            Click App Admin Dashboard
-          </Typography>
-          <IconButton
-            onClick={handleMenuClick}
-            size="small"
-            sx={{ ml: 2 }}
-            aria-controls={openMenu ? 'account-menu' : undefined}
-            aria-haspopup="true"
-            aria-expanded={openMenu ? 'true' : undefined}
-          >
-            <Avatar sx={{ width: 32, height: 32 }} />
-          </IconButton>
-          <Menu
-            anchorEl={anchorEl}
-            id="account-menu"
-            open={openMenu}
-            onClose={handleMenuClose}
-            onClick={handleMenuClose}
-            PaperProps={{
-              elevation: 0,
-              sx: {
-                overflow: 'visible',
-                filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.32))',
-                mt: 1.5,
-                '& .MuiAvatar-root': {
-                  width: 32,
-                  height: 32,
-                  ml: -0.5,
-                  mr: 1,
+          
+          <Search>
+            <SearchIconWrapper>
+              <SearchIcon />
+            </SearchIconWrapper>
+            <StyledInputBase
+              placeholder="Search…"
+              inputProps={{ 'aria-label': 'search' }}
+            />
+          </Search>
+          
+          <Box sx={{ flexGrow: 1 }} />
+          
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <Tooltip title="Notifications">
+              <IconButton
+                size="large"
+                aria-label="show 4 new notifications"
+                color="inherit"
+                sx={{ mr: 1 }}
+              >
+                <Badge badgeContent={4} color="secondary">
+                  <NotificationsIcon />
+                </Badge>
+              </IconButton>
+            </Tooltip>
+            
+            <Tooltip title="Account">
+              <IconButton
+                onClick={handleMenuClick}
+                size="small"
+                sx={{ ml: 1 }}
+                aria-controls={openMenu ? 'account-menu' : undefined}
+                aria-haspopup="true"
+                aria-expanded={openMenu ? 'true' : undefined}
+              >
+                <Avatar sx={{ width: 40, height: 40, bgcolor: 'primary.main' }}>A</Avatar>
+              </IconButton>
+            </Tooltip>
+            
+            <Menu
+              anchorEl={anchorEl}
+              id="account-menu"
+              open={openMenu}
+              onClose={handleMenuClose}
+              onClick={handleMenuClose}
+              PaperProps={{
+                elevation: 0,
+                sx: {
+                  overflow: 'visible',
+                  filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.15))',
+                  mt: 1.5,
+                  borderRadius: 2,
+                  minWidth: 180,
+                  '& .MuiAvatar-root': {
+                    width: 32,
+                    height: 32,
+                    ml: -0.5,
+                    mr: 1,
+                  },
                 },
-              },
-            }}
-            transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-            anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-          >
-            <MenuItem onClick={handleLogout}>Logout</MenuItem>
-          </Menu>
+              }}
+              transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+              anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+            >
+              <MenuItem sx={{ py: 1.5 }}>
+                <Avatar /> My Profile
+              </MenuItem>
+              <Divider />
+              <MenuItem onClick={handleLogout} sx={{ py: 1.5 }}>
+                <ListItemIcon>
+                  <LogoutIcon fontSize="small" />
+                </ListItemIcon>
+                Logout
+              </MenuItem>
+            </Menu>
+          </Box>
         </Toolbar>
       </AppBarStyled>
+      
       <Drawer
         sx={{
           width: drawerWidth,
@@ -176,6 +289,8 @@ export default function DashboardLayout() {
           '& .MuiDrawer-paper': {
             width: drawerWidth,
             boxSizing: 'border-box',
+            border: 'none',
+            boxShadow: '0 10px 30px -12px rgba(0, 0, 0, 0.15)',
           },
         }}
         variant="persistent"
@@ -183,27 +298,52 @@ export default function DashboardLayout() {
         open={open}
       >
         <DrawerHeader>
-          <IconButton onClick={handleDrawerClose}>
+          <Typography variant="h6" component="div" sx={{ fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
+            Click App Admin
+          </Typography>
+          <IconButton onClick={handleDrawerClose} sx={{ color: 'inherit' }}>
             <ChevronLeftIcon />
           </IconButton>
         </DrawerHeader>
-        <Divider />
-        <List>
+        
+        <Box sx={{ px: 3, py: 2 }}>
+          <Button 
+            variant="contained" 
+            fullWidth 
+            sx={{ 
+              borderRadius: 2, 
+              py: 1.2,
+              boxShadow: '0 4px 12px rgba(58, 134, 255, 0.25)',
+            }}
+          >
+            Create New
+          </Button>
+        </Box>
+        
+        <Divider sx={{ mx: 2, opacity: 0.7 }} />
+        
+        <List sx={{ px: 1, py: 1 }}>
           {menuItems.map((item) => (
-            <ListItem key={item.text} disablePadding>
-              <ListItemButton 
+            <ListItem key={item.text} disablePadding sx={{ mb: 0.5 }}>
+              <StyledListItemButton 
                 selected={location.pathname === item.path}
                 onClick={() => navigate(item.path)}
               >
                 <ListItemIcon>
                   {item.icon}
                 </ListItemIcon>
-                <ListItemText primary={item.text} />
-              </ListItemButton>
+                <ListItemText 
+                  primary={item.text} 
+                  primaryTypographyProps={{ 
+                    fontWeight: location.pathname === item.path ? 600 : 500 
+                  }} 
+                />
+              </StyledListItemButton>
             </ListItem>
           ))}
         </List>
       </Drawer>
+      
       <Main open={open}>
         <DrawerHeader />
         <Outlet />

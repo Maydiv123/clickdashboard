@@ -20,10 +20,56 @@ import Settings from './pages/Settings';
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#1976d2',
+      main: '#3a86ff',
+      light: '#5e9bff',
+      dark: '#2c6bcb',
+      contrastText: '#ffffff',
     },
     secondary: {
-      main: '#dc004e',
+      main: '#ff006e',
+      light: '#ff4b94',
+      dark: '#c1004e',
+      contrastText: '#ffffff',
+    },
+    background: {
+      default: '#f8f9fa',
+      paper: '#ffffff',
+    },
+    text: {
+      primary: '#2b2d42',
+      secondary: '#6c757d',
+    },
+  },
+  typography: {
+    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+    h4: {
+      fontWeight: 600,
+      letterSpacing: '-0.5px',
+    },
+    h5: {
+      fontWeight: 600,
+    },
+    h6: {
+      fontWeight: 600,
+    },
+  },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: 8,
+          textTransform: 'none',
+          fontWeight: 500,
+        },
+      },
+    },
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          borderRadius: 12,
+          boxShadow: '0 6px 12px rgba(0,0,0,0.08)',
+        },
+      },
     },
   },
 });
@@ -42,7 +88,17 @@ function App() {
   }, []);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '100vh',
+        backgroundColor: theme.palette.background.default
+      }}>
+        Loading...
+      </div>
+    );
   }
 
   return (
