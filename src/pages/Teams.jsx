@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { styled, alpha } from '@mui/material/styles';
 import { 
   Box, 
   Paper, 
@@ -33,7 +34,16 @@ import {
   Divider,
   MenuItem,
   Alert,
-  Fab
+  Fab,
+  Tabs,
+  Tab,
+  Menu,
+  ListItemIcon,
+  FormControl,
+  InputLabel,
+  Select,
+  Tooltip,
+  Stack
 } from '@mui/material';
 import { 
   Search as SearchIcon,
@@ -48,10 +58,84 @@ import {
   Upload as UploadIcon,
   Save as SaveIcon,
   Cancel as CancelIcon,
-  Add as AddIcon
+  Add as AddIcon,
+  FilterList as FilterIcon,
+  MoreVert as MoreVertIcon,
+  PersonAdd as PersonAddIcon,
+  ContentCopy as CopyIcon
 } from '@mui/icons-material';
 import { db } from '../firebase/config';
 import { collection, getDocs, query, doc, deleteDoc, orderBy, getDoc, updateDoc, addDoc } from 'firebase/firestore';
+
+// Styled components
+const StyledTableCell = styled(TableCell)(({ theme }) => ({
+  fontWeight: 500,
+  borderBottom: `1px solid ${alpha(theme.palette.divider, 0.7)}`,
+  padding: theme.spacing(1.5, 2),
+  '&.MuiTableCell-head': {
+    backgroundColor: alpha(theme.palette.primary.main, 0.05),
+    color: theme.palette.text.primary,
+    fontWeight: 600,
+    whiteSpace: 'nowrap'
+  }
+}));
+
+const StyledTableRow = styled(TableRow)(({ theme }) => ({
+  '&:nth-of-type(odd)': {
+    backgroundColor: alpha(theme.palette.background.default, 0.5),
+  },
+  '&:hover': {
+    backgroundColor: alpha(theme.palette.primary.main, 0.04),
+  },
+  '&:last-child td, &:last-child th': {
+    border: 0,
+  },
+  transition: 'background-color 0.2s ease',
+}));
+
+const SearchField = styled(TextField)(({ theme }) => ({
+  width: '100%',
+  maxWidth: 400,
+  '& .MuiOutlinedInput-root': {
+    borderRadius: theme.shape.borderRadius * 2,
+    transition: theme.transitions.create(['border-color', 'box-shadow']),
+    '&.Mui-focused': {
+      boxShadow: `0 0 0 2px ${alpha(theme.palette.primary.main, 0.25)}`
+    }
+  }
+}));
+
+const TeamCard = styled(Card)(({ theme }) => ({
+  height: '100%',
+  borderRadius: theme.shape.borderRadius * 2,
+  transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+  overflow: 'hidden',
+  '&:hover': {
+    transform: 'translateY(-4px)',
+    boxShadow: '0 10px 20px rgba(0,0,0,0.12)'
+  }
+}));
+
+const StyledChip = styled(Chip)(({ theme }) => ({
+  borderRadius: theme.shape.borderRadius,
+  fontWeight: 500,
+  backgroundColor: alpha(theme.palette.primary.main, 0.1),
+  color: theme.palette.primary.dark,
+  border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`
+}));
+
+const StatBox = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  padding: theme.spacing(1.5),
+  borderRadius: theme.shape.borderRadius,
+  backgroundColor: alpha(theme.palette.background.default, 0.7),
+  border: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
+  '& .MuiSvgIcon-root': {
+    color: theme.palette.primary.main,
+    marginRight: theme.spacing(1)
+  }
+}));
 
 export default function Teams() {
   const [teams, setTeams] = useState([]);

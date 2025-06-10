@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { styled, alpha } from '@mui/material/styles';
 import { 
   Box, 
   Paper, 
@@ -28,7 +29,22 @@ import {
   Stack,
   LinearProgress,
   MenuItem,
-  Fab
+  Fab,
+  Tabs,
+  Tab,
+  Avatar,
+  Divider,
+  Tooltip,
+  CardMedia,
+  CardActionArea,
+  Menu,
+  ListItemIcon,
+  ListItemText,
+  FormControl,
+  InputLabel,
+  Select,
+  ToggleButton,
+  ToggleButtonGroup
 } from '@mui/material';
 import { 
   Search as SearchIcon,
@@ -40,11 +56,94 @@ import {
   Cancel as CancelIcon,
   Upload as UploadIcon,
   Save as SaveIcon,
-  Add as AddIcon
+  Add as AddIcon,
+  FilterList as FilterIcon,
+  GridView as GridViewIcon,
+  ViewList as ListViewIcon,
+  MoreVert as MoreVertIcon,
+  LocalGasStation as PumpIcon,
+  Place as PlaceIcon,
+  Phone as PhoneIcon,
+  Email as EmailIcon,
+  Business as BusinessIcon
 } from '@mui/icons-material';
 import { db } from '../firebase/config';
 import { collection, getDocs, query, doc, updateDoc, deleteDoc, orderBy, addDoc } from 'firebase/firestore';
 import * as XLSX from 'xlsx';
+
+// Styled components
+const StyledTableCell = styled(TableCell)(({ theme }) => ({
+  fontWeight: 500,
+  borderBottom: `1px solid ${alpha(theme.palette.divider, 0.7)}`,
+  padding: theme.spacing(1.5, 2),
+  '&.MuiTableCell-head': {
+    backgroundColor: alpha(theme.palette.primary.main, 0.05),
+    color: theme.palette.text.primary,
+    fontWeight: 600,
+    whiteSpace: 'nowrap'
+  }
+}));
+
+const StyledTableRow = styled(TableRow)(({ theme }) => ({
+  '&:nth-of-type(odd)': {
+    backgroundColor: alpha(theme.palette.background.default, 0.5),
+  },
+  '&:hover': {
+    backgroundColor: alpha(theme.palette.primary.main, 0.04),
+  },
+  '&:last-child td, &:last-child th': {
+    border: 0,
+  },
+  transition: 'background-color 0.2s ease',
+}));
+
+const SearchField = styled(TextField)(({ theme }) => ({
+  width: '100%',
+  maxWidth: 400,
+  '& .MuiOutlinedInput-root': {
+    borderRadius: theme.shape.borderRadius * 2,
+    transition: theme.transitions.create(['border-color', 'box-shadow']),
+    '&.Mui-focused': {
+      boxShadow: `0 0 0 2px ${alpha(theme.palette.primary.main, 0.25)}`
+    }
+  }
+}));
+
+const PumpCard = styled(Card)(({ theme }) => ({
+  height: '100%',
+  borderRadius: theme.shape.borderRadius * 2,
+  transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+  overflow: 'hidden',
+  '&:hover': {
+    transform: 'translateY(-4px)',
+    boxShadow: '0 10px 20px rgba(0,0,0,0.12)'
+  }
+}));
+
+const StatusChip = styled(Chip)(({ theme, status }) => ({
+  borderRadius: theme.shape.borderRadius,
+  fontWeight: 500,
+  ...(status === 'verified' && {
+    backgroundColor: alpha(theme.palette.success.main, 0.1),
+    color: theme.palette.success.dark,
+    border: `1px solid ${alpha(theme.palette.success.main, 0.2)}`
+  }),
+  ...(status === 'unverified' && {
+    backgroundColor: alpha(theme.palette.warning.main, 0.1),
+    color: theme.palette.warning.dark,
+    border: `1px solid ${alpha(theme.palette.warning.main, 0.2)}`
+  }),
+  ...(status === 'active' && {
+    backgroundColor: alpha(theme.palette.success.main, 0.1),
+    color: theme.palette.success.dark,
+    border: `1px solid ${alpha(theme.palette.success.main, 0.2)}`
+  }),
+  ...(status === 'inactive' && {
+    backgroundColor: alpha(theme.palette.error.main, 0.1),
+    color: theme.palette.error.dark,
+    border: `1px solid ${alpha(theme.palette.error.main, 0.2)}`
+  })
+}));
 
 export default function PetrolPumps() {
   const [pumps, setPumps] = useState([]);
@@ -91,6 +190,25 @@ export default function PetrolPumps() {
     status: 'active',
     createdAt: new Date()
   });
+  const [tabValue, setTabValue] = useState(0);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [selectedRow, setSelectedRow] = useState(null);
+
+  // Menu handlers
+  const handleOpenMenu = (event, pump) => {
+    setAnchorEl(event.currentTarget);
+    setSelectedRow(pump);
+  };
+
+  const handleCloseMenu = () => {
+    setAnchorEl(null);
+    setSelectedRow(null);
+  };
+
+  // Tab change handler
+  const handleTabChange = (event, newValue) => {
+    setTabValue(newValue);
+  };
 
   // Fetch pumps data
   useEffect(() => {
@@ -161,6 +279,7 @@ export default function PetrolPumps() {
   const handleOpenDeleteDialog = (pump) => {
     setPumpToDelete(pump);
     setOpenDeleteDialog(true);
+    handleCloseMenu();
   };
 
   const handleCloseDeleteDialog = () => {
@@ -192,6 +311,7 @@ export default function PetrolPumps() {
   const handleOpenVerifyDialog = (pump) => {
     setPumpToToggleVerify(pump);
     setOpenVerifyDialog(true);
+    handleCloseMenu();
   };
 
   const handleCloseVerifyDialog = () => {
@@ -236,6 +356,7 @@ export default function PetrolPumps() {
   const handleOpenDetailsDialog = (pump) => {
     setSelectedPump(pump);
     setOpenDetailsDialog(true);
+    handleCloseMenu();
   };
 
   const handleCloseDetailsDialog = () => {
@@ -244,28 +365,15 @@ export default function PetrolPumps() {
   };
 
   // Toggle view mode
-  const toggleViewMode = () => {
-    setViewMode(viewMode === 'table' ? 'grid' : 'table');
-  };
-
-  const getStatusColor = (status) => {
-    switch (status?.toLowerCase()) {
-      case 'open':
-        return 'success';
-      case 'closed':
-        return 'error';
-      default:
-        return 'default';
+  const handleViewModeChange = (event, newMode) => {
+    if (newMode !== null) {
+      setViewMode(newMode);
     }
   };
 
   // Handle Excel file import
   const handleFileUpload = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      setImportFile(file);
-      setImportError(null);
-    }
+    setImportFile(event.target.files[0]);
   };
 
   const handleCloseImportDialog = () => {
@@ -278,78 +386,101 @@ export default function PetrolPumps() {
 
   const processExcelData = async (data) => {
     try {
-      const pumpsRef = collection(db, 'map_locations');
       const totalRows = data.length;
       let processedRows = 0;
-
+      let importedCount = 0;
+      
       for (const row of data) {
-        // Map Excel columns to your data structure
-        const pumpData = {
-          customerName: row['Customer Name'] || row['CUSTOMER NAME'] || '',
-          dealerName: row['Dealer Name'] || row['DEALER NAME'] || '',
-          addressLine1: row['Address Line 1'] || row['ADDRESS LINE 1'] || '',
-          addressLine2: row['Address Line 2'] || row['ADDRESS LINE 2'] || '',
-          addressLine3: row['Address Line 3'] || row['ADDRESS LINE 3'] || '',
-          addressLine4: row['Address Line 4'] || row['ADDRESS LINE 4'] || '',
-          contactDetails: row['Contact'] || row['CONTACT'] || '',
-          latitude: parseFloat(row['Latitude'] || row['LATITUDE']) || null,
-          longitude: parseFloat(row['Longitude'] || row['LONGITUDE']) || null,
-          zone: row['Zone'] || row['ZONE'] || '',
-          salesArea: row['Sales Area'] || row['SALES AREA'] || '',
-          sapCode: row['SAP Code'] || row['SAP CODE'] || '',
-          coClDo: row['CO/CL/DO'] || row['CO CL DO'] || '',
-          pincode: row['Pincode'] || row['PINCODE'] || '',
-          district: row['District'] || row['DISTRICT'] || '',
-          location: row['Location'] || row['LOCATION'] || '',
-          createdAt: new Date()
-        };
-
-        // Add to Firestore
-        await addDoc(pumpsRef, pumpData);
+        try {
+          const newPump = {
+            customerName: row.CustomerName || '',
+            dealerName: row.DealerName || '',
+            address: {
+              line1: row.AddressLine1 || '',
+              line2: row.AddressLine2 || '',
+              city: row.City || '',
+              district: row.District || '',
+              state: row.State || '',
+              pincode: row.Pincode || ''
+            },
+            location: {
+              latitude: row.Latitude || '',
+              longitude: row.Longitude || ''
+            },
+            contactDetails: {
+              phone: row.Phone || '',
+              email: row.Email || ''
+            },
+            company: row.Company || '',
+            status: 'active',
+            isVerified: false,
+            createdAt: new Date()
+          };
+          
+          const pumpRef = collection(db, 'petrolPumps');
+          await addDoc(pumpRef, newPump);
+          importedCount++;
+        } catch (error) {
+          console.error('Error importing row:', error);
+        }
         
         processedRows++;
         setImportProgress(Math.round((processedRows / totalRows) * 100));
       }
-
-      setImportStatus('success');
-      // Refresh the pumps list
-      fetchPumps();
+      
+      setImportStatus(`Successfully imported ${importedCount} out of ${totalRows} petrol pumps.`);
+      
+      // Fetch updated pumps
+      const pumpsRef = collection(db, 'petrolPumps');
+      const q = query(pumpsRef);
+      const querySnapshot = await getDocs(q);
+      const pumpsData = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setPumps(pumpsData);
+      setFilteredPumps(pumpsData);
     } catch (error) {
-      console.error('Error importing data:', error);
-      setImportError(error.message);
-      setImportStatus('error');
+      console.error('Error processing Excel data:', error);
+      setImportError('Failed to process Excel data. Please check format and try again.');
     }
   };
 
   const handleImport = async () => {
-    if (!importFile) return;
-
+    if (!importFile) {
+      setImportError('Please select a file to import.');
+      return;
+    }
+    
     setImportProgress(0);
-    setImportStatus('processing');
+    setImportStatus(null);
     setImportError(null);
-
+    
     try {
       const reader = new FileReader();
-      reader.onload = async (e) => {
+      reader.onload = (e) => {
         try {
-          const data = e.target.result;
-          const workbook = XLSX.read(data, { type: 'binary' });
+          const workbook = XLSX.read(e.target.result, { type: 'binary' });
           const sheetName = workbook.SheetNames[0];
           const worksheet = workbook.Sheets[sheetName];
-          const jsonData = XLSX.utils.sheet_to_json(worksheet);
+          const data = XLSX.utils.sheet_to_json(worksheet);
           
-          await processExcelData(jsonData);
+          if (data.length === 0) {
+            setImportError('No data found in the spreadsheet.');
+            return;
+          }
+          
+          processExcelData(data);
         } catch (error) {
-          console.error('Error processing Excel file:', error);
-          setImportError(error.message);
-          setImportStatus('error');
+          console.error('Error parsing Excel file:', error);
+          setImportError('Failed to parse Excel file. Please check format and try again.');
         }
       };
+      
       reader.readAsBinaryString(importFile);
     } catch (error) {
       console.error('Error reading file:', error);
-      setImportError(error.message);
-      setImportStatus('error');
+      setImportError('Failed to read file. Please try again.');
     }
   };
 
@@ -406,24 +537,53 @@ export default function PetrolPumps() {
   const handleCreatePump = async () => {
     setActionLoading(true);
     try {
-      const pumpsRef = collection(db, 'map_locations');
-      const docRef = await addDoc(pumpsRef, newPump);
+      const pumpsRef = collection(db, 'petrolPumps');
       
-      // Add the new pump to the local state
+      const docRef = await addDoc(pumpsRef, {
+        ...newPump
+      });
+      
+      // Add to state
       const createdPump = {
         id: docRef.id,
         ...newPump
       };
       
-      setPumps(prevPumps => [...prevPumps, createdPump]);
+      setPumps(prevPumps => [createdPump, ...prevPumps]);
+      setFilteredPumps(prevPumps => [createdPump, ...prevPumps]);
       
       setActionLoading(false);
       handleCloseCreateDialog();
     } catch (error) {
-      console.error('Error creating petrol pump:', error);
-      setError(error.message);
+      console.error('Error creating pump:', error);
       setActionLoading(false);
     }
+  };
+
+  // Render address function
+  const renderAddress = (pump) => {
+    let address = '';
+    
+    if (pump.addressLine1) address += pump.addressLine1;
+    if (pump.addressLine2) address += address ? `, ${pump.addressLine2}` : pump.addressLine2;
+    if (pump.addressLine3) address += address ? `, ${pump.addressLine3}` : pump.addressLine3;
+    if (pump.addressLine4) address += address ? `, ${pump.addressLine4}` : pump.addressLine4;
+    
+    if (!address && pump.address) {
+      if (pump.address.line1) address += pump.address.line1;
+      if (pump.address.line2) address += address ? `, ${pump.address.line2}` : pump.address.line2;
+      if (pump.address.city) address += address ? `, ${pump.address.city}` : pump.address.city;
+      if (pump.address.district) address += address ? `, ${pump.address.district}` : pump.address.district;
+      if (pump.address.state) address += address ? `, ${pump.address.state}` : pump.address.state;
+      if (pump.address.pincode) address += address ? ` - ${pump.address.pincode}` : pump.address.pincode;
+    }
+    
+    return address || 'No address available';
+  };
+
+  // Get petrol pump status
+  const getPumpStatus = (pump) => {
+    return pump.isVerified ? 'verified' : 'unverified';
   };
 
   if (loading) {
@@ -434,145 +594,187 @@ export default function PetrolPumps() {
     );
   }
 
-  if (error) {
-    return (
-      <Box sx={{ p: 3 }}>
-        <Alert severity="error">{error}</Alert>
-      </Box>
-    );
-  }
-
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4">
+        <Typography variant="h4" fontWeight="bold">
           Petrol Pump Management
         </Typography>
-        <Stack direction="row" spacing={2}>
-          <Button
-            variant="outlined"
-            startIcon={<UploadIcon />}
+        
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          <Button 
+            variant="outlined" 
+            startIcon={<UploadIcon />} 
             onClick={() => setImportDialogOpen(true)}
+            sx={{ borderRadius: 2 }}
           >
-            Import Excel
+            Import
           </Button>
-          <Button
-            variant="outlined"
-            onClick={toggleViewMode}
-          >
-            {viewMode === 'table' ? 'Grid View' : 'Table View'}
-          </Button>
-          <Fab
-            color="primary"
-            size="medium"
+          <Button 
+            variant="contained" 
+            startIcon={<AddIcon />} 
             onClick={handleOpenCreateDialog}
-            sx={{ ml: 2 }}
+            sx={{
+              borderRadius: 2,
+              px: 2.5,
+              py: 1,
+              boxShadow: '0 4px 12px rgba(58, 134, 255, 0.2)'
+            }}
           >
-            <AddIcon />
-          </Fab>
-        </Stack>
+            Add New Pump
+          </Button>
+        </Box>
       </Box>
       
-      {/* Search Bar */}
-      <Box sx={{ mb: 3 }}>
-        <TextField
-          fullWidth
-          variant="outlined"
-          placeholder="Search pumps by customer name, dealer name, or address"
-          value={searchTerm}
-          onChange={handleSearchChange}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon />
-              </InputAdornment>
-            ),
-          }}
-        />
-      </Box>
-      
+      <Card sx={{ mb: 3, borderRadius: 3, overflow: 'hidden' }}>
+        <CardContent sx={{ p: 2 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
+            <SearchField
+              placeholder="Search pumps..."
+              variant="outlined"
+              value={searchTerm}
+              onChange={handleSearchChange}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon color="action" />
+                  </InputAdornment>
+                ),
+              }}
+            />
+            
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Tabs
+                value={tabValue}
+                onChange={handleTabChange}
+                indicatorColor="primary"
+                textColor="primary"
+                sx={{ '.MuiTab-root': { fontWeight: 500, minWidth: 100 } }}
+              >
+                <Tab label="All Pumps" />
+                <Tab label="Verified" />
+                <Tab label="Unverified" />
+              </Tabs>
+              
+              <ToggleButtonGroup
+                value={viewMode}
+                exclusive
+                onChange={handleViewModeChange}
+                aria-label="view mode"
+                size="small"
+              >
+                <ToggleButton value="table" aria-label="table view">
+                  <ListViewIcon />
+                </ToggleButton>
+                <ToggleButton value="grid" aria-label="grid view">
+                  <GridViewIcon />
+                </ToggleButton>
+              </ToggleButtonGroup>
+            </Box>
+          </Box>
+        </CardContent>
+      </Card>
+
+      {error && (
+        <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
+          {error}
+        </Alert>
+      )}
+
       {viewMode === 'table' ? (
-        /* Table View */
-        <Paper>
+        <Card sx={{ borderRadius: 3, overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
           <TableContainer>
-            <Table>
+            <Table sx={{ minWidth: 650 }} aria-label="petrol pumps table">
               <TableHead>
                 <TableRow>
-                  <TableCell>Customer Name</TableCell>
-                  <TableCell>Dealer Name</TableCell>
-                  <TableCell>Address</TableCell>
-                  <TableCell>Contact</TableCell>
-                  <TableCell>Location</TableCell>
-                  <TableCell>Zone</TableCell>
-                  <TableCell>Sales Area</TableCell>
-                  <TableCell>Actions</TableCell>
+                  <StyledTableCell>Pump Details</StyledTableCell>
+                  <StyledTableCell>Address</StyledTableCell>
+                  <StyledTableCell>Contact</StyledTableCell>
+                  <StyledTableCell>Status</StyledTableCell>
+                  <StyledTableCell align="right">Actions</StyledTableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {filteredPumps.length === 0 ? (
+                {filteredPumps
+                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                  .map((pump) => (
+                    <StyledTableRow key={pump.id}>
+                      <StyledTableCell>
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                          <Avatar sx={{ bgcolor: 'primary.main', mr: 2 }}>
+                            <PumpIcon />
+                          </Avatar>
+                          <Box>
+                            <Typography variant="body1" fontWeight={500}>
+                              {pump.customerName || 'Unnamed Pump'}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              {pump.dealerName || 'No dealer info'}
+                            </Typography>
+                          </Box>
+                        </Box>
+                      </StyledTableCell>
+                      <StyledTableCell>
+                        <Box sx={{ display: 'flex', alignItems: 'flex-start' }}>
+                          <LocationIcon fontSize="small" sx={{ mt: 0.5, mr: 1, color: 'text.secondary' }} />
+                          <Typography variant="body2">
+                            {renderAddress(pump)}
+                          </Typography>
+                        </Box>
+                      </StyledTableCell>
+                      <StyledTableCell>
+                        {pump.contactDetails?.phone && (
+                          <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+                            <PhoneIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />
+                            <Typography variant="body2">
+                              {pump.contactDetails.phone}
+                            </Typography>
+                          </Box>
+                        )}
+                        {pump.contactDetails?.email && (
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <EmailIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />
+                            <Typography variant="body2">
+                              {pump.contactDetails.email}
+                            </Typography>
+                          </Box>
+                        )}
+                      </StyledTableCell>
+                      <StyledTableCell>
+                        <StatusChip 
+                          label={pump.isVerified ? 'Verified' : 'Unverified'} 
+                          status={getPumpStatus(pump)}
+                          size="small"
+                        />
+                      </StyledTableCell>
+                      <StyledTableCell align="right">
+                        <IconButton
+                          aria-label="more"
+                          aria-controls="row-menu"
+                          aria-haspopup="true"
+                          onClick={(event) => handleOpenMenu(event, pump)}
+                        >
+                          <MoreVertIcon />
+                        </IconButton>
+                      </StyledTableCell>
+                    </StyledTableRow>
+                  ))}
+                {filteredPumps.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={8} align="center">
-                      No petrol pumps found
+                    <TableCell colSpan={5}>
+                      <Box sx={{ py: 4, textAlign: 'center' }}>
+                        <Typography variant="body1" color="text.secondary">
+                          No petrol pumps found
+                        </Typography>
+                      </Box>
                     </TableCell>
                   </TableRow>
-                ) : (
-                  filteredPumps
-                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                    .map((pump) => (
-                      <TableRow hover key={pump.id}>
-                        <TableCell>{pump.customerName || 'N/A'}</TableCell>
-                        <TableCell>{pump.dealerName || 'N/A'}</TableCell>
-                        <TableCell>
-                          {[
-                            pump.addressLine1,
-                            pump.addressLine2,
-                            pump.addressLine3,
-                            pump.addressLine4
-                          ].filter(Boolean).join(', ')}
-                        </TableCell>
-                        <TableCell>{pump.contactDetails || 'N/A'}</TableCell>
-                        <TableCell>
-                          {pump.latitude && pump.longitude ? (
-                            `${pump.latitude.toFixed(6)}, ${pump.longitude.toFixed(6)}`
-                          ) : 'N/A'}
-                        </TableCell>
-                        <TableCell>
-                          <Chip 
-                            label={pump.zone || 'N/A'} 
-                            color="primary"
-                            size="small"
-                          />
-                        </TableCell>
-                        <TableCell>{pump.salesArea || 'N/A'}</TableCell>
-                        <TableCell>
-                          <IconButton 
-                            color="primary"
-                            onClick={() => handleOpenDetailsDialog(pump)}
-                          >
-                            <ViewIcon />
-                          </IconButton>
-                          <IconButton 
-                            size="small" 
-                            color={pump.isVerified ? "warning" : "success"}
-                            onClick={() => handleOpenVerifyDialog(pump)}
-                          >
-                            {pump.isVerified ? <CancelIcon /> : <VerifiedIcon />}
-                          </IconButton>
-                          <IconButton 
-                            color="error"
-                            onClick={() => handleOpenDeleteDialog(pump)}
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        </TableCell>
-                      </TableRow>
-                    ))
                 )}
               </TableBody>
             </Table>
           </TableContainer>
           <TablePagination
-            rowsPerPageOptions={[10, 25, 100]}
+            rowsPerPageOptions={[5, 10, 25]}
             component="div"
             count={filteredPumps.length}
             rowsPerPage={rowsPerPage}
@@ -580,533 +782,692 @@ export default function PetrolPumps() {
             onPageChange={handleChangePage}
             onRowsPerPageChange={handleChangeRowsPerPage}
           />
-        </Paper>
+        </Card>
       ) : (
-        /* Grid View */
-        <Grid container spacing={3}>
-          {filteredPumps
-            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-            .map((pump) => (
-              <Grid item xs={12} sm={6} md={4} key={pump.id}>
-                <Card>
-                  <CardContent>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                      <Typography variant="h6" component="div">
-                        {pump.customerName || 'Unnamed Pump'}
-                      </Typography>
-                      {pump.isVerified ? (
-                        <Chip 
-                          label="Verified" 
-                          color="success" 
+        <Box>
+          <Grid container spacing={3}>
+            {filteredPumps
+              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+              .map((pump) => (
+                <Grid item xs={12} sm={6} md={4} key={pump.id}>
+                  <PumpCard>
+                    <CardContent>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                          <Avatar sx={{ bgcolor: 'primary.main', mr: 2 }}>
+                            <PumpIcon />
+                          </Avatar>
+                          <Box>
+                            <Typography variant="h6" fontWeight={600}>
+                              {pump.customerName || 'Unnamed Pump'}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              {pump.dealerName || 'No dealer info'}
+                            </Typography>
+                          </Box>
+                        </Box>
+                        <StatusChip 
+                          label={pump.isVerified ? 'Verified' : 'Unverified'} 
+                          status={getPumpStatus(pump)}
                           size="small"
-                          icon={<VerifiedIcon />}
                         />
-                      ) : (
-                        <Chip 
-                          label="Unverified" 
-                          color="warning" 
-                          size="small"
-                          icon={<CancelIcon />}
-                        />
+                      </Box>
+
+                      <Divider sx={{ my: 2 }} />
+                      
+                      <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 2 }}>
+                        <LocationIcon sx={{ mt: 0.5, mr: 1, color: 'text.secondary' }} />
+                        <Typography variant="body2">
+                          {renderAddress(pump)}
+                        </Typography>
+                      </Box>
+                      
+                      {pump.contactDetails?.phone && (
+                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                          <PhoneIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />
+                          <Typography variant="body2">
+                            {pump.contactDetails.phone}
+                          </Typography>
+                        </Box>
                       )}
-                    </Box>
-                    <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 1 }}>
-                      <LocationIcon sx={{ mr: 1, color: 'text.secondary' }} />
-                      <Typography variant="body2" color="text.secondary">
-                        {pump.addressLine1 || 'No address provided'}
-                      </Typography>
-                    </Box>
-                    {pump.addedBy && (
-                      <Typography variant="body2" color="text.secondary">
-                        Added by: {pump.addedBy.name || pump.addedBy.email || 'Unknown user'}
-                      </Typography>
-                    )}
-                  </CardContent>
-                  <CardActions>
-                    <Button 
-                      size="small" 
-                      startIcon={<ViewIcon />}
-                      onClick={() => handleOpenDetailsDialog(pump)}
-                    >
-                      View
-                    </Button>
-                    <Button 
-                      size="small" 
-                      startIcon={pump.isVerified ? <CancelIcon /> : <VerifiedIcon />}
-                      color={pump.isVerified ? "warning" : "success"}
-                      onClick={() => handleOpenVerifyDialog(pump)}
-                    >
-                      {pump.isVerified ? "Unverify" : "Verify"}
-                    </Button>
-                    <Button 
-                      size="small" 
-                      startIcon={<DeleteIcon />}
-                      color="error"
-                      onClick={() => handleOpenDeleteDialog(pump)}
-                    >
-                      Delete
-                    </Button>
-                  </CardActions>
-                </Card>
-              </Grid>
-            ))}
+                      
+                      {pump.contactDetails?.email && (
+                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                          <EmailIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />
+                          <Typography variant="body2">
+                            {pump.contactDetails.email}
+                          </Typography>
+                        </Box>
+                      )}
+                      
+                      {pump.company && (
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                          <BusinessIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />
+                          <Typography variant="body2">
+                            {pump.company}
+                          </Typography>
+                        </Box>
+                      )}
+                    </CardContent>
+                    <CardActions sx={{ p: 2, pt: 0 }}>
+                      <Button 
+                        size="small" 
+                        startIcon={<ViewIcon />}
+                        onClick={() => handleOpenDetailsDialog(pump)}
+                      >
+                        View Details
+                      </Button>
+                      <Button 
+                        size="small" 
+                        startIcon={<EditIcon />}
+                        onClick={() => handleOpenDetailsDialog(pump)}
+                      >
+                        Edit
+                      </Button>
+                    </CardActions>
+                  </PumpCard>
+                </Grid>
+              ))}
+          </Grid>
+          
           {filteredPumps.length === 0 && (
-            <Box sx={{ p: 3, width: '100%', textAlign: 'center' }}>
-              <Typography>No petrol pumps found</Typography>
+            <Box sx={{ py: 6, textAlign: 'center' }}>
+              <Typography variant="body1" color="text.secondary">
+                No petrol pumps found
+              </Typography>
             </Box>
           )}
-        </Grid>
-      )}
-      
-      {viewMode === 'grid' && (
-        <Box sx={{ mt: 2 }}>
-          <TablePagination
-            rowsPerPageOptions={[6, 12, 24]}
-            component="div"
-            count={filteredPumps.length}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-          />
+          
+          <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}>
+            <TablePagination
+              rowsPerPageOptions={[6, 12, 24]}
+              component="div"
+              count={filteredPumps.length}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              onPageChange={handleChangePage}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+            />
+          </Box>
         </Box>
       )}
       
-      {/* Delete Pump Dialog */}
-      <Dialog
-        open={openDeleteDialog}
-        onClose={handleCloseDeleteDialog}
+      {/* Row Actions Menu */}
+      <Menu
+        id="row-menu"
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleCloseMenu}
+        elevation={3}
+        PaperProps={{
+          sx: {
+            borderRadius: 2,
+            minWidth: 180,
+            boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+          }
+        }}
       >
-        <DialogTitle>Confirm Deletion</DialogTitle>
-        <DialogContent>
-          Are you sure you want to delete the petrol pump{' '}
-          {pumpToDelete ? `"${pumpToDelete.customerName || 'Unnamed Pump'}"` : ''}? 
-          This action cannot be undone.
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDeleteDialog} disabled={actionLoading}>
-            Cancel
-          </Button>
-          <Button 
-            onClick={handleDeletePump} 
-            color="error" 
-            disabled={actionLoading}
-            startIcon={actionLoading ? <CircularProgress size={20} /> : null}
-          >
-            {actionLoading ? 'Deleting...' : 'Delete'}
-          </Button>
-        </DialogActions>
-      </Dialog>
-      
-      {/* Verify/Unverify Pump Dialog */}
-      <Dialog
-        open={openVerifyDialog}
-        onClose={handleCloseVerifyDialog}
-      >
-        <DialogTitle>
-          {pumpToToggleVerify && pumpToToggleVerify.isVerified 
-            ? 'Unverify Petrol Pump' 
-            : 'Verify Petrol Pump'}
-        </DialogTitle>
-        <DialogContent>
-          {pumpToToggleVerify && pumpToToggleVerify.isVerified 
-            ? `Are you sure you want to mark "${pumpToToggleVerify.customerName || 'this pump'}" as unverified?`
-            : `Are you sure you want to verify "${pumpToToggleVerify ? (pumpToToggleVerify.customerName || 'this pump') : ''}"?`}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseVerifyDialog} disabled={actionLoading}>
-            Cancel
-          </Button>
-          <Button 
-            onClick={handleToggleVerifyPump} 
-            color={pumpToToggleVerify && pumpToToggleVerify.isVerified ? "warning" : "success"}
-            disabled={actionLoading}
-            startIcon={actionLoading ? <CircularProgress size={20} /> : null}
-          >
-            {actionLoading 
-              ? 'Processing...' 
-              : (pumpToToggleVerify && pumpToToggleVerify.isVerified ? "Unverify" : "Verify")}
-          </Button>
-        </DialogActions>
-      </Dialog>
-      
-      {/* Pump Details Dialog */}
-      <Dialog
-        open={openDetailsDialog}
-        onClose={handleCloseDetailsDialog}
-        maxWidth="md"
-        fullWidth
-      >
-        {selectedPump && (
-          <>
-            <DialogTitle>
-              {selectedPump.customerName || 'Unnamed Petrol Pump'}
-              {selectedPump.isVerified && (
-                <Chip 
-                  label="Verified" 
-                  color="success" 
-                  size="small"
-                  icon={<VerifiedIcon />}
-                  sx={{ ml: 2 }}
-                />
-              )}
-            </DialogTitle>
-            <DialogContent>
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
-                  <Typography variant="subtitle1">Address:</Typography>
-                  <Typography variant="body2" paragraph>
-                    {[
-                      selectedPump.addressLine1,
-                      selectedPump.addressLine2,
-                      selectedPump.addressLine3,
-                      selectedPump.addressLine4
-                    ].filter(Boolean).join(', ')}
-                  </Typography>
-                  
-                  <Typography variant="subtitle1">Coordinates:</Typography>
-                  <Typography variant="body2" paragraph>
-                    {selectedPump.latitude ? `Lat: ${selectedPump.latitude}, Long: ${selectedPump.longitude}` : 'No coordinates provided'}
-                  </Typography>
-                  
-                  <Typography variant="subtitle1">Added By:</Typography>
-                  <Typography variant="body2" paragraph>
-                    {selectedPump.addedBy?.name || selectedPump.addedBy?.email || 'Unknown user'}
-                  </Typography>
-                  
-                  <Typography variant="subtitle1">Created At:</Typography>
-                  <Typography variant="body2" paragraph>
-                    {selectedPump.createdAt && selectedPump.createdAt.toDate ? 
-                      new Date(selectedPump.createdAt.toDate()).toLocaleString() : 
-                      'Unknown date'}
-                  </Typography>
-                </Grid>
-                
-                <Grid item xs={12} md={6}>
-                  <Typography variant="subtitle1">Fuel Types:</Typography>
-                  <Box sx={{ mb: 2 }}>
-                    {selectedPump.fuelTypes && selectedPump.fuelTypes.length > 0 ? (
-                      selectedPump.fuelTypes.map((fuel, index) => (
-                        <Chip 
-                          key={index}
-                          label={fuel}
-                          sx={{ mr: 1, mb: 1 }}
-                        />
-                      ))
-                    ) : (
-                      <Typography variant="body2">No fuel types specified</Typography>
-                    )}
-                  </Box>
-                  
-                  <Typography variant="subtitle1">Amenities:</Typography>
-                  <Box sx={{ mb: 2 }}>
-                    {selectedPump.amenities && selectedPump.amenities.length > 0 ? (
-                      selectedPump.amenities.map((amenity, index) => (
-                        <Chip 
-                          key={index}
-                          label={amenity}
-                          sx={{ mr: 1, mb: 1 }}
-                        />
-                      ))
-                    ) : (
-                      <Typography variant="body2">No amenities specified</Typography>
-                    )}
-                  </Box>
-                  
-                  <Typography variant="subtitle1">Operating Hours:</Typography>
-                  <Typography variant="body2">
-                    {selectedPump.operatingHours || 'Not specified'}
-                  </Typography>
-                </Grid>
-              </Grid>
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={handleCloseDetailsDialog}>Close</Button>
-              <Button 
-                color={selectedPump.isVerified ? "warning" : "success"}
-                onClick={() => {
-                  handleCloseDetailsDialog();
-                  handleOpenVerifyDialog(selectedPump);
-                }}
-              >
-                {selectedPump.isVerified ? "Unverify" : "Verify"}
-              </Button>
-              <Button 
-                color="error"
-                onClick={() => {
-                  handleCloseDetailsDialog();
-                  handleOpenDeleteDialog(selectedPump);
-                }}
-              >
-                Delete
-              </Button>
-            </DialogActions>
-          </>
-        )}
-      </Dialog>
+        <MenuItem onClick={() => handleOpenDetailsDialog(selectedRow)}>
+          <ListItemIcon>
+            <ViewIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText primary="View Details" />
+        </MenuItem>
+        <MenuItem onClick={() => handleOpenVerifyDialog(selectedRow)}>
+          <ListItemIcon>
+            {selectedRow?.isVerified ? <CancelIcon fontSize="small" color="warning" /> : <VerifiedIcon fontSize="small" color="success" />}
+          </ListItemIcon>
+          <ListItemText primary={selectedRow?.isVerified ? "Mark as Unverified" : "Mark as Verified"} />
+        </MenuItem>
+        <Divider />
+        <MenuItem onClick={() => handleOpenDeleteDialog(selectedRow)}>
+          <ListItemIcon>
+            <DeleteIcon fontSize="small" color="error" />
+          </ListItemIcon>
+          <ListItemText primary="Delete" sx={{ color: 'error.main' }} />
+        </MenuItem>
+      </Menu>
 
       {/* Import Dialog */}
-      <Dialog
-        open={importDialogOpen}
-        onClose={handleCloseImportDialog}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>Import Petrol Pumps from Excel</DialogTitle>
-        <DialogContent>
-          <Box sx={{ mt: 2 }}>
-            <Typography variant="body2" gutterBottom>
-              Upload an Excel file containing petrol pump data. The file should have the following columns:
-            </Typography>
-            <Typography variant="body2" component="div" sx={{ mt: 1, mb: 2 }}>
-              <ul>
-                <li>Customer Name</li>
-                <li>Dealer Name</li>
-                <li>Address Line 1-4</li>
-                <li>Contact</li>
-                <li>Latitude</li>
-                <li>Longitude</li>
-                <li>Zone</li>
-                <li>Sales Area</li>
-                <li>SAP Code</li>
-                <li>CO/CL/DO</li>
-                <li>Pincode</li>
-                <li>District</li>
-                <li>Location</li>
-              </ul>
-            </Typography>
-
-            <input
-              accept=".xlsx, .xls"
-              style={{ display: 'none' }}
-              id="excel-file-upload"
-              type="file"
-              onChange={handleFileUpload}
-            />
-            <label htmlFor="excel-file-upload">
-              <Button
-                variant="outlined"
-                component="span"
-                fullWidth
-                startIcon={<UploadIcon />}
-              >
-                {importFile ? importFile.name : 'Choose Excel File'}
-              </Button>
-            </label>
-
-            {importProgress > 0 && (
-              <Box sx={{ mt: 2 }}>
-                <Typography variant="body2" gutterBottom>
-                  Import Progress: {importProgress}%
-                </Typography>
-                <LinearProgress variant="determinate" value={importProgress} />
-              </Box>
-            )}
-
-            {importStatus === 'success' && (
-              <Alert severity="success" sx={{ mt: 2 }}>
-                Data imported successfully!
-              </Alert>
-            )}
-
-            {importError && (
-              <Alert severity="error" sx={{ mt: 2 }}>
-                Error: {importError}
-              </Alert>
+      <Dialog open={importDialogOpen} onClose={handleCloseImportDialog} maxWidth="sm" fullWidth>
+        <DialogTitle>
+          <Typography variant="h6" fontWeight={600}>
+            Import Petrol Pumps
+          </Typography>
+        </DialogTitle>
+        <DialogContent dividers>
+          <Typography variant="body2" paragraph>
+            Upload an Excel file (.xlsx) with petrol pump data. The file should contain the following columns:
+            CustomerName, DealerName, AddressLine1, AddressLine2, City, District, State, Pincode, Latitude, Longitude, Phone, Email, Company.
+          </Typography>
+          
+          <Box sx={{ mt: 2, mb: 3 }}>
+            <Button
+              variant="outlined"
+              component="label"
+              startIcon={<UploadIcon />}
+              fullWidth
+              sx={{ py: 1.5, borderRadius: 2, borderStyle: 'dashed' }}
+            >
+              Select Excel File
+              <input
+                type="file"
+                accept=".xlsx, .xls"
+                hidden
+                onChange={handleFileUpload}
+              />
+            </Button>
+            {importFile && (
+              <Typography variant="body2" sx={{ mt: 1 }}>
+                Selected file: {importFile.name}
+              </Typography>
             )}
           </Box>
+          
+          {importProgress > 0 && (
+            <Box sx={{ mt: 2, mb: 1 }}>
+              <Typography variant="body2" sx={{ mb: 1 }}>
+                Importing: {importProgress}%
+              </Typography>
+              <LinearProgress variant="determinate" value={importProgress} />
+            </Box>
+          )}
+          
+          {importStatus && (
+            <Alert severity="success" sx={{ mt: 2 }}>
+              {importStatus}
+            </Alert>
+          )}
+          
+          {importError && (
+            <Alert severity="error" sx={{ mt: 2 }}>
+              {importError}
+            </Alert>
+          )}
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ px: 3, py: 2 }}>
           <Button 
             onClick={handleCloseImportDialog}
-            startIcon={<CancelIcon />}
-            disabled={actionLoading}
+            variant="outlined"
+            color="inherit"
+            sx={{ borderRadius: 2 }}
           >
             Cancel
           </Button>
-          <Button
+          <Button 
             onClick={handleImport}
             variant="contained"
-            startIcon={actionLoading ? <CircularProgress size={20} /> : <UploadIcon />}
-            disabled={actionLoading || !importFile}
+            disabled={!importFile || importProgress > 0}
+            startIcon={importProgress > 0 ? <CircularProgress size={20} /> : <UploadIcon />}
+            sx={{ borderRadius: 2 }}
           >
-            {actionLoading ? 'Importing...' : 'Import'}
+            Import Data
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Create Pump Dialog */}
-      <Dialog
-        open={openCreateDialog}
-        onClose={handleCloseCreateDialog}
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogTitle>Create New Petrol Pump</DialogTitle>
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={openDeleteDialog} onClose={handleCloseDeleteDialog}>
+        <DialogTitle>
+          <Typography variant="h6" fontWeight={600}>
+            Confirm Delete
+          </Typography>
+        </DialogTitle>
         <DialogContent>
-          <Grid container spacing={2} sx={{ mt: 1 }}>
-            <Grid item xs={12} sm={6}>
+          <Typography variant="body1">
+            Are you sure you want to delete this petrol pump? This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, py: 2 }}>
+          <Button 
+            onClick={handleCloseDeleteDialog}
+            variant="outlined"
+            color="inherit"
+            sx={{ borderRadius: 2 }}
+          >
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleDeletePump}
+            variant="contained"
+            color="error"
+            disabled={actionLoading}
+            startIcon={actionLoading ? <CircularProgress size={20} /> : <DeleteIcon />}
+            sx={{ borderRadius: 2 }}
+          >
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Verify/Unverify Confirmation Dialog */}
+      <Dialog open={openVerifyDialog} onClose={handleCloseVerifyDialog}>
+        <DialogTitle>
+          <Typography variant="h6" fontWeight={600}>
+            {pumpToToggleVerify?.isVerified ? 'Mark as Unverified' : 'Mark as Verified'}
+          </Typography>
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body1">
+            Are you sure you want to {pumpToToggleVerify?.isVerified ? 'unverify' : 'verify'} this petrol pump?
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, py: 2 }}>
+          <Button 
+            onClick={handleCloseVerifyDialog}
+            variant="outlined"
+            color="inherit"
+            sx={{ borderRadius: 2 }}
+          >
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleToggleVerifyPump}
+            variant="contained"
+            color={pumpToToggleVerify?.isVerified ? "warning" : "success"}
+            disabled={actionLoading}
+            startIcon={actionLoading ? 
+              <CircularProgress size={20} /> : 
+              pumpToToggleVerify?.isVerified ? <CancelIcon /> : <VerifiedIcon />
+            }
+            sx={{ borderRadius: 2 }}
+          >
+            {pumpToToggleVerify?.isVerified ? 'Unverify' : 'Verify'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* View/Edit Details Dialog */}
+      <Dialog open={openDetailsDialog} onClose={handleCloseDetailsDialog} maxWidth="md" fullWidth>
+        <DialogTitle>
+          <Typography variant="h6" fontWeight={600}>
+            Petrol Pump Details
+          </Typography>
+        </DialogTitle>
+        <DialogContent dividers>
+          {selectedPump && (
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Customer Name"
+                  value={selectedPump.customerName || ''}
+                  InputProps={{ readOnly: true }}
+                  margin="normal"
+                  variant="outlined"
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Dealer Name"
+                  value={selectedPump.dealerName || ''}
+                  InputProps={{ readOnly: true }}
+                  margin="normal"
+                  variant="outlined"
+                />
+              </Grid>
+              
+              <Grid item xs={12}>
+                <Typography variant="subtitle1" fontWeight={600} gutterBottom>
+                  Address
+                </Typography>
+              </Grid>
+              
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Address Line 1"
+                  value={selectedPump.addressLine1 || selectedPump.address?.line1 || ''}
+                  InputProps={{ readOnly: true }}
+                  margin="normal"
+                  variant="outlined"
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Address Line 2"
+                  value={selectedPump.addressLine2 || selectedPump.address?.line2 || ''}
+                  InputProps={{ readOnly: true }}
+                  margin="normal"
+                  variant="outlined"
+                />
+              </Grid>
+              
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  label="City"
+                  value={selectedPump.addressLine3 || selectedPump.address?.city || ''}
+                  InputProps={{ readOnly: true }}
+                  margin="normal"
+                  variant="outlined"
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  label="District"
+                  value={selectedPump.district || selectedPump.address?.district || ''}
+                  InputProps={{ readOnly: true }}
+                  margin="normal"
+                  variant="outlined"
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  label="Pincode"
+                  value={selectedPump.pincode || selectedPump.address?.pincode || ''}
+                  InputProps={{ readOnly: true }}
+                  margin="normal"
+                  variant="outlined"
+                />
+              </Grid>
+              
+              <Grid item xs={12}>
+                <Typography variant="subtitle1" fontWeight={600} gutterBottom>
+                  Location
+                </Typography>
+              </Grid>
+              
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Latitude"
+                  value={selectedPump.latitude || selectedPump.location?.latitude || ''}
+                  InputProps={{ readOnly: true }}
+                  margin="normal"
+                  variant="outlined"
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Longitude"
+                  value={selectedPump.longitude || selectedPump.location?.longitude || ''}
+                  InputProps={{ readOnly: true }}
+                  margin="normal"
+                  variant="outlined"
+                />
+              </Grid>
+              
+              <Grid item xs={12}>
+                <Typography variant="subtitle1" fontWeight={600} gutterBottom>
+                  Contact Details
+                </Typography>
+              </Grid>
+              
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Phone"
+                  value={selectedPump.contactDetails?.phone || ''}
+                  InputProps={{ readOnly: true }}
+                  margin="normal"
+                  variant="outlined"
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Email"
+                  value={selectedPump.contactDetails?.email || ''}
+                  InputProps={{ readOnly: true }}
+                  margin="normal"
+                  variant="outlined"
+                />
+              </Grid>
+              
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Company"
+                  value={selectedPump.company || ''}
+                  InputProps={{ readOnly: true }}
+                  margin="normal"
+                  variant="outlined"
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Status"
+                  value={selectedPump.isVerified ? 'Verified' : 'Unverified'}
+                  InputProps={{ readOnly: true }}
+                  margin="normal"
+                  variant="outlined"
+                />
+              </Grid>
+            </Grid>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ px: 3, py: 2 }}>
+          <Button 
+            onClick={handleCloseDetailsDialog}
+            variant="outlined"
+            color="inherit"
+            sx={{ borderRadius: 2 }}
+          >
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Create Petrol Pump Dialog */}
+      <Dialog open={openCreateDialog} onClose={handleCloseCreateDialog} maxWidth="md" fullWidth>
+        <DialogTitle>
+          <Typography variant="h6" fontWeight={600}>
+            Create New Petrol Pump
+          </Typography>
+        </DialogTitle>
+        <DialogContent dividers>
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
                 label="Customer Name"
                 value={newPump.customerName}
                 onChange={(e) => handleCreateChange('customerName', e.target.value)}
                 margin="normal"
-                required
+                variant="outlined"
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
                 label="Dealer Name"
                 value={newPump.dealerName}
                 onChange={(e) => handleCreateChange('dealerName', e.target.value)}
                 margin="normal"
-                required
+                variant="outlined"
               />
             </Grid>
+            
             <Grid item xs={12}>
+              <Typography variant="subtitle1" fontWeight={600} gutterBottom>
+                Address
+              </Typography>
+            </Grid>
+            
+            <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
                 label="Address Line 1"
                 value={newPump.address.line1}
                 onChange={(e) => handleCreateChange('address.line1', e.target.value)}
                 margin="normal"
-                required
+                variant="outlined"
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
                 label="Address Line 2"
                 value={newPump.address.line2}
                 onChange={(e) => handleCreateChange('address.line2', e.target.value)}
                 margin="normal"
+                variant="outlined"
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            
+            <Grid item xs={12} md={4}>
               <TextField
                 fullWidth
                 label="City"
                 value={newPump.address.city}
                 onChange={(e) => handleCreateChange('address.city', e.target.value)}
                 margin="normal"
-                required
+                variant="outlined"
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12} md={4}>
               <TextField
                 fullWidth
                 label="District"
                 value={newPump.address.district}
                 onChange={(e) => handleCreateChange('address.district', e.target.value)}
                 margin="normal"
-                required
+                variant="outlined"
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12} md={4}>
               <TextField
                 fullWidth
                 label="State"
                 value={newPump.address.state}
                 onChange={(e) => handleCreateChange('address.state', e.target.value)}
                 margin="normal"
-                required
+                variant="outlined"
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            
+            <Grid item xs={12} md={4}>
               <TextField
                 fullWidth
                 label="Pincode"
                 value={newPump.address.pincode}
                 onChange={(e) => handleCreateChange('address.pincode', e.target.value)}
                 margin="normal"
-                required
+                variant="outlined"
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            
+            <Grid item xs={12}>
+              <Typography variant="subtitle1" fontWeight={600} gutterBottom>
+                Location
+              </Typography>
+            </Grid>
+            
+            <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
                 label="Latitude"
                 value={newPump.location.latitude}
                 onChange={(e) => handleCreateChange('location.latitude', e.target.value)}
                 margin="normal"
-                required
+                variant="outlined"
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
                 label="Longitude"
                 value={newPump.location.longitude}
                 onChange={(e) => handleCreateChange('location.longitude', e.target.value)}
                 margin="normal"
-                required
+                variant="outlined"
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            
+            <Grid item xs={12}>
+              <Typography variant="subtitle1" fontWeight={600} gutterBottom>
+                Contact Details
+              </Typography>
+            </Grid>
+            
+            <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
                 label="Phone"
                 value={newPump.contactDetails.phone}
                 onChange={(e) => handleCreateChange('contactDetails.phone', e.target.value)}
                 margin="normal"
-                required
+                variant="outlined"
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
                 label="Email"
                 value={newPump.contactDetails.email}
                 onChange={(e) => handleCreateChange('contactDetails.email', e.target.value)}
                 margin="normal"
+                variant="outlined"
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            
+            <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
                 label="Company"
                 value={newPump.company}
                 onChange={(e) => handleCreateChange('company', e.target.value)}
                 margin="normal"
-                required
+                variant="outlined"
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                select
-                label="Status"
-                value={newPump.status}
-                onChange={(e) => handleCreateChange('status', e.target.value)}
-                margin="normal"
-              >
-                <MenuItem value="active">Active</MenuItem>
-                <MenuItem value="inactive">Inactive</MenuItem>
-                <MenuItem value="pending">Pending</MenuItem>
-              </TextField>
+            <Grid item xs={12} md={6}>
+              <FormControl fullWidth margin="normal">
+                <InputLabel>Status</InputLabel>
+                <Select
+                  value={newPump.status}
+                  onChange={(e) => handleCreateChange('status', e.target.value)}
+                  label="Status"
+                >
+                  <MenuItem value="active">Active</MenuItem>
+                  <MenuItem value="inactive">Inactive</MenuItem>
+                </Select>
+              </FormControl>
             </Grid>
           </Grid>
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ px: 3, py: 2 }}>
           <Button 
             onClick={handleCloseCreateDialog}
-            startIcon={<CancelIcon />}
-            disabled={actionLoading}
+            variant="outlined"
+            color="inherit"
+            sx={{ borderRadius: 2 }}
           >
             Cancel
           </Button>
-          <Button
+          <Button 
             onClick={handleCreatePump}
             variant="contained"
-            startIcon={actionLoading ? <CircularProgress size={20} /> : <SaveIcon />}
             disabled={actionLoading}
+            startIcon={actionLoading ? <CircularProgress size={20} /> : <AddIcon />}
+            sx={{ borderRadius: 2 }}
           >
-            {actionLoading ? 'Creating...' : 'Create Pump'}
+            Create Pump
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Floating Action Button */}
+      <Fab 
+        color="primary" 
+        aria-label="add" 
+        onClick={handleOpenCreateDialog}
+        sx={{ 
+          position: 'fixed', 
+          bottom: 32, 
+          right: 32,
+          boxShadow: '0 8px 16px rgba(58, 134, 255, 0.3)'
+        }}
+      >
+        <AddIcon />
+      </Fab>
     </Box>
   );
 } 
