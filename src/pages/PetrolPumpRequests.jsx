@@ -29,7 +29,7 @@ import {
   Refresh as RefreshIcon
 } from '@mui/icons-material';
 import { collection, getDocs, doc, updateDoc, addDoc, query, orderBy } from 'firebase/firestore';
-import { db } from '../firebase/config';
+import { db, auth } from '../firebase/config';
 import { styled } from '@mui/material/styles';
 
 const StatusChip = styled(Chip)(({ theme, status }) => ({
@@ -55,8 +55,8 @@ const PetrolPumpRequests = () => {
   const fetchRequests = async () => {
     try {
       setLoading(true);
-      const requestsRef = collection(db, 'petrolPumpRequests');
-      const q = query(requestsRef, orderBy('timestamp', 'desc'));
+      const requestsRef = collection(db, 'petrol_pump_requests');
+      const q = query(requestsRef, orderBy('createdAt', 'desc'));
       const querySnapshot = await getDocs(q);
       
       const requestsData = querySnapshot.docs.map(doc => ({
@@ -67,7 +67,7 @@ const PetrolPumpRequests = () => {
       setRequests(requestsData);
     } catch (error) {
       console.error('Error fetching requests:', error);
-      showSnackbar('Error fetching requests', 'error');
+      showSnackbar(`Error fetching requests: ${error.message}`, 'error');
     } finally {
       setLoading(false);
     }
@@ -80,42 +80,65 @@ const PetrolPumpRequests = () => {
 
   const handleApproveRequest = async (requestId) => {
     try {
-      const requestRef = doc(db, 'petrolPumpRequests', requestId);
+      // Update the request status to approved
+      const requestRef = doc(db, 'petrol_pump_requests', requestId);
       await updateDoc(requestRef, {
         status: 'approved',
-        approvedAt: new Date().toISOString()
+        approvedAt: new Date().toISOString(),
+        approvedBy: auth.currentUser?.uid || 'unknown',
       });
 
-      // Add to petrol pumps collection
+      // Get the full request data
       const request = requests.find(r => r.id === requestId);
-      const petrolPumpRef = collection(db, 'petrolPumps');
-      await addDoc(petrolPumpRef, {
-        ...request,
-        createdAt: new Date().toISOString(),
-        status: 'active'
+      
+      if (!request) {
+        throw new Error('Request not found');
+      }
+      
+      // Add to map_locations collection
+      const mapLocationRef = collection(db, 'map_locations');
+      await addDoc(mapLocationRef, {
+        zone: request.zone || '',
+        salesArea: request.salesArea || '',
+        coClDo: request.coClDo || '',
+        district: request.district || '',
+        sapCode: request.sapCode || '',
+        customerName: request.customerName || '',
+        location: request.location || '',
+        addressLine1: request.addressLine1 || '',
+        addressLine2: request.addressLine2 || '',
+        pincode: request.pincode || '',
+        dealerName: request.dealerName || '',
+        contactDetails: request.contactDetails || '',
+        latitude: request.latitude || 0,
+        longitude: request.longitude || 0,
+        approvedAt: new Date().toISOString(),
+        approvedBy: auth.currentUser?.uid || 'unknown',
+        requestId: requestId,
       });
 
-      showSnackbar('Request approved successfully', 'success');
+      showSnackbar('Request approved and added to map successfully', 'success');
       fetchRequests();
     } catch (error) {
       console.error('Error approving request:', error);
-      showSnackbar('Error approving request', 'error');
+      showSnackbar(`Error approving request: ${error.message}`, 'error');
     }
   };
 
   const handleRejectRequest = async (requestId) => {
     try {
-      const requestRef = doc(db, 'petrolPumpRequests', requestId);
+      const requestRef = doc(db, 'petrol_pump_requests', requestId);
       await updateDoc(requestRef, {
         status: 'rejected',
-        rejectedAt: new Date().toISOString()
+        rejectedAt: new Date().toISOString(),
+        rejectedBy: auth.currentUser?.uid || 'unknown'
       });
 
       showSnackbar('Request rejected successfully', 'success');
       fetchRequests();
     } catch (error) {
       console.error('Error rejecting request:', error);
-      showSnackbar('Error rejecting request', 'error');
+      showSnackbar(`Error rejecting request: ${error.message}`, 'error');
     }
   };
 
@@ -127,8 +150,25 @@ const PetrolPumpRequests = () => {
     setSnackbar({ ...snackbar, open: false });
   };
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleString();
+  const formatDate = (date) => {
+    if (!date) return 'Unknown';
+    
+    // If it's a Firestore timestamp
+    if (date && date.toDate && typeof date.toDate === 'function') {
+      return date.toDate().toLocaleString();
+    }
+    
+    // If it's a date string
+    if (typeof date === 'string') {
+      return new Date(date).toLocaleString();
+    }
+    
+    // If it's already a Date
+    if (date instanceof Date) {
+      return date.toLocaleString();
+    }
+    
+    return 'Invalid date';
   };
 
   return (
@@ -167,7 +207,7 @@ const PetrolPumpRequests = () => {
                 <TableRow key={request.id}>
                   <TableCell>{request.customerName}</TableCell>
                   <TableCell>{request.location}</TableCell>
-                  <TableCell>{formatDate(request.timestamp)}</TableCell>
+                  <TableCell>{formatDate(request.createdAt?.toDate?.() || request.createdAt)}</TableCell>
                   <TableCell>
                     <StatusChip
                       label={request.status}
