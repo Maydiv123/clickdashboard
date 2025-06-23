@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { styled } from '@mui/material/styles';
 import {
   Box,
@@ -36,7 +37,9 @@ import {
   Close as CloseIcon,
   Save as SaveIcon,
   DeleteOutline as DeleteIcon,
-  Check as CheckIcon
+  Check as CheckIcon,
+  Visibility as VisibilityIcon,
+  TableView as TableViewIcon
 } from '@mui/icons-material';
 import { db } from '../firebase/config';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -92,6 +95,7 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 }));
 
 export default function ExcelImport() {
+  const navigate = useNavigate();
   const [activeStep, setActiveStep] = useState(0);
   const [excelData, setExcelData] = useState([]);
   const [columns, setColumns] = useState([]);
@@ -282,6 +286,10 @@ export default function ExcelImport() {
     setShowPreview(!showPreview);
   };
 
+  const navigateToImportedData = () => {
+    navigate('/imported-data');
+  };
+
   return (
     <Box sx={{ width: '100%', mb: 4 }}>
       <Typography variant="h4" gutterBottom>
@@ -339,6 +347,16 @@ export default function ExcelImport() {
                 <CircularProgress size={24} sx={{ mt: 2 }} />
               )}
             </UploadBox>
+            
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+              <Button 
+                variant="outlined" 
+                startIcon={<TableViewIcon />}
+                onClick={navigateToImportedData}
+              >
+                View Imported Data
+              </Button>
+            </Box>
           </Box>
         )}
 
@@ -471,13 +489,22 @@ export default function ExcelImport() {
                       />
                     )}
                   </Box>
-                  <Button 
-                    variant="contained" 
-                    onClick={resetForm}
-                    startIcon={<UploadIcon />}
-                  >
-                    Import Another File
-                  </Button>
+                  <Box sx={{ display: 'flex', gap: 2 }}>
+                    <Button 
+                      variant="contained" 
+                      onClick={resetForm}
+                      startIcon={<UploadIcon />}
+                    >
+                      Import Another File
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      startIcon={<TableViewIcon />}
+                      onClick={navigateToImportedData}
+                    >
+                      View Imported Data
+                    </Button>
+                  </Box>
                 </CardContent>
               </Card>
             )}

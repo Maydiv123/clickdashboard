@@ -34,7 +34,8 @@ import {
   Notifications as NotificationsIcon,
   ExitToApp as LogoutIcon,
   RequestPage as RequestPageIcon,
-  UploadFile as UploadFileIcon
+  UploadFile as UploadFileIcon,
+  TableView as TableViewIcon
 } from '@mui/icons-material';
 import { auth } from '../firebase/config';
 import { signOut } from 'firebase/auth';
@@ -157,6 +158,7 @@ const menuItems = [
   { text: 'Petrol Pumps', icon: <PetrolPumpIcon />, path: '/petrol-pumps' },
   { text: 'Petrol Pump Requests', icon: <RequestPageIcon />, path: '/petrol-pump-requests' },
   { text: 'Excel Import', icon: <UploadFileIcon />, path: '/excel-import' },
+  { text: 'Imported Data', icon: <TableViewIcon />, path: '/imported-data' },
   { text: 'Teams', icon: <TeamIcon />, path: '/teams' },
   { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },
 ];

@@ -16,6 +16,7 @@ import Users from './pages/Users';
 import PetrolPumps from './pages/PetrolPumps';
 import PetrolPumpRequests from './pages/PetrolPumpRequests';
 import ExcelImport from './pages/ExcelImport';
+import ImportedData from './pages/ImportedData';
 import Teams from './pages/Teams';
 import Settings from './pages/Settings';
 
@@ -118,6 +119,7 @@ function App() {
             <Route path="petrol-pumps" element={<PetrolPumps />} />
             <Route path="petrol-pump-requests" element={<PetrolPumpRequests />} />
             <Route path="excel-import" element={<ExcelImport />} />
+            <Route path="imported-data" element={<ImportedData />} />
             <Route path="teams" element={<Teams />} />
             <Route path="settings" element={<Settings />} />
           </Route>
