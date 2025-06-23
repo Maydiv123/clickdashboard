@@ -33,7 +33,8 @@ import {
   Search as SearchIcon,
   Notifications as NotificationsIcon,
   ExitToApp as LogoutIcon,
-  RequestPage as RequestPageIcon
+  RequestPage as RequestPageIcon,
+  UploadFile as UploadFileIcon
 } from '@mui/icons-material';
 import { auth } from '../firebase/config';
 import { signOut } from 'firebase/auth';
@@ -155,6 +156,7 @@ const menuItems = [
   { text: 'Users', icon: <PeopleIcon />, path: '/users' },
   { text: 'Petrol Pumps', icon: <PetrolPumpIcon />, path: '/petrol-pumps' },
   { text: 'Petrol Pump Requests', icon: <RequestPageIcon />, path: '/petrol-pump-requests' },
+  { text: 'Excel Import', icon: <UploadFileIcon />, path: '/excel-import' },
   { text: 'Teams', icon: <TeamIcon />, path: '/teams' },
   { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },
 ];
