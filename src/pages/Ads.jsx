@@ -33,7 +33,8 @@ import {
   ContentCopy as CopyIcon,
   Link as LinkIcon,
   VisibilityOff as VisibilityOffIcon,
-  Visibility as VisibilityIcon
+  Visibility as VisibilityIcon,
+  Campaign as CampaignIcon
 } from '@mui/icons-material';
 import { db } from '../firebase/config';
 import { 
@@ -44,7 +45,9 @@ import {
   deleteDoc, 
   query, 
   orderBy,
-  doc 
+  doc,
+  getDoc,
+  setDoc
 } from 'firebase/firestore';
 
 export default function Ads() {
@@ -58,10 +61,20 @@ export default function Ads() {
   const [alert, setAlert] = useState({ open: false, message: '', severity: 'info' });
   const [copySuccess, setCopySuccess] = useState('');
   const [showFullUrls, setShowFullUrls] = useState(false);
+  
+  // Special offer ad state
+  const [specialOfferLoading, setSpecialOfferLoading] = useState(true);
+  const [specialOffer, setSpecialOffer] = useState({
+    title: 'Special Offer',
+    subtitle: 'Limited time promotion',
+    imageUrl: ''
+  });
+  const [specialOfferDialogOpen, setSpecialOfferDialogOpen] = useState(false);
 
   useEffect(() => {
     // Load ads from Firestore
     fetchAdImages();
+    fetchSpecialOffer();
   }, []);
 
   const fetchAdImages = async () => {
@@ -85,6 +98,37 @@ export default function Ads() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchSpecialOffer = async () => {
+    setSpecialOfferLoading(true);
+    try {
+      const docRef = doc(db, 'settings', 'specialOffer');
+      const docSnap = await getDoc(docRef);
+      
+      if (docSnap.exists()) {
+        setSpecialOffer(docSnap.data());
+      } else {
+        // Create default special offer if it doesn't exist
+        const defaultOffer = {
+          title: 'Special Offer',
+          subtitle: 'Limited time promotion',
+          imageUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT6S46DNdLXGnF9MaHKWKx4JRhArFU-Jmxg6g&s'
+        };
+        
+        await setDoc(docRef, defaultOffer);
+        setSpecialOffer(defaultOffer);
+      }
+    } catch (error) {
+      console.error('Error fetching special offer:', error);
+      setAlert({
+        open: true,
+        message: 'Failed to load special offer data',
+        severity: 'error'
+      });
+    } finally {
+      setSpecialOfferLoading(false);
     }
   };
 
@@ -291,6 +335,43 @@ export default function Ads() {
   // Function to open URL in a new window
   const openUrl = (url) => {
     window.open(url, '_blank');
+  };
+
+  const handleOpenSpecialOfferDialog = () => {
+    setSpecialOfferDialogOpen(true);
+  };
+
+  const handleCloseSpecialOfferDialog = () => {
+    setSpecialOfferDialogOpen(false);
+  };
+
+  const handleSpecialOfferChange = (field) => (event) => {
+    setSpecialOffer({
+      ...specialOffer,
+      [field]: event.target.value
+    });
+  };
+
+  const handleSaveSpecialOffer = async () => {
+    try {
+      const docRef = doc(db, 'settings', 'specialOffer');
+      await setDoc(docRef, specialOffer, { merge: true });
+      
+      setSpecialOfferDialogOpen(false);
+      
+      setAlert({
+        open: true,
+        message: 'Special offer updated successfully',
+        severity: 'success'
+      });
+    } catch (error) {
+      console.error('Error updating special offer:', error);
+      setAlert({
+        open: true,
+        message: 'Failed to update special offer',
+        severity: 'error'
+      });
+    }
   };
 
   return (
@@ -506,6 +587,107 @@ export default function Ads() {
         )}
       </Paper>
       
+      {/* Special Offer Section */}
+      <Paper elevation={1} sx={{ p: 3, mb: 4 }}>
+        <Typography variant="h6" gutterBottom>
+          Special Offer Card
+          <Chip 
+            label="Featured" 
+            size="small" 
+            color="warning" 
+            sx={{ ml: 2 }}
+          />
+        </Typography>
+        <Divider sx={{ mb: 3 }} />
+        
+        {specialOfferLoading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
+            <CircularProgress />
+          </Box>
+        ) : (
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={6}>
+              <Card sx={{ 
+                height: '100%', 
+                display: 'flex', 
+                flexDirection: 'column',
+                background: 'linear-gradient(135deg, #ff9800 0%, #ff6d00 100%)',
+                color: 'white',
+                boxShadow: '0 8px 16px rgba(255, 152, 0, 0.3)'
+              }}>
+                <CardContent>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    <CampaignIcon sx={{ mr: 1 }} />
+                    <Typography variant="h6">{specialOffer.title}</Typography>
+                  </Box>
+                  <Typography variant="body2" sx={{ mb: 2, opacity: 0.8 }}>
+                    {specialOffer.subtitle}
+                  </Typography>
+                  <Box sx={{ 
+                    height: 180, 
+                    borderRadius: 1, 
+                    overflow: 'hidden',
+                    border: '2px solid rgba(255,255,255,0.2)'
+                  }}>
+                    <img 
+                      src={specialOffer.imageUrl} 
+                      alt="Special Offer"
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover'
+                      }}
+                      onError={(e) => {
+                        e.target.src = 'https://via.placeholder.com/400x200?text=Special+Offer';
+                      }}
+                    />
+                  </Box>
+                </CardContent>
+                <CardActions sx={{ p: 2, pt: 0 }}>
+                  <Button 
+                    variant="contained" 
+                    fullWidth
+                    onClick={handleOpenSpecialOfferDialog}
+                    sx={{ 
+                      bgcolor: 'rgba(255,255,255,0.2)', 
+                      color: 'white',
+                      '&:hover': {
+                        bgcolor: 'rgba(255,255,255,0.3)'
+                      }
+                    }}
+                  >
+                    Edit Special Offer
+                  </Button>
+                </CardActions>
+              </Card>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <Box sx={{ p: 2, backgroundColor: '#f8f9fa', borderRadius: 1, height: '100%' }}>
+                <Typography variant="subtitle1" gutterBottom>About Special Offer Card</Typography>
+                <Typography variant="body2" paragraph>
+                  This special offer card appears in the fourth position of the home screen carousel in the mobile app.
+                </Typography>
+                <Typography variant="body2" paragraph>
+                  Unlike the regular advertisements, this card has a fixed position and includes a title and subtitle that can be customized.
+                </Typography>
+                <Typography variant="body2">
+                  Use this space for your most important promotions or announcements that you want to highlight to all users.
+                </Typography>
+                <Box sx={{ mt: 3, p: 2, bgcolor: '#fff4e5', borderRadius: 1, border: '1px solid #ffe0b2' }}>
+                  <Typography variant="subtitle2" sx={{ color: '#e65100', display: 'flex', alignItems: 'center' }}>
+                    <CampaignIcon fontSize="small" sx={{ mr: 1 }} />
+                    Note
+                  </Typography>
+                  <Typography variant="body2" sx={{ mt: 1, color: '#e65100' }}>
+                    Changes to the special offer will be immediately visible to all users of the mobile app.
+                  </Typography>
+                </Box>
+              </Box>
+            </Grid>
+          </Grid>
+        )}
+      </Paper>
+      
       {/* Instructions Panel */}
       <Paper elevation={1} sx={{ p: 3 }}>
         <Typography variant="h6" gutterBottom>
@@ -669,6 +851,103 @@ export default function Ads() {
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
         message={copySuccess}
       />
+      
+      {/* Special Offer Edit Dialog */}
+      <Dialog
+        open={specialOfferDialogOpen}
+        onClose={handleCloseSpecialOfferDialog}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>Edit Special Offer</DialogTitle>
+        <DialogContent sx={{ pt: 2 }}>
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <TextField
+                autoFocus
+                margin="dense"
+                label="Title"
+                fullWidth
+                variant="outlined"
+                value={specialOffer.title}
+                onChange={handleSpecialOfferChange('title')}
+                helperText="Title displayed at the top of the special offer card"
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                margin="dense"
+                label="Subtitle"
+                fullWidth
+                variant="outlined"
+                value={specialOffer.subtitle}
+                onChange={handleSpecialOfferChange('subtitle')}
+                helperText="Smaller text displayed below the title"
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                margin="dense"
+                label="Image URL"
+                fullWidth
+                variant="outlined"
+                value={specialOffer.imageUrl}
+                onChange={handleSpecialOfferChange('imageUrl')}
+                helperText="URL of the image to display in the special offer card"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <LinkIcon color="action" />
+                    </InputAdornment>
+                  ),
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton onClick={() => copyToClipboard(specialOffer.imageUrl)}>
+                        <CopyIcon />
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Grid>
+          </Grid>
+          
+          {specialOffer.imageUrl && (
+            <Box sx={{ mt: 3, mb: 1 }}>
+              <Typography variant="subtitle2" gutterBottom>Preview:</Typography>
+              <Paper 
+                elevation={0} 
+                sx={{ 
+                  p: 1, 
+                  border: '1px solid #e0e0e0', 
+                  borderRadius: 1,
+                  display: 'flex',
+                  justifyContent: 'center',
+                  backgroundColor: '#f5f5f5'
+                }}
+              >
+                <img 
+                  src={specialOffer.imageUrl} 
+                  alt="Special Offer Preview"
+                  style={{
+                    maxWidth: '100%', 
+                    maxHeight: 300,
+                    objectFit: 'contain',
+                    borderRadius: 4
+                  }}
+                  onError={(e) => {
+                    e.target.src = 'https://via.placeholder.com/800x400?text=Invalid+Image+URL';
+                  }}
+                />
+              </Paper>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 3 }}>
+          <Button onClick={handleCloseSpecialOfferDialog} variant="outlined">Cancel</Button>
+          <Button onClick={handleSaveSpecialOffer} variant="contained" color="warning">Save Changes</Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 } 
