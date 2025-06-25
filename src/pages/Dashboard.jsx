@@ -380,10 +380,7 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         </Grid>
-      </Grid>
-      
-      {/* Bottom Row */}
-      <Grid container spacing={3}>
+        
         {/* Recent Users */}
         <Grid item xs={12} md={6}>
           <Card sx={{ borderRadius: 3 }}>
