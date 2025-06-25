@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, createContext, useMemo } from 'react';
 import { auth } from './firebase/config';
 import { onAuthStateChanged } from 'firebase/auth';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
@@ -20,6 +20,12 @@ import ImportedData from './pages/ImportedData';
 import Teams from './pages/Teams';
 import Settings from './pages/Settings';
 import Ads from './pages/Ads';
+
+// Create Theme Context
+export const ColorModeContext = createContext({ 
+  toggleDrawerMode: () => {},
+  drawerMode: 'light'
+});
 
 // Create theme
 const theme = createTheme({
@@ -82,6 +88,25 @@ const theme = createTheme({
 function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [drawerMode, setDrawerMode] = useState(() => {
+    // Get saved drawer mode from localStorage or default to 'light'
+    const savedMode = localStorage.getItem('drawerMode');
+    return savedMode || 'light';
+  });
+
+  const colorMode = useMemo(
+    () => ({
+      toggleDrawerMode: () => {
+        setDrawerMode((prevMode) => {
+          const newMode = prevMode === 'light' ? 'dark' : 'light';
+          localStorage.setItem('drawerMode', newMode);
+          return newMode;
+        });
+      },
+      drawerMode,
+    }),
+    [drawerMode],
+  );
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -99,7 +124,8 @@ function App() {
         justifyContent: 'center', 
         alignItems: 'center', 
         height: '100vh',
-        backgroundColor: theme.palette.background.default
+        backgroundColor: theme.palette.background.default,
+        color: theme.palette.text.primary
       }}>
         Loading...
       </div>
@@ -107,27 +133,29 @@ function App() {
   }
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <Router>
-        <Routes>
-          <Route path="/login" element={!user ? <Login /> : <Navigate to="/" />} />
-          
-          {/* Protected Routes */}
-          <Route path="/" element={user ? <DashboardLayout /> : <Navigate to="/login" />}>
-            <Route index element={<Dashboard />} />
-            <Route path="users" element={<Users />} />
-            <Route path="petrol-pumps" element={<PetrolPumps />} />
-            <Route path="petrol-pump-requests" element={<PetrolPumpRequests />} />
-            <Route path="excel-import" element={<ExcelImport />} />
-            <Route path="imported-data" element={<ImportedData />} />
-            <Route path="teams" element={<Teams />} />
-            <Route path="settings" element={<Settings />} />
-            <Route path="ads" element={<Ads />} />
-          </Route>
-        </Routes>
-      </Router>
-    </ThemeProvider>
+    <ColorModeContext.Provider value={colorMode}>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <Router>
+          <Routes>
+            <Route path="/login" element={!user ? <Login /> : <Navigate to="/" />} />
+            
+            {/* Protected Routes */}
+            <Route path="/" element={user ? <DashboardLayout /> : <Navigate to="/login" />}>
+              <Route index element={<Dashboard />} />
+              <Route path="users" element={<Users />} />
+              <Route path="petrol-pumps" element={<PetrolPumps />} />
+              <Route path="petrol-pump-requests" element={<PetrolPumpRequests />} />
+              <Route path="excel-import" element={<ExcelImport />} />
+              <Route path="imported-data" element={<ImportedData />} />
+              <Route path="teams" element={<Teams />} />
+              <Route path="settings" element={<Settings />} />
+              <Route path="ads" element={<Ads />} />
+            </Route>
+          </Routes>
+        </Router>
+      </ThemeProvider>
+    </ColorModeContext.Provider>
   );
 }
 

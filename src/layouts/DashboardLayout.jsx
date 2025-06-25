@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { styled, alpha } from '@mui/material/styles';
+import { styled, alpha, useTheme } from '@mui/material/styles';
 import { 
   Box, 
   Drawer, 
@@ -20,7 +20,9 @@ import {
   Badge,
   InputBase,
   Tooltip,
-  Button
+  Button,
+  Paper,
+  Stack
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -36,10 +38,14 @@ import {
   RequestPage as RequestPageIcon,
   UploadFile as UploadFileIcon,
   TableView as TableViewIcon,
-  Campaign as CampaignIcon
+  Campaign as CampaignIcon,
+  Brightness4 as DarkModeIcon,
+  Brightness7 as LightModeIcon,
+  FavoriteBorder as HeartIcon
 } from '@mui/icons-material';
 import { auth } from '../firebase/config';
 import { signOut } from 'firebase/auth';
+import { ColorModeContext } from '../App';
 
 const drawerWidth = 260;
 
@@ -61,6 +67,8 @@ const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(
     }),
     background: theme.palette.background.default,
     minHeight: '100vh',
+    display: 'flex',
+    flexDirection: 'column',
   }),
 );
 
@@ -84,14 +92,14 @@ const AppBarStyled = styled(AppBar, {
   }),
 }));
 
-const DrawerHeader = styled('div')(({ theme }) => ({
+const DrawerHeader = styled('div')(({ theme, drawerMode }) => ({
   display: 'flex',
   alignItems: 'center',
   padding: theme.spacing(0, 2),
   ...theme.mixins.toolbar,
   justifyContent: 'space-between',
-  background: theme.palette.primary.main,
-  color: theme.palette.primary.contrastText,
+  background: drawerMode === 'dark' ? '#000000' : 'transparent',
+  color: drawerMode === 'dark' ? '#ffffff' : theme.palette.text.primary,
 }));
 
 const Search = styled('div')(({ theme }) => ({
@@ -134,23 +142,42 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
   },
 }));
 
-const StyledListItemButton = styled(ListItemButton)(({ theme }) => ({
+const StyledListItemButton = styled(ListItemButton)(({ theme, drawerMode }) => ({
   borderRadius: 8,
   margin: theme.spacing(0.5, 1),
   padding: theme.spacing(1, 2),
+  color: drawerMode === 'dark' ? '#ffffff' : undefined,
+  '& .MuiListItemIcon-root': {
+    color: drawerMode === 'dark' ? '#ffffff' : undefined,
+  },
   '&.Mui-selected': {
-    backgroundColor: alpha(theme.palette.primary.main, 0.1),
-    color: theme.palette.primary.main,
+    backgroundColor: drawerMode === 'dark' 
+      ? 'rgba(255, 255, 255, 0.15)' 
+      : alpha(theme.palette.primary.main, 0.1),
+    color: drawerMode === 'dark' ? '#ffffff' : theme.palette.primary.main,
     '& .MuiListItemIcon-root': {
-      color: theme.palette.primary.main,
+      color: drawerMode === 'dark' ? '#ffffff' : theme.palette.primary.main,
     },
     '&:hover': {
-      backgroundColor: alpha(theme.palette.primary.main, 0.15),
+      backgroundColor: drawerMode === 'dark' 
+        ? 'rgba(255, 255, 255, 0.25)' 
+        : alpha(theme.palette.primary.main, 0.15),
     },
   },
   '&:hover': {
-    backgroundColor: alpha(theme.palette.primary.main, 0.05),
+    backgroundColor: drawerMode === 'dark' 
+      ? 'rgba(255, 255, 255, 0.05)' 
+      : alpha(theme.palette.primary.main, 0.05),
   },
+}));
+
+const Footer = styled(Paper)(({ theme, drawerMode }) => ({
+  padding: theme.spacing(2),
+  marginTop: 'auto',
+  textAlign: 'center',
+  backgroundColor: drawerMode === 'dark' ? '#000000' : theme.palette.background.paper,
+  color: drawerMode === 'dark' ? '#ffffff' : theme.palette.text.secondary,
+  borderRadius: 0,
 }));
 
 const menuItems = [
@@ -171,6 +198,9 @@ export default function DashboardLayout() {
   const [open, setOpen] = useState(true);
   const [anchorEl, setAnchorEl] = useState(null);
   const openMenu = Boolean(anchorEl);
+  const colorMode = useContext(ColorModeContext);
+  const { drawerMode, toggleDrawerMode } = colorMode;
+  const theme = useTheme();
 
   const handleDrawerOpen = () => {
     setOpen(true);
@@ -224,6 +254,16 @@ export default function DashboardLayout() {
           <Box sx={{ flexGrow: 1 }} />
           
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <Tooltip title={drawerMode === 'dark' ? "Switch to Light Mode" : "Switch to Dark Mode"}>
+              <IconButton
+                onClick={toggleDrawerMode}
+                color="inherit"
+                sx={{ mr: 1 }}
+              >
+                {drawerMode === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}
+              </IconButton>
+            </Tooltip>
+            
             <Tooltip title="Notifications">
               <IconButton
                 size="large"
@@ -299,41 +339,45 @@ export default function DashboardLayout() {
             boxSizing: 'border-box',
             border: 'none',
             boxShadow: '0 10px 30px -12px rgba(0, 0, 0, 0.15)',
+            backgroundColor: drawerMode === 'dark' ? '#000000' : '#ffffff',
           },
         }}
         variant="persistent"
         anchor="left"
         open={open}
       >
-        <DrawerHeader>
-          <Typography variant="h6" component="div" sx={{ fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
-            Click App Admin
+        <DrawerHeader drawerMode={drawerMode}>
+          <Typography variant="h6" component="div" sx={{ 
+            fontWeight: 'bold', 
+            display: 'flex', 
+            alignItems: 'center',
+            color: drawerMode === 'dark' ? '#ffffff' : '#2b2d42'
+          }}>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <img 
+                src="/Branding.png" 
+                alt="Company Logo" 
+                style={{ 
+                  height: '30px', 
+                  marginRight: '8px',
+                  objectFit: 'contain'
+                }} 
+              />
+              Click
+            </Box>
           </Typography>
-          <IconButton onClick={handleDrawerClose} sx={{ color: 'inherit' }}>
+          <IconButton onClick={handleDrawerClose} sx={{ color: drawerMode === 'dark' ? '#ffffff' : '#2b2d42' }}>
             <ChevronLeftIcon />
           </IconButton>
         </DrawerHeader>
         
-        <Box sx={{ px: 3, py: 2 }}>
-          <Button 
-            variant="contained" 
-            fullWidth 
-            sx={{ 
-              borderRadius: 2, 
-              py: 1.2,
-              boxShadow: '0 4px 12px rgba(58, 134, 255, 0.25)',
-            }}
-          >
-            Create New
-          </Button>
-        </Box>
-        
-        <Divider sx={{ mx: 2, opacity: 0.7 }} />
+        <Divider sx={{ mx: 2, opacity: drawerMode === 'dark' ? 0.2 : 0.7 }} />
         
         <List sx={{ px: 1, py: 1 }}>
           {menuItems.map((item) => (
             <ListItem key={item.text} disablePadding sx={{ mb: 0.5 }}>
               <StyledListItemButton 
+                drawerMode={drawerMode}
                 selected={location.pathname === item.path}
                 onClick={() => navigate(item.path)}
               >
@@ -343,7 +387,7 @@ export default function DashboardLayout() {
                 <ListItemText 
                   primary={item.text} 
                   primaryTypographyProps={{ 
-                    fontWeight: location.pathname === item.path ? 600 : 500 
+                    fontWeight: location.pathname === item.path ? 600 : 500,
                   }} 
                 />
               </StyledListItemButton>
@@ -355,6 +399,20 @@ export default function DashboardLayout() {
       <Main open={open}>
         <DrawerHeader />
         <Outlet />
+        <Footer elevation={0} drawerMode={drawerMode}>
+          <Stack direction="row" spacing={1} alignItems="center" justifyContent="center">
+            <Typography variant="body2">
+              Crafted with
+            </Typography>
+            <HeartIcon fontSize="small" color="error" />
+            <Typography variant="body2">
+              by <strong>MayDIV Infotech</strong>
+            </Typography>
+          </Stack>
+          <Typography variant="caption" display="block" sx={{ mt: 0.5, opacity: 0.7 }}>
+            &copy; {new Date().getFullYear()} All Rights Reserved
+          </Typography>
+        </Footer>
       </Main>
     </Box>
   );
