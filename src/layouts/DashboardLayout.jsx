@@ -264,7 +264,7 @@ export default function DashboardLayout() {
               </IconButton>
             </Tooltip>
             
-            <Tooltip title="Notifications">
+            {/* <Tooltip title="Notifications">
               <IconButton
                 size="large"
                 aria-label="show 4 new notifications"
@@ -275,7 +275,7 @@ export default function DashboardLayout() {
                   <NotificationsIcon />
                 </Badge>
               </IconButton>
-            </Tooltip>
+            </Tooltip> */}
             
             <Tooltip title="Account">
               <IconButton

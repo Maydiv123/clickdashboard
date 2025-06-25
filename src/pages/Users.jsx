@@ -152,6 +152,13 @@ export default function Users() {
     aadharNo: '',
     dob: '',
     preferredCompanies: [],
+    teamCode: '',
+    teamName: '',
+    isTeamOwner: false,
+    profileCompletion: 0,
+    password: '',
+    userId: '',
+    isBlocked: false,
     createdAt: new Date(),
     isDummy: false
   });
@@ -182,7 +189,7 @@ export default function Users() {
     const fetchUsers = async () => {
       try {
         console.log('Starting to fetch users...');
-        const usersRef = collection(db, 'users');
+        const usersRef = collection(db, 'user_data');
         console.log('Collection reference created');
         
         const q = query(usersRef, orderBy('createdAt', 'desc'));
@@ -260,8 +267,8 @@ export default function Users() {
     
     setActionLoading(true);
     try {
-      const userRef = doc(db, 'users', userToDelete.id);
-      await deleteDoc(userRef);
+      const userDocRef = doc(db, 'user_data', userToDelete.id);
+      await deleteDoc(userDocRef);
       
       // Remove from state
       setUsers(prevUsers => prevUsers.filter(user => user.id !== userToDelete.id));
@@ -293,10 +300,10 @@ export default function Users() {
     
     setActionLoading(true);
     try {
-      const userRef = doc(db, 'users', userToToggleBlock.id);
+      const userDocRef = doc(db, 'user_data', userToToggleBlock.id);
       const newBlockedStatus = !userToToggleBlock.isBlocked;
       
-      await updateDoc(userRef, {
+      await updateDoc(userDocRef, {
         isBlocked: newBlockedStatus
       });
       
@@ -336,7 +343,14 @@ export default function Users() {
       address: user.address || '',
       aadharNo: user.aadharNo || '',
       dob: user.dob || '',
-      preferredCompanies: user.preferredCompanies || []
+      preferredCompanies: user.preferredCompanies || [],
+      teamCode: user.teamCode || '',
+      teamName: user.teamName || '',
+      isTeamOwner: user.isTeamOwner || false,
+      profileCompletion: user.profileCompletion || 0,
+      password: user.password || '',
+      userId: user.userId || user.id,
+      isBlocked: user.isBlocked || false
     });
     setOpenEditDialog(true);
     handleCloseMenu();
@@ -360,9 +374,9 @@ export default function Users() {
     
     setActionLoading(true);
     try {
-      const userRef = doc(db, 'users', editedUser.id);
+      const userDocRef = doc(db, 'user_data', editedUser.id);
       
-      await updateDoc(userRef, {
+      await updateDoc(userDocRef, {
         firstName: editedUser.firstName,
         lastName: editedUser.lastName,
         mobile: editedUser.mobile,
@@ -372,7 +386,15 @@ export default function Users() {
         address: editedUser.address,
         aadharNo: editedUser.aadharNo,
         dob: editedUser.dob,
-        preferredCompanies: editedUser.preferredCompanies
+        preferredCompanies: editedUser.preferredCompanies,
+        teamCode: editedUser.teamCode,
+        teamName: editedUser.teamName,
+        isTeamOwner: editedUser.isTeamOwner,
+        profileCompletion: editedUser.profileCompletion,
+        password: editedUser.password,
+        userId: editedUser.userId,
+        isBlocked: editedUser.isBlocked,
+        updatedAt: new Date()
       });
       
       // Update state
@@ -406,6 +428,13 @@ export default function Users() {
       aadharNo: '',
       dob: '',
       preferredCompanies: [],
+      teamCode: '',
+      teamName: '',
+      isTeamOwner: false,
+      profileCompletion: 0,
+      password: '',
+      userId: '',
+      isBlocked: false,
       createdAt: new Date(),
       isDummy: false
     });
@@ -426,9 +455,9 @@ export default function Users() {
   const handleCreateUser = async () => {
     setActionLoading(true);
     try {
-      const usersRef = collection(db, 'users');
+      const userDataRef = collection(db, 'user_data');
       
-      const docRef = await addDoc(usersRef, {
+      const docRef = await addDoc(userDataRef, {
         ...newUser
       });
       
@@ -685,6 +714,12 @@ export default function Users() {
         <DialogContent dividers>
           {editedUser && (
             <Grid container spacing={3}>
+              {/* Basic Information */}
+              <Grid item xs={12}>
+                <Typography variant="h6" fontWeight={600} sx={{ mb: 2, color: 'primary.main' }}>
+                  Basic Information
+                </Typography>
+              </Grid>
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
@@ -710,6 +745,37 @@ export default function Users() {
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
+                  label="User ID"
+                  value={editedUser.userId}
+                  onChange={(e) => handleEditChange('userId', e.target.value)}
+                  margin="normal"
+                  variant="outlined"
+                  sx={{ mb: 2 }}
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Date of Birth"
+                  type="date"
+                  value={editedUser.dob}
+                  onChange={(e) => handleEditChange('dob', e.target.value)}
+                  margin="normal"
+                  variant="outlined"
+                  InputLabelProps={{ shrink: true }}
+                  sx={{ mb: 2 }}
+                />
+              </Grid>
+
+              {/* Contact Information */}
+              <Grid item xs={12}>
+                <Typography variant="h6" fontWeight={600} sx={{ mb: 2, color: 'primary.main' }}>
+                  Contact Information
+                </Typography>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
                   label="Email"
                   value={editedUser.email}
                   onChange={(e) => handleEditChange('email', e.target.value)}
@@ -729,6 +795,26 @@ export default function Users() {
                   sx={{ mb: 2 }}
                 />
               </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Address"
+                  value={editedUser.address}
+                  onChange={(e) => handleEditChange('address', e.target.value)}
+                  margin="normal"
+                  variant="outlined"
+                  multiline
+                  rows={2}
+                  sx={{ mb: 2 }}
+                />
+              </Grid>
+
+              {/* User Type & Status */}
+              <Grid item xs={12}>
+                <Typography variant="h6" fontWeight={600} sx={{ mb: 2, color: 'primary.main' }}>
+                  User Type & Status
+                </Typography>
+              </Grid>
               <Grid item xs={12} md={6}>
                 <FormControl fullWidth margin="normal" sx={{ mb: 2 }}>
                   <InputLabel>User Type</InputLabel>
@@ -740,6 +826,9 @@ export default function Users() {
                     <MenuItem value="user">User</MenuItem>
                     <MenuItem value="team_leader">Team Leader</MenuItem>
                     <MenuItem value="admin">Admin</MenuItem>
+                    <MenuItem value="individual">Individual</MenuItem>
+                    <MenuItem value="teamMember">Team Member</MenuItem>
+                    <MenuItem value="teamOwner">Team Owner</MenuItem>
                   </Select>
                 </FormControl>
               </Grid>
@@ -753,21 +842,72 @@ export default function Users() {
                   >
                     <MenuItem value="active">Active</MenuItem>
                     <MenuItem value="inactive">Inactive</MenuItem>
+                    <MenuItem value="pending">Pending</MenuItem>
+                    <MenuItem value="rejected">Rejected</MenuItem>
                   </Select>
                 </FormControl>
               </Grid>
+
+              {/* Team Information */}
               <Grid item xs={12}>
+                <Typography variant="h6" fontWeight={600} sx={{ mb: 2, color: 'primary.main' }}>
+                  Team Information
+                </Typography>
+              </Grid>
+              <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
-                  label="Address"
-                  value={editedUser.address}
-                  onChange={(e) => handleEditChange('address', e.target.value)}
+                  label="Team Code"
+                  value={editedUser.teamCode}
+                  onChange={(e) => handleEditChange('teamCode', e.target.value)}
                   margin="normal"
                   variant="outlined"
-                  multiline
-                  rows={2}
                   sx={{ mb: 2 }}
                 />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Team Name"
+                  value={editedUser.teamName}
+                  onChange={(e) => handleEditChange('teamName', e.target.value)}
+                  margin="normal"
+                  variant="outlined"
+                  sx={{ mb: 2 }}
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth margin="normal" sx={{ mb: 2 }}>
+                  <InputLabel>Is Team Owner</InputLabel>
+                  <Select
+                    value={editedUser.isTeamOwner ? 'true' : 'false'}
+                    onChange={(e) => handleEditChange('isTeamOwner', e.target.value === 'true')}
+                    label="Is Team Owner"
+                  >
+                    <MenuItem value="true">Yes</MenuItem>
+                    <MenuItem value="false">No</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Profile Completion (%)"
+                  type="number"
+                  value={editedUser.profileCompletion}
+                  onChange={(e) => handleEditChange('profileCompletion', parseInt(e.target.value) || 0)}
+                  margin="normal"
+                  variant="outlined"
+                  inputProps={{ min: 0, max: 100 }}
+                  sx={{ mb: 2 }}
+                />
+              </Grid>
+
+              {/* Additional Information */}
+              <Grid item xs={12}>
+                <Typography variant="h6" fontWeight={600} sx={{ mb: 2, color: 'primary.main' }}>
+                  Additional Information
+                </Typography>
               </Grid>
               <Grid item xs={12} md={6}>
                 <TextField
@@ -783,13 +923,37 @@ export default function Users() {
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
-                  label="Date of Birth"
-                  type="date"
-                  value={editedUser.dob}
-                  onChange={(e) => handleEditChange('dob', e.target.value)}
+                  label="Password"
+                  type="password"
+                  value={editedUser.password}
+                  onChange={(e) => handleEditChange('password', e.target.value)}
                   margin="normal"
                   variant="outlined"
-                  InputLabelProps={{ shrink: true }}
+                  sx={{ mb: 2 }}
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth margin="normal" sx={{ mb: 2 }}>
+                  <InputLabel>Blocked Status</InputLabel>
+                  <Select
+                    value={editedUser.isBlocked ? 'true' : 'false'}
+                    onChange={(e) => handleEditChange('isBlocked', e.target.value === 'true')}
+                    label="Blocked Status"
+                  >
+                    <MenuItem value="false">Not Blocked</MenuItem>
+                    <MenuItem value="true">Blocked</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Preferred Companies"
+                  value={editedUser.preferredCompanies?.join(', ') || ''}
+                  onChange={(e) => handleEditChange('preferredCompanies', e.target.value.split(',').map(s => s.trim()).filter(s => s))}
+                  margin="normal"
+                  variant="outlined"
+                  helperText="Enter companies separated by commas"
                   sx={{ mb: 2 }}
                 />
               </Grid>
@@ -851,6 +1015,11 @@ export default function Users() {
           <Box sx={{ mt: 2 }}>
             {activeStep === 0 && (
               <Grid container spacing={3}>
+                <Grid item xs={12}>
+                  <Typography variant="h6" fontWeight={600} sx={{ mb: 2, color: 'primary.main' }}>
+                    Basic Information
+                  </Typography>
+                </Grid>
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
@@ -884,6 +1053,40 @@ export default function Users() {
                   />
                 </Grid>
                 <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="User ID"
+                    value={newUser.userId}
+                    onChange={(e) => handleCreateChange('userId', e.target.value)}
+                    variant="outlined"
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <BadgeIcon color="action" />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Date of Birth"
+                    type="date"
+                    value={newUser.dob}
+                    onChange={(e) => handleCreateChange('dob', e.target.value)}
+                    variant="outlined"
+                    InputLabelProps={{ shrink: true }}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <CalendarTodayIcon color="action" />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
                   <FormControl fullWidth>
                     <InputLabel>User Type</InputLabel>
                     <Select
@@ -899,6 +1102,9 @@ export default function Users() {
                       <MenuItem value="user">User</MenuItem>
                       <MenuItem value="team_leader">Team Leader</MenuItem>
                       <MenuItem value="admin">Admin</MenuItem>
+                      <MenuItem value="individual">Individual</MenuItem>
+                      <MenuItem value="teamMember">Team Member</MenuItem>
+                      <MenuItem value="teamOwner">Team Owner</MenuItem>
                     </Select>
                   </FormControl>
                 </Grid>
@@ -917,6 +1123,8 @@ export default function Users() {
                     >
                       <MenuItem value="active">Active</MenuItem>
                       <MenuItem value="inactive">Inactive</MenuItem>
+                      <MenuItem value="pending">Pending</MenuItem>
+                      <MenuItem value="rejected">Rejected</MenuItem>
                     </Select>
                   </FormControl>
                 </Grid>
@@ -925,6 +1133,11 @@ export default function Users() {
 
             {activeStep === 1 && (
               <Grid container spacing={3}>
+                <Grid item xs={12}>
+                  <Typography variant="h6" fontWeight={600} sx={{ mb: 2, color: 'primary.main' }}>
+                    Contact Information
+                  </Typography>
+                </Grid>
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
@@ -976,11 +1189,23 @@ export default function Users() {
                     }}
                   />
                 </Grid>
-              </Grid>
-            )}
-
-            {activeStep === 2 && (
-              <Grid container spacing={3}>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Password"
+                    type="password"
+                    value={newUser.password}
+                    onChange={(e) => handleCreateChange('password', e.target.value)}
+                    variant="outlined"
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <BadgeIcon color="action" />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Grid>
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
@@ -997,23 +1222,118 @@ export default function Users() {
                     }}
                   />
                 </Grid>
+              </Grid>
+            )}
+
+            {activeStep === 2 && (
+              <Grid container spacing={3}>
+                <Grid item xs={12}>
+                  <Typography variant="h6" fontWeight={600} sx={{ mb: 2, color: 'primary.main' }}>
+                    Team Information
+                  </Typography>
+                </Grid>
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    label="Date of Birth"
-                    type="date"
-                    value={newUser.dob}
-                    onChange={(e) => handleCreateChange('dob', e.target.value)}
+                    label="Team Code"
+                    value={newUser.teamCode}
+                    onChange={(e) => handleCreateChange('teamCode', e.target.value)}
                     variant="outlined"
-                    InputLabelProps={{ shrink: true }}
                     InputProps={{
                       startAdornment: (
                         <InputAdornment position="start">
-                          <CalendarTodayIcon color="action" />
+                          <GroupIcon color="action" />
                         </InputAdornment>
                       ),
                     }}
                   />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Team Name"
+                    value={newUser.teamName}
+                    onChange={(e) => handleCreateChange('teamName', e.target.value)}
+                    variant="outlined"
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <GroupIcon color="action" />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <FormControl fullWidth>
+                    <InputLabel>Is Team Owner</InputLabel>
+                    <Select
+                      value={newUser.isTeamOwner ? 'true' : 'false'}
+                      onChange={(e) => handleCreateChange('isTeamOwner', e.target.value === 'true')}
+                      label="Is Team Owner"
+                      startAdornment={
+                        <InputAdornment position="start">
+                          <GroupIcon color="action" />
+                        </InputAdornment>
+                      }
+                    >
+                      <MenuItem value="false">No</MenuItem>
+                      <MenuItem value="true">Yes</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Profile Completion (%)"
+                    type="number"
+                    value={newUser.profileCompletion}
+                    onChange={(e) => handleCreateChange('profileCompletion', parseInt(e.target.value) || 0)}
+                    variant="outlined"
+                    inputProps={{ min: 0, max: 100 }}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <BadgeIcon color="action" />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Preferred Companies"
+                    value={newUser.preferredCompanies?.join(', ') || ''}
+                    onChange={(e) => handleCreateChange('preferredCompanies', e.target.value.split(',').map(s => s.trim()).filter(s => s))}
+                    variant="outlined"
+                    helperText="Enter companies separated by commas"
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <BadgeIcon color="action" />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <FormControl fullWidth>
+                    <InputLabel>Blocked Status</InputLabel>
+                    <Select
+                      value={newUser.isBlocked ? 'true' : 'false'}
+                      onChange={(e) => handleCreateChange('isBlocked', e.target.value === 'true')}
+                      label="Blocked Status"
+                      startAdornment={
+                        <InputAdornment position="start">
+                          <BadgeIcon color="action" />
+                        </InputAdornment>
+                      }
+                    >
+                      <MenuItem value="false">Not Blocked</MenuItem>
+                      <MenuItem value="true">Blocked</MenuItem>
+                    </Select>
+                  </FormControl>
                 </Grid>
               </Grid>
             )}
