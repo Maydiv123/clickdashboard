@@ -19,6 +19,7 @@ import ExcelImport from './pages/ExcelImport';
 import ImportedData from './pages/ImportedData';
 import Teams from './pages/Teams';
 import Settings from './pages/Settings';
+import Ads from './pages/Ads';
 
 // Create theme
 const theme = createTheme({
@@ -122,6 +123,7 @@ function App() {
             <Route path="imported-data" element={<ImportedData />} />
             <Route path="teams" element={<Teams />} />
             <Route path="settings" element={<Settings />} />
+            <Route path="ads" element={<Ads />} />
           </Route>
         </Routes>
       </Router>

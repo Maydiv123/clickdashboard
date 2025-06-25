@@ -35,7 +35,8 @@ import {
   ExitToApp as LogoutIcon,
   RequestPage as RequestPageIcon,
   UploadFile as UploadFileIcon,
-  TableView as TableViewIcon
+  TableView as TableViewIcon,
+  Campaign as CampaignIcon
 } from '@mui/icons-material';
 import { auth } from '../firebase/config';
 import { signOut } from 'firebase/auth';
@@ -160,6 +161,7 @@ const menuItems = [
   { text: 'Excel Import', icon: <UploadFileIcon />, path: '/excel-import' },
   { text: 'Imported Data', icon: <TableViewIcon />, path: '/imported-data' },
   { text: 'Teams', icon: <TeamIcon />, path: '/teams' },
+  { text: 'Advertisements', icon: <CampaignIcon />, path: '/ads' },
   { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },
 ];
 
