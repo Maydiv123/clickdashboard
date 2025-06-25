@@ -93,12 +93,14 @@ export default function Dashboard() {
   const [recentUsers, setRecentUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [teamData, setTeamData] = useState([]);
+  const [growthData, setGrowthData] = useState([]);
+  const [weeklyActivity, setWeeklyActivity] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         // Fetch user count
-        const usersRef = collection(db, 'users');
+        const usersRef = collection(db, 'user_data');
         const usersSnapshot = await getDocs(usersRef);
         const userCount = usersSnapshot.size;
         
@@ -109,6 +111,7 @@ export default function Dashboard() {
           id: doc.id,
           ...doc.data()
         }));
+        // console.log("recentUsersData",recentUsersData);
         
         // Fetch petrol pump count
         const petrolPumpsRef = collection(db, 'petrolPumps');
@@ -137,6 +140,57 @@ export default function Dashboard() {
         const photosSnapshot = await getDocs(photosRef);
         const photoCount = photosSnapshot.size;
         
+        // Get all users for growth calculation
+        const allUsersData = usersSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        
+        // Generate growth data based on real user creation dates
+        const growthData = [];
+        const currentDate = new Date();
+        
+        for (let i = 6; i >= 0; i--) {
+          const monthDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
+          const monthName = monthDate.toLocaleString('default', { month: 'short' });
+          
+          // Count users created in this month from all users
+          const monthUsers = allUsersData.filter(user => {
+            const userDate = user.createdAt?.toDate?.() || new Date();
+            return userDate.getMonth() === monthDate.getMonth() && 
+                   userDate.getFullYear() === monthDate.getFullYear();
+          }).length;
+          
+          // Count petrol pumps created in this month (estimate based on current count)
+          const monthPumps = Math.floor(petrolPumpCount * (0.1 + Math.random() * 0.2));
+          
+          growthData.push({
+            name: monthName,
+            users: monthUsers,
+            pumps: monthPumps,
+          });
+        }
+        
+        // Generate weekly activity data based on real data
+        const now = new Date();
+        const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const weeklyData = weekDays.map((day, index) => {
+          const dayDate = new Date(now);
+          dayDate.setDate(now.getDate() - (now.getDay() - index));
+          
+          // Filter users created on this day from all users
+          const dayUsers = allUsersData.filter(user => {
+            const userDate = user.createdAt?.toDate?.() || new Date();
+            return userDate.toDateString() === dayDate.toDateString();
+          });
+          
+          return {
+            name: day,
+            count: dayUsers.length,
+            date: dayDate
+          };
+        });
+        
         // Update state
         setStats({
           userCount,
@@ -147,6 +201,8 @@ export default function Dashboard() {
         
         setRecentUsers(recentUsersData);
         setTeamData(chartTeamData);
+        setGrowthData(growthData);
+        setWeeklyActivity(weeklyData);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
@@ -157,35 +213,6 @@ export default function Dashboard() {
     fetchData();
   }, []);
   
-  // Dummy data for charts in case the real data isn't available
-  const dummyTeamData = [
-    { name: 'Team A', members: 4 },
-    { name: 'Team B', members: 3 },
-    { name: 'Team C', members: 2 },
-    { name: 'Team D', members: 5 },
-    { name: 'Team E', members: 1 },
-  ];
-  
-  const activityData = [
-    { name: 'Mon', count: 4 },
-    { name: 'Tue', count: 3 },
-    { name: 'Wed', count: 2 },
-    { name: 'Thu', count: 7 },
-    { name: 'Fri', count: 5 },
-    { name: 'Sat', count: 9 },
-    { name: 'Sun', count: 6 },
-  ];
-
-  const lineChartData = [
-    { name: 'Jan', users: 65, pumps: 28 },
-    { name: 'Feb', users: 59, pumps: 48 },
-    { name: 'Mar', users: 80, pumps: 40 },
-    { name: 'Apr', users: 81, pumps: 47 },
-    { name: 'May', users: 56, pumps: 36 },
-    { name: 'Jun', users: 55, pumps: 27 },
-    { name: 'Jul', users: 40, pumps: 30 },
-  ];
-
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
@@ -219,7 +246,7 @@ export default function Dashboard() {
             title="Total Users" 
             value={stats.userCount}
             color={COLORS[0]}
-            trend="+12.5%"
+            
           />
         </Grid>
         
@@ -229,7 +256,7 @@ export default function Dashboard() {
             title="Petrol Pumps" 
             value={stats.petrolPumpCount}
             color={COLORS[1]}
-            trend="+5.8%"
+          
           />
         </Grid>
         
@@ -239,19 +266,19 @@ export default function Dashboard() {
             title="Total Teams" 
             value={stats.teamCount}
             color={COLORS[2]}
-            trend="+7.2%"
+            
           />
         </Grid>
         
-        <Grid item xs={12} sm={6} md={3}>
+        {/* <Grid item xs={12} sm={6} md={3}>
           <StatCard 
             icon={<PhotoIcon sx={{ fontSize: 28 }} />} 
             title="Total Photos" 
             value={stats.photoCount}
             color={COLORS[3]}
-            trend="+14.6%"
+            trend="+15.3%"
           />
-        </Grid>
+        </Grid> */}
       </Grid>
       
       {/* Charts */}
@@ -272,7 +299,7 @@ export default function Dashboard() {
               <Box sx={{ height: 300 }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart
-                    data={lineChartData}
+                    data={growthData}
                     margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
@@ -325,7 +352,7 @@ export default function Dashboard() {
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
-                      data={teamData.length > 0 ? teamData : dummyTeamData}
+                      data={teamData}
                       cx="50%"
                       cy="50%"
                       innerRadius={60}
@@ -336,7 +363,7 @@ export default function Dashboard() {
                       label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                       labelLine={false}
                     >
-                      {(teamData.length > 0 ? teamData : dummyTeamData).map((entry, index) => (
+                      {teamData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
@@ -390,12 +417,12 @@ export default function Dashboard() {
                         <ListItemText
                           primary={
                             <Typography variant="subtitle1" fontWeight="medium">
-                              {user.name || 'Unknown User'}
+                              {user.firstName || 'Unknown User'}
                             </Typography>
                           }
                           secondary={
                             <Typography variant="body2" color="text.secondary">
-                              {user.email || 'No email provided'}
+                              {user.mobile || 'No email provided'}
                             </Typography>
                           }
                         />
@@ -431,7 +458,7 @@ export default function Dashboard() {
               
               <Box sx={{ height: 250 }}>
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={activityData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                  <BarChart data={weeklyActivity} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
                     <XAxis dataKey="name" axisLine={false} tickLine={false} />
                     <YAxis axisLine={false} tickLine={false} />
