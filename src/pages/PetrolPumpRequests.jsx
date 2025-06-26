@@ -96,7 +96,7 @@ const PetrolPumpRequests = () => {
       }
       
       // Add to map_locations collection
-      const mapLocationRef = collection(db, 'map_locations');
+      const mapLocationRef = collection(db, 'petrolPumps');
       await addDoc(mapLocationRef, {
         zone: request.zone || '',
         salesArea: request.salesArea || '',
