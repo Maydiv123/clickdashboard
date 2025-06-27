@@ -44,7 +44,8 @@ import {
   InputLabel,
   Select,
   ToggleButton,
-  ToggleButtonGroup
+  ToggleButtonGroup,
+  Popover
 } from '@mui/material';
 import { 
   Search as SearchIcon,
@@ -69,7 +70,9 @@ import {
   Person as PersonIcon,
   Map as MapIcon,
   Clear as ClearIcon,
-  MyLocation as MyLocationIcon
+  MyLocation as MyLocationIcon,
+  Badge as BadgeIcon,
+  Check as CheckIcon
 } from '@mui/icons-material';
 import { db } from '../firebase/config';
 import { collection, getDocs, query, doc, updateDoc, deleteDoc, orderBy, addDoc } from 'firebase/firestore';
@@ -212,6 +215,18 @@ const MapSection = styled(Box)(({ theme }) => ({
   }
 }));
 
+// Add a styled component for the contact cell
+const ContactCell = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  '& .MuiTypography-root': {
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    maxWidth: '180px'
+  }
+}));
+
 export default function PetrolPumps() {
   const [pumps, setPumps] = useState([]);
   const [filteredPumps, setFilteredPumps] = useState([]);
@@ -237,24 +252,25 @@ export default function PetrolPumps() {
   const [newPump, setNewPump] = useState({
     customerName: '',
     dealerName: '',
-    address: {
-      line1: '',
-      line2: '',
-      city: '',
-      district: '',
-      state: '',
-      pincode: ''
-    },
+    company: 'HPCL',
+    zone: '',
+    salesArea: '',
+    coClDo: '',
+    regionalOffice: '',
+    district: '',
+    sapCode: '',
+    addressLine1: '',
+    addressLine2: '',
+    addressLine3: '',
+    addressLine4: '',
+    pincode: '',
+    contactDetails: '',
     location: {
       latitude: '',
       longitude: ''
     },
-    contactDetails: {
-      phone: '',
-      email: ''
-    },
-    company: '',
-    status: 'active',
+    active: true,
+    isVerified: false,
     createdAt: new Date()
   });
   const [tabValue, setTabValue] = useState(0);
@@ -266,6 +282,9 @@ export default function PetrolPumps() {
     latitude: '',
     longitude: ''
   });
+  const [companyFilter, setCompanyFilter] = useState('all');
+  const [districtFilter, setDistrictFilter] = useState('all');
+  const [filterAnchorEl, setFilterAnchorEl] = useState(null);
 
   const defaultCenter = {
     lat: 20.5937, // Default to India's center
@@ -286,23 +305,232 @@ export default function PetrolPumps() {
   // Tab change handler
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
+    
+    // Apply filters based on tab value
+    let filtered = [...pumps];
+    
+    // Apply company filter if set
+    if (companyFilter !== 'all') {
+      filtered = filtered.filter(pump => pump.company === companyFilter);
+    }
+    
+    // Apply district filter if set
+    if (districtFilter !== 'all') {
+      filtered = filtered.filter(pump => pump.district === districtFilter);
+    }
+    
+    // Apply search term filter
+    if (searchTerm.trim() !== '') {
+      const searchLower = searchTerm.toLowerCase();
+      filtered = filtered.filter(pump => 
+        (pump.customerName && pump.customerName.toLowerCase().includes(searchLower)) ||
+        (pump.dealerName && pump.dealerName.toLowerCase().includes(searchLower)) ||
+        (pump.addressLine1 && pump.addressLine1.toLowerCase().includes(searchLower)) ||
+        (pump.district && pump.district.toLowerCase().includes(searchLower)) ||
+        (pump.zone && pump.zone.toLowerCase().includes(searchLower)) ||
+        (pump.salesArea && pump.salesArea.toLowerCase().includes(searchLower)) ||
+        (pump.sapCode && pump.sapCode.toString().includes(searchLower)) ||
+        (pump.company && pump.company.toLowerCase().includes(searchLower)) ||
+        (pump.contactDetails && pump.contactDetails.toString().includes(searchLower))
+      );
+    }
+    
+    // Apply tab-specific filters
+    if (newValue === 1) {
+      // HPCL pumps
+      filtered = filtered.filter(pump => pump.company === 'HPCL');
+    } else if (newValue === 2) {
+      // BPCL pumps
+      filtered = filtered.filter(pump => pump.company === 'BPCL');
+    } else if (newValue === 3) {
+      // IOCL pumps
+      filtered = filtered.filter(pump => pump.company === 'IOCL');
+    }
+    
+    setFilteredPumps(filtered);
+  };
+
+  // Handle company filter change
+  const handleCompanyFilterChange = (event) => {
+    const company = event.target.value;
+    setCompanyFilter(company);
+    
+    let filtered = [...pumps];
+    
+    // Apply company filter
+    if (company !== 'all') {
+      filtered = filtered.filter(pump => pump.company === company);
+    }
+    
+    // Apply district filter if set
+    if (districtFilter !== 'all') {
+      filtered = filtered.filter(pump => pump.district === districtFilter);
+    }
+    
+    // Apply search term filter
+    if (searchTerm.trim() !== '') {
+      const searchLower = searchTerm.toLowerCase();
+      filtered = filtered.filter(pump => 
+        (pump.customerName && pump.customerName.toLowerCase().includes(searchLower)) ||
+        (pump.dealerName && pump.dealerName.toLowerCase().includes(searchLower)) ||
+        (pump.addressLine1 && pump.addressLine1.toLowerCase().includes(searchLower)) ||
+        (pump.district && pump.district.toLowerCase().includes(searchLower)) ||
+        (pump.zone && pump.zone.toLowerCase().includes(searchLower)) ||
+        (pump.salesArea && pump.salesArea.toLowerCase().includes(searchLower)) ||
+        (pump.sapCode && pump.sapCode.toString().includes(searchLower)) ||
+        (pump.company && pump.company.toLowerCase().includes(searchLower)) ||
+        (pump.contactDetails && pump.contactDetails.toString().includes(searchLower))
+      );
+    }
+    
+    // Apply tab-specific filters
+    if (tabValue === 1) {
+      // HPCL pumps
+      filtered = filtered.filter(pump => pump.company === 'HPCL');
+    } else if (tabValue === 2) {
+      // BPCL pumps
+      filtered = filtered.filter(pump => pump.company === 'BPCL');
+    } else if (tabValue === 3) {
+      // IOCL pumps
+      filtered = filtered.filter(pump => pump.company === 'IOCL');
+    }
+    
+    setFilteredPumps(filtered);
+  };
+  
+  // Handle district filter change
+  const handleDistrictFilterChange = (event) => {
+    const district = event.target.value;
+    setDistrictFilter(district);
+    
+    let filtered = [...pumps];
+    
+    // Apply company filter if set
+    if (companyFilter !== 'all') {
+      filtered = filtered.filter(pump => pump.company === companyFilter);
+    }
+    
+    // Apply district filter
+    if (district !== 'all') {
+      filtered = filtered.filter(pump => pump.district === district);
+    }
+    
+    // Apply search term filter
+    if (searchTerm.trim() !== '') {
+      const searchLower = searchTerm.toLowerCase();
+      filtered = filtered.filter(pump => 
+        (pump.customerName && pump.customerName.toLowerCase().includes(searchLower)) ||
+        (pump.dealerName && pump.dealerName.toLowerCase().includes(searchLower)) ||
+        (pump.addressLine1 && pump.addressLine1.toLowerCase().includes(searchLower)) ||
+        (pump.district && pump.district.toLowerCase().includes(searchLower)) ||
+        (pump.zone && pump.zone.toLowerCase().includes(searchLower)) ||
+        (pump.salesArea && pump.salesArea.toLowerCase().includes(searchLower)) ||
+        (pump.sapCode && pump.sapCode.toString().includes(searchLower)) ||
+        (pump.company && pump.company.toLowerCase().includes(searchLower)) ||
+        (pump.contactDetails && pump.contactDetails.toString().includes(searchLower))
+      );
+    }
+    
+    // Apply tab-specific filters
+    if (tabValue === 1) {
+      // HPCL pumps
+      filtered = filtered.filter(pump => pump.company === 'HPCL');
+    } else if (tabValue === 2) {
+      // BPCL pumps
+      filtered = filtered.filter(pump => pump.company === 'BPCL');
+    } else if (tabValue === 3) {
+      // IOCL pumps
+      filtered = filtered.filter(pump => pump.company === 'IOCL');
+    }
+    
+    setFilteredPumps(filtered);
+  };
+
+  // Get unique districts for filter
+  const getUniqueDistricts = () => {
+    const districts = pumps
+      .map(pump => pump.district)
+      .filter(district => district && district.trim() !== '')
+      .filter((value, index, self) => self.indexOf(value) === index)
+      .sort();
+    
+    return districts;
+  };
+
+  // Get unique companies for filter
+  const getUniqueCompanies = () => {
+    const companies = pumps
+      .map(pump => pump.company)
+      .filter(company => company && company.trim() !== '')
+      .filter((value, index, self) => self.indexOf(value) === index)
+      .sort();
+    
+    return companies;
   };
 
   // Fetch pumps data
   useEffect(() => {
     const fetchPumps = async () => {
       try {
-        console.log('Fetching petrol pumps...');
         const pumpsRef = collection(db, 'petrolPumps');
         const q = query(pumpsRef);
         const querySnapshot = await getDocs(q);
         
         if (!querySnapshot.empty) {
-          console.log(`Found ${querySnapshot.size} pumps in petrolPumps`);
-          const pumpsData = querySnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-          }));
+          const pumpsData = querySnapshot.docs.map(doc => {
+            const data = doc.data();
+            
+            // Map location data to standardized format
+            let locationData = {};
+            if (data.location && (data.location.latitude || data.location.longitude)) {
+              locationData = {
+                latitude: data.location.latitude,
+                longitude: data.location.longitude
+              };
+            } else if (data.Lat || data.Long) {
+              locationData = {
+                latitude: data.Lat || data.latitude,
+                longitude: data.Long || data.longitude
+              };
+            }
+            
+            // Standardize contact details - ensure it's always a string
+            let contactDetails = '';
+            if (typeof data.contactDetails === 'object' && data.contactDetails !== null) {
+              contactDetails = data.contactDetails.phone || '';
+            } else if (data.contactDetails !== undefined && data.contactDetails !== null) {
+              // Handle both string and number types
+              contactDetails = String(data.contactDetails);
+            } else if (data['Contact details'] !== undefined && data['Contact details'] !== null) {
+              // Check for alternate field name with space
+              contactDetails = String(data['Contact details']);
+            }
+            
+            // Return standardized pump object
+            return {
+              id: doc.id,
+              customerName: data.customerName || data['Customer Name'] || '',
+              dealerName: data.dealerName || data['Dealer Name'] || '',
+              company: data.company || data.Company || '',
+              district: data.district || data.District || '',
+              zone: data.zone || data.Zone || '',
+              salesArea: data.salesArea || data['Sales Area'] || '',
+              coClDo: data.coClDo || data['CO/CL/DO'] || '',
+              regionalOffice: data.regionalOffice || data['Regional office'] || '',
+              sapCode: data.sapCode || data['SAP Code'] || '',
+              addressLine1: data.addressLine1 || data['Address Line1'] || '',
+              addressLine2: data.addressLine2 || data['Address Line2'] || '',
+              addressLine3: data.addressLine3 || data['Address Line3'] || '',
+              addressLine4: data.addressLine4 || data['Address Line4'] || '',
+              pincode: data.pincode || data.Pincode || '',
+              location: locationData,
+              contactDetails: contactDetails,
+              isVerified: data.isVerified || data.verified || false,
+              active: data.active !== undefined ? data.active : true,
+              importedAt: data.importedAt || null
+            };
+          });
+          
           setPumps(pumpsData);
           setFilteredPumps(pumpsData);
           setLoading(false);
@@ -320,22 +548,50 @@ export default function PetrolPumps() {
     fetchPumps();
   }, []);
 
-  // Filter pumps based on search term
+  // Filter pumps based on search term and filters
   useEffect(() => {
-    if (searchTerm.trim() === '') {
-      setFilteredPumps(pumps);
-    } else {
-      const filtered = pumps.filter(pump => 
-        (pump.customerName && pump.customerName.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (pump.dealerName && pump.dealerName.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (pump.addressLine1 && pump.addressLine1.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (pump.addressLine2 && pump.addressLine2.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (pump.addressLine3 && pump.addressLine3.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (pump.addressLine4 && pump.addressLine4.toLowerCase().includes(searchTerm.toLowerCase()))
-      );
-      setFilteredPumps(filtered);
+    let filtered = [...pumps];
+    
+    // Apply company filter if set
+    if (companyFilter !== 'all') {
+      filtered = filtered.filter(pump => pump.company === companyFilter);
     }
-  }, [searchTerm, pumps]);
+    
+    // Apply district filter if set
+    if (districtFilter !== 'all') {
+      filtered = filtered.filter(pump => pump.district === districtFilter);
+    }
+    
+    // Apply search term filter
+    if (searchTerm.trim() !== '') {
+      const searchLower = searchTerm.toLowerCase();
+      filtered = filtered.filter(pump => 
+        (pump.customerName && pump.customerName.toLowerCase().includes(searchLower)) ||
+        (pump.dealerName && pump.dealerName.toLowerCase().includes(searchLower)) ||
+        (pump.addressLine1 && pump.addressLine1.toLowerCase().includes(searchLower)) ||
+        (pump.district && pump.district.toLowerCase().includes(searchLower)) ||
+        (pump.zone && pump.zone.toLowerCase().includes(searchLower)) ||
+        (pump.salesArea && pump.salesArea.toLowerCase().includes(searchLower)) ||
+        (pump.sapCode && pump.sapCode.toString().includes(searchLower)) ||
+        (pump.company && pump.company.toLowerCase().includes(searchLower)) ||
+        (pump.contactDetails && pump.contactDetails.toString().includes(searchLower))
+      );
+    }
+    
+    // Apply tab-specific filters
+    if (tabValue === 1) {
+      // HPCL pumps
+      filtered = filtered.filter(pump => pump.company === 'HPCL');
+    } else if (tabValue === 2) {
+      // BPCL pumps
+      filtered = filtered.filter(pump => pump.company === 'BPCL');
+    } else if (tabValue === 3) {
+      // IOCL pumps
+      filtered = filtered.filter(pump => pump.company === 'IOCL');
+    }
+    
+    setFilteredPumps(filtered);
+  }, [searchTerm, pumps, companyFilter, districtFilter, tabValue]);
 
   // Handle search term change
   const handleSearchChange = (event) => {
@@ -567,26 +823,29 @@ export default function PetrolPumps() {
     setNewPump({
       customerName: '',
       dealerName: '',
-      address: {
-        line1: '',
-        line2: '',
-        city: '',
-        district: '',
-        state: '',
-        pincode: ''
-      },
+      company: 'HPCL',
+      zone: '',
+      salesArea: '',
+      coClDo: '',
+      regionalOffice: '',
+      district: '',
+      sapCode: '',
+      addressLine1: '',
+      addressLine2: '',
+      addressLine3: '',
+      addressLine4: '',
+      pincode: '',
+      contactDetails: '',
       location: {
         latitude: '',
         longitude: ''
       },
-      contactDetails: {
-        phone: '',
-        email: ''
-      },
-      company: '',
-      status: 'active',
+      active: true,
+      isVerified: false,
       createdAt: new Date()
     });
+    setSelectedLocation(null);
+    setManualLocation({ latitude: '', longitude: '' });
     setOpenCreateDialog(true);
   };
 
@@ -617,14 +876,44 @@ export default function PetrolPumps() {
     try {
       const pumpsRef = collection(db, 'petrolPumps');
       
-      const docRef = await addDoc(pumpsRef, {
-        ...newPump
-      });
+      // Prepare location data
+      let locationData = null;
+      if (selectedLocation) {
+        locationData = {
+          latitude: selectedLocation.lat,
+          longitude: selectedLocation.lng
+        };
+      }
+      
+      // Create new pump document
+      const pumpData = {
+        customerName: newPump.customerName || '',
+        dealerName: newPump.dealerName || '',
+        company: newPump.company || 'HPCL',
+        zone: newPump.zone || '',
+        salesArea: newPump.salesArea || '',
+        coClDo: newPump.coClDo || '',
+        regionalOffice: newPump.regionalOffice || '',
+        district: newPump.district || '',
+        sapCode: newPump.sapCode || '',
+        addressLine1: newPump.addressLine1 || '',
+        addressLine2: newPump.addressLine2 || '',
+        addressLine3: newPump.addressLine3 || '',
+        addressLine4: newPump.addressLine4 || '',
+        pincode: newPump.pincode || '',
+        location: locationData,
+        contactDetails: newPump.contactDetails || '',
+        isVerified: false,
+        active: true,
+        createdAt: new Date()
+      };
+      
+      const docRef = await addDoc(pumpsRef, pumpData);
       
       // Add to state
       const createdPump = {
         id: docRef.id,
-        ...newPump
+        ...pumpData
       };
       
       setPumps(prevPumps => [createdPump, ...prevPumps]);
@@ -686,12 +975,21 @@ export default function PetrolPumps() {
       if (pump.address.pincode) address += address ? ` - ${pump.address.pincode}` : pump.address.pincode;
     }
     
+    // If we have district and pincode directly on the pump object
+    if (!address) {
+      if (pump.district) address += pump.district;
+      if (pump.pincode) address += address ? ` - ${pump.pincode}` : pump.pincode;
+    }
+    
     return address || 'No address available';
   };
 
   // Get petrol pump status
   const getPumpStatus = (pump) => {
-    return pump.isVerified ? 'verified' : 'unverified';
+    if (pump.isVerified === true || pump.verified === true) return 'verified';
+    if (pump.active === true) return 'active';
+    if (pump.active === false) return 'inactive';
+    return 'unverified';
   };
 
   const handleManualLocationChange = (field, value) => {
@@ -720,6 +1018,24 @@ export default function PetrolPumps() {
     setSelectedLocation(null);
     setManualLocation({ latitude: '', longitude: '' });
     handleCreateChange('location', null);
+  };
+
+  // Handle filter click
+  const handleFilterClick = (event) => {
+    setFilterAnchorEl(event.currentTarget);
+  };
+
+  // Handle filter close
+  const handleFilterClose = () => {
+    setFilterAnchorEl(null);
+  };
+
+  // Clear filters
+  const clearFilters = () => {
+    setCompanyFilter('all');
+    setDistrictFilter('all');
+    setFilteredPumps(pumps);
+    handleFilterClose();
   };
 
   if (loading) {
@@ -764,52 +1080,153 @@ export default function PetrolPumps() {
       
       <Card sx={{ mb: 3, borderRadius: 3, overflow: 'hidden' }}>
         <CardContent sx={{ p: 2 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
-            <SearchField
-              placeholder="Search pumps..."
-              variant="outlined"
-              value={searchTerm}
-              onChange={handleSearchChange}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon color="action" />
-                  </InputAdornment>
-                ),
-              }}
-            />
-            
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Tabs
-                value={tabValue}
-                onChange={handleTabChange}
-                indicatorColor="primary"
-                textColor="primary"
-                sx={{ '.MuiTab-root': { fontWeight: 500, minWidth: 100 } }}
-              >
-                <Tab label="All Pumps" />
-                <Tab label="Verified" />
-                <Tab label="Unverified" />
-              </Tabs>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
+              <SearchField
+                placeholder="Search pumps..."
+                variant="outlined"
+                value={searchTerm}
+                onChange={handleSearchChange}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon color="action" />
+                    </InputAdornment>
+                  ),
+                }}
+              />
               
-              <ToggleButtonGroup
-                value={viewMode}
-                exclusive
-                onChange={handleViewModeChange}
-                aria-label="view mode"
-                size="small"
-              >
-                <ToggleButton value="table" aria-label="table view">
-                  <ListViewIcon />
-                </ToggleButton>
-                <ToggleButton value="grid" aria-label="grid view">
-                  <GridViewIcon />
-                </ToggleButton>
-              </ToggleButtonGroup>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Button
+                  variant="outlined"
+                  startIcon={<FilterIcon />}
+                  onClick={(e) => setFilterAnchorEl(e.currentTarget)}
+                  size="small"
+                >
+                  Filter
+                </Button>
+                
+                <ToggleButtonGroup
+                  value={viewMode}
+                  exclusive
+                  onChange={handleViewModeChange}
+                  aria-label="view mode"
+                  size="small"
+                >
+                  <ToggleButton value="table" aria-label="table view">
+                    <ListViewIcon />
+                  </ToggleButton>
+                  <ToggleButton value="grid" aria-label="grid view">
+                    <GridViewIcon />
+                  </ToggleButton>
+                </ToggleButtonGroup>
+              </Box>
             </Box>
+            
+            <Tabs
+              value={tabValue}
+              onChange={handleTabChange}
+              indicatorColor="primary"
+              textColor="primary"
+              variant="scrollable"
+              scrollButtons="auto"
+              sx={{ 
+                borderBottom: 1, 
+                borderColor: 'divider',
+                '.MuiTab-root': { 
+                  fontWeight: 500, 
+                  minWidth: 100,
+                  '&.Mui-selected': {
+                    fontWeight: 600
+                  }
+                } 
+              }}
+            >
+              <Tab label={`All Pumps (${pumps.length})`} />
+              <Tab label={`HPCL (${pumps.filter(p => p.company === 'HPCL').length})`} />
+              <Tab label={`BPCL (${pumps.filter(p => p.company === 'BPCL').length})`} />
+              <Tab label={`IOCL (${pumps.filter(p => p.company === 'IOCL').length})`} />
+            </Tabs>
           </Box>
         </CardContent>
       </Card>
+      
+      {/* Filter Popover */}
+      <Popover
+        open={Boolean(filterAnchorEl)}
+        anchorEl={filterAnchorEl}
+        onClose={() => setFilterAnchorEl(null)}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'right',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'right',
+        }}
+        PaperProps={{
+          sx: {
+            p: 2,
+            width: 300,
+            boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+            borderRadius: 2
+          }
+        }}
+      >
+        <Typography variant="subtitle1" fontWeight={600} gutterBottom>
+          Filter Petrol Pumps
+        </Typography>
+        
+        <FormControl fullWidth margin="normal" size="small">
+          <InputLabel id="company-filter-label">Company</InputLabel>
+          <Select
+            labelId="company-filter-label"
+            id="company-filter"
+            value={companyFilter}
+            label="Company"
+            onChange={(e) => handleCompanyFilterChange(e)}
+          >
+            <MenuItem value="all">All Companies</MenuItem>
+            {getUniqueCompanies().map(company => (
+              <MenuItem key={company} value={company}>{company}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        
+        <FormControl fullWidth margin="normal" size="small">
+          <InputLabel id="district-filter-label">District</InputLabel>
+          <Select
+            labelId="district-filter-label"
+            id="district-filter"
+            value={districtFilter}
+            label="District"
+            onChange={(e) => handleDistrictFilterChange(e)}
+          >
+            <MenuItem value="all">All Districts</MenuItem>
+            {getUniqueDistricts().map(district => (
+              <MenuItem key={district} value={district}>{district}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        
+        <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between' }}>
+          <Button 
+            variant="outlined" 
+            size="small" 
+            onClick={() => {
+              setCompanyFilter('all');
+              setDistrictFilter('all');
+              setFilteredPumps(pumps);
+              setFilterAnchorEl(null);
+            }}
+          >
+            Clear Filters
+          </Button>
+          <Button variant="contained" size="small" onClick={() => setFilterAnchorEl(null)}>
+            Apply
+          </Button>
+        </Box>
+      </Popover>
 
       {error && (
         <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
@@ -824,9 +1241,10 @@ export default function PetrolPumps() {
               <TableHead>
                 <TableRow>
                   <StyledTableCell>Pump Details</StyledTableCell>
-                  <StyledTableCell>Address</StyledTableCell>
+                  <StyledTableCell>Company</StyledTableCell>
+                  <StyledTableCell>District</StyledTableCell>
+                  <StyledTableCell>Sales Area</StyledTableCell>
                   <StyledTableCell>Contact</StyledTableCell>
-                  <StyledTableCell>Status</StyledTableCell>
                   <StyledTableCell align="right">Actions</StyledTableCell>
                 </TableRow>
               </TableHead>
@@ -851,37 +1269,40 @@ export default function PetrolPumps() {
                         </Box>
                       </StyledTableCell>
                       <StyledTableCell>
-                        <Box sx={{ display: 'flex', alignItems: 'flex-start' }}>
-                          <LocationIcon fontSize="small" sx={{ mt: 0.5, mr: 1, color: 'text.secondary' }} />
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                          <BusinessIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />
                           <Typography variant="body2">
-                            {renderAddress(pump)}
+                            {pump.company || 'N/A'}
                           </Typography>
                         </Box>
                       </StyledTableCell>
                       <StyledTableCell>
-                        {pump.contactDetails?.phone && (
-                          <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
-                            <PhoneIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />
-                            <Typography variant="body2">
-                              {pump.contactDetails.phone}
-                            </Typography>
-                          </Box>
-                        )}
-                        {pump.contactDetails?.email && (
-                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <EmailIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />
-                            <Typography variant="body2">
-                              {pump.contactDetails.email}
-                            </Typography>
-                          </Box>
-                        )}
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                          <LocationIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />
+                          <Typography variant="body2">
+                            {pump.district || 'N/A'}
+                          </Typography>
+                        </Box>
                       </StyledTableCell>
                       <StyledTableCell>
-                        <StatusChip 
-                          label={pump.isVerified ? 'Verified' : 'Unverified'} 
-                          status={getPumpStatus(pump)}
-                          size="small"
-                        />
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                          <BusinessIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />
+                          <Typography variant="body2">
+                            {pump.salesArea || 'N/A'}
+                          </Typography>
+                        </Box>
+                      </StyledTableCell>
+                      <StyledTableCell>
+                        <ContactCell>
+                          <PhoneIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary', flexShrink: 0 }} />
+                          <Typography variant="body2" title={typeof pump.contactDetails === 'object' 
+                              ? pump.contactDetails?.phone || 'N/A' 
+                              : (pump.contactDetails || pump.contactDetails === 0) ? String(pump.contactDetails) : 'N/A'}>
+                            {typeof pump.contactDetails === 'object' 
+                              ? pump.contactDetails?.phone || 'N/A' 
+                              : (pump.contactDetails || pump.contactDetails === 0) ? String(pump.contactDetails) : 'N/A'}
+                          </Typography>
+                        </ContactCell>
                       </StyledTableCell>
                       <StyledTableCell align="right">
                         <IconButton
@@ -897,7 +1318,7 @@ export default function PetrolPumps() {
                   ))}
                 {filteredPumps.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={5}>
+                    <TableCell colSpan={6}>
                       <Box sx={{ py: 4, textAlign: 'center' }}>
                         <Typography variant="body1" color="text.secondary">
                           No petrol pumps found
@@ -942,48 +1363,45 @@ export default function PetrolPumps() {
                             </Typography>
                           </Box>
                         </Box>
-                        <StatusChip 
-                          label={pump.isVerified ? 'Verified' : 'Unverified'} 
-                          status={getPumpStatus(pump)}
+                        <Chip 
+                          label={pump.company || 'N/A'} 
                           size="small"
+                          color="primary"
+                          variant="outlined"
                         />
                       </Box>
 
                       <Divider sx={{ my: 2 }} />
                       
-                      <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 2 }}>
-                        <LocationIcon sx={{ mt: 0.5, mr: 1, color: 'text.secondary' }} />
+                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                        <BusinessIcon sx={{ mr: 1, color: 'text.secondary', fontSize: 20 }} />
                         <Typography variant="body2">
-                          {renderAddress(pump)}
+                          <strong>Company:</strong> {pump.company || 'N/A'}
                         </Typography>
                       </Box>
                       
-                      {pump.contactDetails?.phone && (
-                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                          <PhoneIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />
-                          <Typography variant="body2">
-                            {pump.contactDetails.phone}
-                          </Typography>
-                        </Box>
-                      )}
+                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                        <LocationIcon sx={{ mr: 1, color: 'text.secondary', fontSize: 20 }} />
+                        <Typography variant="body2">
+                          <strong>District:</strong> {pump.district || 'N/A'}
+                        </Typography>
+                      </Box>
                       
-                      {pump.contactDetails?.email && (
-                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                          <EmailIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />
-                          <Typography variant="body2">
-                            {pump.contactDetails.email}
-                          </Typography>
-                        </Box>
-                      )}
+                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                        <BusinessIcon sx={{ mr: 1, color: 'text.secondary', fontSize: 20 }} />
+                        <Typography variant="body2">
+                          <strong>Sales Area:</strong> {pump.salesArea || 'N/A'}
+                        </Typography>
+                      </Box>
                       
-                      {pump.company && (
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                          <BusinessIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />
-                          <Typography variant="body2">
-                            {pump.company}
-                          </Typography>
-                        </Box>
-                      )}
+                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                        <PhoneIcon sx={{ mr: 1, color: 'text.secondary', fontSize: 20, flexShrink: 0 }} />
+                        <Typography variant="body2" sx={{ wordBreak: 'break-word' }}>
+                          <strong>Contact:</strong> {typeof pump.contactDetails === 'object' 
+                            ? pump.contactDetails?.phone || 'N/A' 
+                            : (pump.contactDetails || pump.contactDetails === 0) ? String(pump.contactDetails) : 'N/A'}
+                        </Typography>
+                      </Box>
                     </CardContent>
                     <CardActions sx={{ p: 2, pt: 0 }}>
                       <Button 
@@ -1215,21 +1633,39 @@ export default function PetrolPumps() {
 
       {/* View/Edit Details Dialog */}
       <Dialog open={openDetailsDialog} onClose={handleCloseDetailsDialog} maxWidth="md" fullWidth>
-        <DialogTitle>
-          <Typography variant="h6" fontWeight={600}>
-            Petrol Pump Details
-          </Typography>
+        <DialogTitle sx={{ pb: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <PumpIcon color="primary" />
+            <Typography variant="h6" fontWeight={600}>
+              Petrol Pump Details
+            </Typography>
+          </Box>
         </DialogTitle>
         <DialogContent dividers>
           {selectedPump && (
             <Grid container spacing={3}>
+              {/* Basic Information */}
+              <Grid item xs={12}>
+                <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'primary.main' }}>
+                  <BusinessIcon />
+                  Basic Information
+                </Typography>
+                <Divider sx={{ mb: 2 }} />
+              </Grid>
+              
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
                   label="Customer Name"
                   value={selectedPump.customerName || ''}
-                  InputProps={{ readOnly: true }}
-                  margin="normal"
+                  InputProps={{ 
+                    readOnly: true,
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <PersonIcon color="action" />
+                      </InputAdornment>
+                    ),
+                  }}
                   variant="outlined"
                 />
               </Grid>
@@ -1238,190 +1674,14 @@ export default function PetrolPumps() {
                   fullWidth
                   label="Dealer Name"
                   value={selectedPump.dealerName || ''}
-                  InputProps={{ readOnly: true }}
-                  margin="normal"
-                  variant="outlined"
-                />
-              </Grid>
-              
-              <Grid item xs={12}>
-                <Typography variant="subtitle1" fontWeight={600} gutterBottom>
-                  Address
-                </Typography>
-              </Grid>
-              
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Address Line 1"
-                  value={selectedPump.addressLine1 || selectedPump.address?.line1 || ''}
-                  InputProps={{ readOnly: true }}
-                  margin="normal"
-                  variant="outlined"
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Address Line 2"
-                  value={selectedPump.addressLine2 || selectedPump.address?.line2 || ''}
-                  InputProps={{ readOnly: true }}
-                  margin="normal"
-                  variant="outlined"
-                />
-              </Grid>
-              
-              <Grid item xs={12} md={4}>
-                <TextField
-                  fullWidth
-                  label="City"
-                  value={selectedPump.addressLine3 || selectedPump.address?.city || ''}
-                  InputProps={{ readOnly: true }}
-                  margin="normal"
-                  variant="outlined"
-                />
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <TextField
-                  fullWidth
-                  label="District"
-                  value={selectedPump.district || selectedPump.address?.district || ''}
-                  InputProps={{ readOnly: true }}
-                  margin="normal"
-                  variant="outlined"
-                />
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <TextField
-                  fullWidth
-                  label="Pincode"
-                  value={selectedPump.pincode || selectedPump.address?.pincode || ''}
-                  InputProps={{ readOnly: true }}
-                  margin="normal"
-                  variant="outlined"
-                />
-              </Grid>
-              
-              <Grid item xs={12}>
-                <MapSection>
-                  <Box className="map-controls">
-                    <Typography variant="subtitle1" fontWeight={600} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <MyLocationIcon color="primary" />
-                      Location Coordinates
-                    </Typography>
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      startIcon={<MapIcon />}
-                      onClick={() => setShowMap(!showMap)}
-                    >
-                      {showMap ? 'Hide Map' : 'Show Map'}
-                    </Button>
-                  </Box>
-
-                  <Grid container spacing={2} sx={{ mb: 2 }}>
-                    <Grid item xs={12} md={6}>
-                      <TextField
-                        fullWidth
-                        label="Latitude"
-                        type="number"
-                        value={manualLocation.latitude}
-                        onChange={(e) => handleManualLocationChange('latitude', e.target.value)}
-                        variant="outlined"
-                        InputProps={{
-                          startAdornment: (
-                            <InputAdornment position="start">
-                              <MyLocationIcon color="action" />
-                            </InputAdornment>
-                          ),
-                        }}
-                        helperText="Enter latitude (e.g., 20.5937)"
-                      />
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <TextField
-                        fullWidth
-                        label="Longitude"
-                        type="number"
-                        value={manualLocation.longitude}
-                        onChange={(e) => handleManualLocationChange('longitude', e.target.value)}
-                        variant="outlined"
-                        InputProps={{
-                          startAdornment: (
-                            <InputAdornment position="start">
-                              <MyLocationIcon color="action" />
-                            </InputAdornment>
-                          ),
-                        }}
-                        helperText="Enter longitude (e.g., 78.9629)"
-                      />
-                    </Grid>
-                  </Grid>
-
-                  {showMap && (
-                    <MapWrapper>
-                      <MapContainer
-                        center={selectedLocation || defaultCenter}
-                        zoom={5}
-                        style={mapContainerStyle}
-                        scrollWheelZoom={true}
-                        zoomControl={true}
-                        attributionControl={true}
-                        doubleClickZoom={true}
-                        dragging={true}
-                        touchZoom={true}
-                      >
-                        <TileLayer
-                          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                        />
-                        <LocationMarker />
-                      </MapContainer>
-                    </MapWrapper>
-                  )}
-
-                  {selectedLocation && (
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 2 }}>
-                      <Typography variant="body2" color="text.secondary">
-                        Selected Location: {selectedLocation.lat.toFixed(6)}, {selectedLocation.lng.toFixed(6)}
-                      </Typography>
-                      <Button
-                        size="small"
-                        color="error"
-                        startIcon={<ClearIcon />}
-                        onClick={handleRemoveLocation}
-                        sx={{ ml: 'auto' }}
-                      >
-                        Remove Location
-                      </Button>
-                    </Box>
-                  )}
-                </MapSection>
-              </Grid>
-              
-              <Grid item xs={12}>
-                <Typography variant="subtitle1" fontWeight={600} gutterBottom>
-                  Contact Details
-                </Typography>
-              </Grid>
-              
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Phone"
-                  value={selectedPump.contactDetails?.phone || ''}
-                  InputProps={{ readOnly: true }}
-                  margin="normal"
-                  variant="outlined"
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Email"
-                  value={selectedPump.contactDetails?.email || ''}
-                  InputProps={{ readOnly: true }}
-                  margin="normal"
+                  InputProps={{ 
+                    readOnly: true,
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <PersonIcon color="action" />
+                      </InputAdornment>
+                    ),
+                  }}
                   variant="outlined"
                 />
               </Grid>
@@ -1431,31 +1691,335 @@ export default function PetrolPumps() {
                   fullWidth
                   label="Company"
                   value={selectedPump.company || ''}
-                  InputProps={{ readOnly: true }}
-                  margin="normal"
+                  InputProps={{ 
+                    readOnly: true,
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <BusinessIcon color="action" />
+                      </InputAdornment>
+                    ),
+                  }}
                   variant="outlined"
                 />
               </Grid>
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
-                  label="Status"
-                  value={selectedPump.isVerified ? 'Verified' : 'Unverified'}
-                  InputProps={{ readOnly: true }}
-                  margin="normal"
+                  label="SAP Code"
+                  value={selectedPump.sapCode || ''}
+                  InputProps={{ 
+                    readOnly: true,
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <BadgeIcon color="action" />
+                      </InputAdornment>
+                    ),
+                  }}
                   variant="outlined"
                 />
               </Grid>
+              
+              {/* Company Information */}
+              <Grid item xs={12}>
+                <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'primary.main', mt: 2 }}>
+                  <BusinessIcon />
+                  Company Information
+                </Typography>
+                <Divider sx={{ mb: 2 }} />
+              </Grid>
+              
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  label="Zone"
+                  value={selectedPump.zone || ''}
+                  InputProps={{ 
+                    readOnly: true,
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <BusinessIcon color="action" />
+                      </InputAdornment>
+                    ),
+                  }}
+                  variant="outlined"
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  label="Sales Area"
+                  value={selectedPump.salesArea || ''}
+                  InputProps={{ 
+                    readOnly: true,
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <BusinessIcon color="action" />
+                      </InputAdornment>
+                    ),
+                  }}
+                  variant="outlined"
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  label="CO/CL/DO"
+                  value={selectedPump.coClDo || ''}
+                  InputProps={{ 
+                    readOnly: true,
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <BusinessIcon color="action" />
+                      </InputAdornment>
+                    ),
+                  }}
+                  variant="outlined"
+                />
+              </Grid>
+              
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Regional Office"
+                  value={selectedPump.regionalOffice || ''}
+                  InputProps={{ 
+                    readOnly: true,
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <BusinessIcon color="action" />
+                      </InputAdornment>
+                    ),
+                  }}
+                  variant="outlined"
+                />
+              </Grid>
+              
+              {/* Address Information */}
+              <Grid item xs={12}>
+                <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'primary.main', mt: 2 }}>
+                  <LocationIcon />
+                  Address Information
+                </Typography>
+                <Divider sx={{ mb: 2 }} />
+              </Grid>
+              
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Address Line 1"
+                  value={selectedPump.addressLine1 || selectedPump.address?.line1 || ''}
+                  InputProps={{ 
+                    readOnly: true,
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <LocationIcon color="action" />
+                      </InputAdornment>
+                    ),
+                  }}
+                  variant="outlined"
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Address Line 2"
+                  value={selectedPump.addressLine2 || selectedPump.address?.line2 || ''}
+                  InputProps={{ 
+                    readOnly: true,
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <LocationIcon color="action" />
+                      </InputAdornment>
+                    ),
+                  }}
+                  variant="outlined"
+                />
+              </Grid>
+              
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  label="District"
+                  value={selectedPump.district || selectedPump.address?.district || ''}
+                  InputProps={{ 
+                    readOnly: true,
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <LocationIcon color="action" />
+                      </InputAdornment>
+                    ),
+                  }}
+                  variant="outlined"
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Pincode"
+                  value={selectedPump.pincode || selectedPump.address?.pincode || ''}
+                  InputProps={{ 
+                    readOnly: true,
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <LocationIcon color="action" />
+                      </InputAdornment>
+                    ),
+                  }}
+                  variant="outlined"
+                />
+              </Grid>
+              
+              {/* Contact Information */}
+              <Grid item xs={12}>
+                <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'primary.main', mt: 2 }}>
+                  <PhoneIcon />
+                  Contact Information
+                </Typography>
+                <Divider sx={{ mb: 2 }} />
+              </Grid>
+              
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Contact Details"
+                  value={
+                    typeof selectedPump.contactDetails === 'object' 
+                      ? selectedPump.contactDetails?.phone || 'N/A' 
+                      : (selectedPump.contactDetails || selectedPump.contactDetails === 0) ? String(selectedPump.contactDetails) : 'N/A'
+                  }
+                  InputProps={{ 
+                    readOnly: true,
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <PhoneIcon color="action" />
+                      </InputAdornment>
+                    ),
+                  }}
+                  variant="outlined"
+                />
+              </Grid>
+              
+              {/* Location Information */}
+              <Grid item xs={12}>
+                <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'primary.main', mt: 2 }}>
+                  <MyLocationIcon />
+                  Location Coordinates
+                </Typography>
+                <Divider sx={{ mb: 2 }} />
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Latitude"
+                  value={selectedPump.location?.latitude || selectedPump.Lat || ''}
+                  InputProps={{ 
+                    readOnly: true,
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <MyLocationIcon color="action" />
+                      </InputAdornment>
+                    ),
+                  }}
+                  variant="outlined"
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Longitude"
+                  value={selectedPump.location?.longitude || selectedPump.Long || ''}
+                  InputProps={{ 
+                    readOnly: true,
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <MyLocationIcon color="action" />
+                      </InputAdornment>
+                    ),
+                  }}
+                  variant="outlined"
+                />
+              </Grid>
+              
+              {/* Status Information */}
+              <Grid item xs={12}>
+                <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'primary.main', mt: 2 }}>
+                  <VerifiedIcon />
+                  Status Information
+                </Typography>
+                <Divider sx={{ mb: 2 }} />
+              </Grid>
+              
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Verification Status"
+                  value={selectedPump.isVerified || selectedPump.verified ? 'Verified' : 'Unverified'}
+                  InputProps={{ 
+                    readOnly: true,
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <VerifiedIcon color={selectedPump.isVerified || selectedPump.verified ? "success" : "action"} />
+                      </InputAdornment>
+                    ),
+                  }}
+                  variant="outlined"
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Active Status"
+                  value={selectedPump.active === false ? 'Inactive' : 'Active'}
+                  InputProps={{ 
+                    readOnly: true,
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <CheckIcon color={selectedPump.active === false ? "error" : "success"} />
+                      </InputAdornment>
+                    ),
+                  }}
+                  variant="outlined"
+                />
+              </Grid>
+              
+              {/* Map View */}
+              {(selectedPump.location?.latitude || selectedPump.Lat) && 
+               (selectedPump.location?.longitude || selectedPump.Long) && (
+                <Grid item xs={12}>
+                  <Box sx={{ height: 400, width: '100%', mt: 2, borderRadius: 2, overflow: 'hidden', border: '1px solid #eee' }}>
+                    <MapContainer
+                      center={[
+                        selectedPump.location?.latitude || selectedPump.Lat, 
+                        selectedPump.location?.longitude || selectedPump.Long
+                      ]}
+                      zoom={15}
+                      style={{ height: '100%', width: '100%' }}
+                    >
+                      <TileLayer
+                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                      />
+                      <Marker 
+                        position={[
+                          selectedPump.location?.latitude || selectedPump.Lat, 
+                          selectedPump.location?.longitude || selectedPump.Long
+                        ]}
+                      >
+                        <Popup>
+                          <strong>{selectedPump.customerName}</strong><br />
+                          {renderAddress(selectedPump)}
+                        </Popup>
+                      </Marker>
+                    </MapContainer>
+                  </Box>
+                </Grid>
+              )}
             </Grid>
           )}
         </DialogContent>
-        <DialogActions sx={{ px: 3, py: 2 }}>
-          <Button 
-            onClick={handleCloseDetailsDialog}
-            variant="outlined"
-            color="inherit"
-            sx={{ borderRadius: 2 }}
-          >
+        <DialogActions>
+          <Button onClick={handleCloseDetailsDialog} color="primary">
             Close
           </Button>
         </DialogActions>
@@ -1526,6 +2090,118 @@ export default function PetrolPumps() {
               />
             </Grid>
             
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Company"
+                value={newPump.company}
+                onChange={(e) => handleCreateChange('company', e.target.value)}
+                variant="outlined"
+                select
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <BusinessIcon color="action" />
+                    </InputAdornment>
+                  ),
+                }}
+              >
+                <MenuItem value="HPCL">HPCL</MenuItem>
+                <MenuItem value="BPCL">BPCL</MenuItem>
+                <MenuItem value="IOCL">IOCL</MenuItem>
+              </TextField>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="SAP Code"
+                value={newPump.sapCode}
+                onChange={(e) => handleCreateChange('sapCode', e.target.value)}
+                variant="outlined"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <BusinessIcon color="action" />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Grid>
+            
+            {/* Company Information */}
+            <Grid item xs={12}>
+              <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <BusinessIcon color="primary" />
+                Company Information
+              </Typography>
+            </Grid>
+            
+            <Grid item xs={12} md={4}>
+              <TextField
+                fullWidth
+                label="Zone"
+                value={newPump.zone}
+                onChange={(e) => handleCreateChange('zone', e.target.value)}
+                variant="outlined"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <BusinessIcon color="action" />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <TextField
+                fullWidth
+                label="Sales Area"
+                value={newPump.salesArea}
+                onChange={(e) => handleCreateChange('salesArea', e.target.value)}
+                variant="outlined"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <BusinessIcon color="action" />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <TextField
+                fullWidth
+                label="CO/CL/DO"
+                value={newPump.coClDo}
+                onChange={(e) => handleCreateChange('coClDo', e.target.value)}
+                variant="outlined"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <BusinessIcon color="action" />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Grid>
+            
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Regional Office"
+                value={newPump.regionalOffice}
+                onChange={(e) => handleCreateChange('regionalOffice', e.target.value)}
+                variant="outlined"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <BusinessIcon color="action" />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Grid>
+            
             {/* Address Information */}
             <Grid item xs={12}>
               <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -1538,8 +2214,8 @@ export default function PetrolPumps() {
               <TextField
                 fullWidth
                 label="Address Line 1"
-                value={newPump.address.line1}
-                onChange={(e) => handleCreateChange('address.line1', e.target.value)}
+                value={newPump.addressLine1}
+                onChange={(e) => handleCreateChange('addressLine1', e.target.value)}
                 variant="outlined"
                 InputProps={{
                   startAdornment: (
@@ -1554,8 +2230,8 @@ export default function PetrolPumps() {
               <TextField
                 fullWidth
                 label="Address Line 2"
-                value={newPump.address.line2}
-                onChange={(e) => handleCreateChange('address.line2', e.target.value)}
+                value={newPump.addressLine2}
+                onChange={(e) => handleCreateChange('addressLine2', e.target.value)}
                 variant="outlined"
                 InputProps={{
                   startAdornment: (
@@ -1567,44 +2243,12 @@ export default function PetrolPumps() {
               />
             </Grid>
             
-            <Grid item xs={12} md={4}>
-              <TextField
-                fullWidth
-                label="City"
-                value={newPump.address.city}
-                onChange={(e) => handleCreateChange('address.city', e.target.value)}
-                variant="outlined"
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <LocationIcon color="action" />
-                    </InputAdornment>
-                  ),
-                }}
-              />
-            </Grid>
-            <Grid item xs={12} md={4}>
+            <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
                 label="District"
-                value={newPump.address.district}
-                onChange={(e) => handleCreateChange('address.district', e.target.value)}
-                variant="outlined"
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <LocationIcon color="action" />
-                    </InputAdornment>
-                  ),
-                }}
-              />
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <TextField
-                fullWidth
-                label="State"
-                value={newPump.address.state}
-                onChange={(e) => handleCreateChange('address.state', e.target.value)}
+                value={newPump.district}
+                onChange={(e) => handleCreateChange('district', e.target.value)}
                 variant="outlined"
                 InputProps={{
                   startAdornment: (
@@ -1620,13 +2264,38 @@ export default function PetrolPumps() {
               <TextField
                 fullWidth
                 label="Pincode"
-                value={newPump.address.pincode}
-                onChange={(e) => handleCreateChange('address.pincode', e.target.value)}
+                value={newPump.pincode}
+                onChange={(e) => handleCreateChange('pincode', e.target.value)}
                 variant="outlined"
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
                       <LocationIcon color="action" />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Grid>
+            
+            {/* Contact Information */}
+            <Grid item xs={12}>
+              <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <PhoneIcon color="primary" />
+                Contact Information
+              </Typography>
+            </Grid>
+            
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Contact Details"
+                value={newPump.contactDetails}
+                onChange={(e) => handleCreateChange('contactDetails', e.target.value)}
+                variant="outlined"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <PhoneIcon color="action" />
                     </InputAdornment>
                   ),
                 }}
@@ -1729,73 +2398,6 @@ export default function PetrolPumps() {
                   </Box>
                 )}
               </MapSection>
-            </Grid>
-            
-            {/* Contact Information */}
-            <Grid item xs={12}>
-              <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <PhoneIcon color="primary" />
-                Contact Information
-              </Typography>
-            </Grid>
-            
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Phone"
-                value={newPump.contactDetails.phone}
-                onChange={(e) => handleCreateChange('contactDetails.phone', e.target.value)}
-                variant="outlined"
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <PhoneIcon color="action" />
-                    </InputAdornment>
-                  ),
-                }}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Email"
-                type="email"
-                value={newPump.contactDetails.email}
-                onChange={(e) => handleCreateChange('contactDetails.email', e.target.value)}
-                variant="outlined"
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <EmailIcon color="action" />
-                    </InputAdornment>
-                  ),
-                }}
-              />
-            </Grid>
-            
-            {/* Company Information */}
-            <Grid item xs={12}>
-              <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <BusinessIcon color="primary" />
-                Company Information
-              </Typography>
-            </Grid>
-            
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Company"
-                value={newPump.company}
-                onChange={(e) => handleCreateChange('company', e.target.value)}
-                variant="outlined"
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <BusinessIcon color="action" />
-                    </InputAdornment>
-                  ),
-                }}
-              />
             </Grid>
           </Grid>
         </DialogContent>
