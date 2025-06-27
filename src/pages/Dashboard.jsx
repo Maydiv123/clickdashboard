@@ -36,49 +36,56 @@ const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 const StatCard = ({ icon, title, value, color, trend }) => (
   <Card sx={{ 
     height: '100%', 
-    borderRadius: 3,
+    borderRadius: 2,
     transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
     '&:hover': {
-      transform: 'translateY(-5px)',
-      boxShadow: '0 10px 20px rgba(0,0,0,0.12)',
+      transform: 'translateY(-3px)',
+      boxShadow: '0 8px 16px rgba(0,0,0,0.1)',
     },
+    minHeight: 80,
   }}>
-    <CardContent>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+    <CardContent sx={{ p: 3, height: '100%' }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
         <Box sx={{ 
           display: 'flex', 
           alignItems: 'center', 
           justifyContent: 'center',
-          p: 1.5,
-          borderRadius: 2,
+          p: 2,
+          borderRadius: 1.5,
           bgcolor: `${color}15`,
           color: color,
+          minWidth: 56,
+          height: 56,
+          mr: 3,
         }}>
           {icon}
+        </Box>
+        <Box sx={{ flex: 1 }}>
+          <Typography variant="h3" component="div" sx={{ mb: 0.5, fontWeight: 'bold', fontSize: '2rem' }}>
+            {value}
+          </Typography>
+          <Typography variant="body1" color="text.secondary" sx={{ fontWeight: 500 }}>
+            {title}
+          </Typography>
         </Box>
         {trend && (
           <Box sx={{ 
             display: 'flex', 
             alignItems: 'center', 
-            px: 1, 
+            px: 1.5, 
             py: 0.5, 
             borderRadius: 1, 
             bgcolor: '#e6f7ea', 
             color: '#2e7d32',
             fontSize: '0.75rem',
-            fontWeight: 'bold'
+            fontWeight: 'bold',
+            ml: 2,
           }}>
             <TrendingUpIcon fontSize="small" sx={{ mr: 0.5 }} />
             {trend}
           </Box>
         )}
       </Box>
-      <Typography variant="h3" component="div" sx={{ mb: 1, fontWeight: 'bold' }}>
-        {value}
-      </Typography>
-      <Typography variant="body2" color="text.secondary">
-        {title}
-      </Typography>
     </CardContent>
   </Card>
 );
@@ -131,7 +138,7 @@ export default function Dashboard() {
         
         // Transform teams data for chart
         const chartTeamData = teamsData.map(team => ({
-          name: team.name || 'Unnamed Team',
+          name: team.teamName || 'Unnamed Team',
           members: team.members?.length || 0,
         }));
         
@@ -146,6 +153,12 @@ export default function Dashboard() {
           ...doc.data()
         }));
         
+        // Get all petrol pumps data for growth calculation
+        const allPetrolPumpsData = petrolPumpsSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        
         // Generate growth data based on real user creation dates
         const growthData = [];
         const currentDate = new Date();
@@ -156,13 +169,17 @@ export default function Dashboard() {
           
           // Count users created in this month from all users
           const monthUsers = allUsersData.filter(user => {
-            const userDate = user.createdAt?.toDate?.() || new Date();
+            const userDate = user.createdAt?.toDate?.() || new Date(user.createdAt);
             return userDate.getMonth() === monthDate.getMonth() && 
                    userDate.getFullYear() === monthDate.getFullYear();
           }).length;
           
-          // Count petrol pumps created in this month (estimate based on current count)
-          const monthPumps = Math.floor(petrolPumpCount * (0.1 + Math.random() * 0.2));
+          // Count petrol pumps imported in this month from real data
+          const monthPumps = allPetrolPumpsData.filter(pump => {
+            const pumpDate = pump.importedAt?.toDate?.() || new Date(pump.importedAt);
+            return pumpDate.getMonth() === monthDate.getMonth() && 
+                   pumpDate.getFullYear() === monthDate.getFullYear();
+          }).length;
           
           growthData.push({
             name: monthName,
@@ -180,13 +197,20 @@ export default function Dashboard() {
           
           // Filter users created on this day from all users
           const dayUsers = allUsersData.filter(user => {
-            const userDate = user.createdAt?.toDate?.() || new Date();
+            const userDate = user.createdAt?.toDate?.() || new Date(user.createdAt);
             return userDate.toDateString() === dayDate.toDateString();
+          });
+          
+          // Filter petrol pumps imported on this day
+          const dayPumps = allPetrolPumpsData.filter(pump => {
+            const pumpDate = pump.importedAt?.toDate?.() || new Date(pump.importedAt);
+            return pumpDate.toDateString() === dayDate.toDateString();
           });
           
           return {
             name: day,
-            count: dayUsers.length,
+            users: dayUsers.length,
+            pumps: dayPumps.length,
             date: dayDate
           };
         });
@@ -228,14 +252,14 @@ export default function Dashboard() {
           Dashboard Overview
         </Typography>
         
-        <Button 
+        {/* <Button 
           variant="contained" 
           disableElevation
           endIcon={<ArrowForwardIcon />}
           sx={{ borderRadius: 2, px: 3 }}
         >
           View Reports
-        </Button>
+        </Button> */}
       </Box>
       
       {/* Stats Cards */}
@@ -284,7 +308,7 @@ export default function Dashboard() {
       {/* Charts */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
         {/* Growth Chart */}
-        <Grid item xs={12} md={8}>
+        <Grid item xs={12} md={6}>
           <Card sx={{ borderRadius: 3, height: '100%' }}>
             <CardContent>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
@@ -296,7 +320,7 @@ export default function Dashboard() {
                 </IconButton>
               </Box>
               
-              <Box sx={{ height: 300 }}>
+              <Box sx={{ height: 250 }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart
                     data={growthData}
@@ -336,7 +360,7 @@ export default function Dashboard() {
         </Grid>
         
         {/* Team Members Chart */}
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} md={6}>
           <Card sx={{ borderRadius: 3, height: '100%' }}>
             <CardContent>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
@@ -348,7 +372,7 @@ export default function Dashboard() {
                 </IconButton>
               </Box>
               
-              <Box sx={{ height: 300 }}>
+              <Box sx={{ height: 250 }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
@@ -466,11 +490,20 @@ export default function Dashboard() {
                         boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
                       }}
                     />
+                    <Legend />
                     <Bar 
-                      dataKey="count" 
+                      dataKey="users" 
                       fill={COLORS[0]} 
                       radius={[4, 4, 0, 0]} 
-                      barSize={35}
+                      barSize={25}
+                      name="Users"
+                    />
+                    <Bar 
+                      dataKey="pumps" 
+                      fill={COLORS[1]} 
+                      radius={[4, 4, 0, 0]} 
+                      barSize={25}
+                      name="Petrol Pumps"
                     />
                   </BarChart>
                 </ResponsiveContainer>
