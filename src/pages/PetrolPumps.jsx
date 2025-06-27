@@ -2424,7 +2424,7 @@ export default function PetrolPumps() {
       </Dialog>
 
       {/* Floating Action Button */}
-      <Fab 
+      {/* <Fab 
         color="primary" 
         aria-label="add" 
         onClick={handleOpenCreateDialog}
@@ -2436,7 +2436,7 @@ export default function PetrolPumps() {
         }}
       >
         <AddIcon />
-      </Fab>
+      </Fab> */}
     </Box>
   );
 } 
