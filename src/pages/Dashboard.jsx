@@ -320,7 +320,7 @@ export default function Dashboard() {
                 </IconButton>
               </Box>
               
-              <Box sx={{ height: 250 }}>
+              <Box sx={{ height: 250 , width: 500 }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart
                     data={growthData}
@@ -361,7 +361,7 @@ export default function Dashboard() {
         
         {/* Team Members Chart */}
         <Grid item xs={12} md={6}>
-          <Card sx={{ borderRadius: 3, height: '100%' }}>
+          <Card sx={{ borderRadius: 3, height: '100%' , width: 500 }}>
             <CardContent>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                 <Typography variant="h6" fontWeight="bold">
@@ -407,7 +407,7 @@ export default function Dashboard() {
         
         {/* Recent Users */}
         <Grid item xs={12} md={6}>
-          <Card sx={{ borderRadius: 3 }}>
+          <Card sx={{ borderRadius: 3 , width: 500 }}>
             <CardContent>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                 <Typography variant="h6" fontWeight="bold">
@@ -466,7 +466,7 @@ export default function Dashboard() {
         
         {/* Weekly Activity */}
         <Grid item xs={12} md={6}>
-          <Card sx={{ borderRadius: 3 }}>
+          <Card sx={{ borderRadius: 3, width: 500 }}>
             <CardContent>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                 <Typography variant="h6" fontWeight="bold">

@@ -260,7 +260,7 @@ const menuItems = [
     ]
   },
   { text: 'Excel Import', icon: <UploadFileIcon />, path: '/excel-import' },
-  { text: 'Imported Data', icon: <TableViewIcon />, path: '/imported-data' },
+  // { text: 'Imported Data', icon: <TableViewIcon />, path: '/imported-data' },
   { text: 'Teams', icon: <TeamIcon />, path: '/teams' },
   { text: 'Advertisements', icon: <CampaignIcon />, path: '/ads' },
   { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },

@@ -39,7 +39,9 @@ import {
   DeleteOutline as DeleteIcon,
   Check as CheckIcon,
   Visibility as VisibilityIcon,
-  TableView as TableViewIcon
+  TableView as TableViewIcon,
+  Download as DownloadIcon,
+  Description as DescriptionIcon
 } from '@mui/icons-material';
 import { db } from '../firebase/config';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -108,6 +110,107 @@ export default function ExcelImport() {
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   
   const steps = ['Upload Excel File', 'Preview Data', 'Import to Database'];
+
+  // Sample data for Excel template
+  const sampleData = [
+    {
+      'Customer Name': 'Sample Petrol Pump 1',
+      'Dealer Name': 'John Doe',
+      'Company': 'HPCL',
+      'District': 'Mumbai',
+      'Zone': 'Western',
+      'Sales Area': 'Mumbai Central',
+      'CO/CL/DO': 'Mumbai CO',
+      'Regional office': 'Mumbai Regional',
+      'SAP Code': 'HPCL001',
+      'Address Line1': '123 Main Street',
+      'Address Line2': 'Near Railway Station',
+      'Address Line3': 'Mumbai Central',
+      'Address Line4': 'Mumbai',
+      'Pincode': '400001',
+      'Contact details': '9876543210',
+      'latitude': 19.0760,
+      'longitude': 72.8777
+    },
+    {
+      'Customer Name': 'Sample Petrol Pump 2',
+      'Dealer Name': 'Jane Smith',
+      'Company': 'BPCL',
+      'District': 'Delhi',
+      'Zone': 'Northern',
+      'Sales Area': 'Connaught Place',
+      'CO/CL/DO': 'Delhi CO',
+      'Regional office': 'Delhi Regional',
+      'SAP Code': 'BPCL001',
+      'Address Line1': '456 Park Street',
+      'Address Line2': 'Connaught Place',
+      'Address Line3': 'New Delhi',
+      'Address Line4': 'Delhi',
+      'Pincode': '110001',
+      'Contact details': '9876543211',
+      'latitude': 28.6139,
+      'longitude': 77.2090
+    },
+    {
+      'Customer Name': 'Sample Petrol Pump 3',
+      'Dealer Name': 'Mike Johnson',
+      'Company': 'IOCL',
+      'District': 'Bangalore',
+      'Zone': 'Southern',
+      'Sales Area': 'MG Road',
+      'CO/CL/DO': 'Bangalore CO',
+      'Regional office': 'Bangalore Regional',
+      'SAP Code': 'IOCL001',
+      'Address Line1': '789 Commercial Street',
+      'Address Line2': 'MG Road',
+      'Address Line3': 'Bangalore',
+      'Address Line4': 'Karnataka',
+      'Pincode': '560001',
+      'Contact details': '9876543212',
+      'latitude': 12.9716,
+      'longitude': 77.5946
+    }
+  ];
+
+  const downloadSampleFormat = () => {
+    // Create workbook and worksheet
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(sampleData);
+    
+    // Set column widths
+    const colWidths = [
+      { wch: 25 }, // Customer Name
+      { wch: 20 }, // Dealer Name
+      { wch: 10 }, // Company
+      { wch: 15 }, // District
+      { wch: 15 }, // Zone
+      { wch: 20 }, // Sales Area
+      { wch: 15 }, // CO/CL/DO
+      { wch: 20 }, // Regional office
+      { wch: 12 }, // SAP Code
+      { wch: 25 }, // Address Line1
+      { wch: 25 }, // Address Line2
+      { wch: 20 }, // Address Line3
+      { wch: 20 }, // Address Line4
+      { wch: 10 }, // Pincode
+      { wch: 15 }, // Contact details
+      { wch: 12 }, // latitude
+      { wch: 12 }  // longitude
+    ];
+    ws['!cols'] = colWidths;
+    
+    // Add worksheet to workbook
+    XLSX.utils.book_append_sheet(wb, ws, 'Petrol Pumps Template');
+    
+    // Generate and download file
+    XLSX.writeFile(wb, 'Petrol_Pumps_Import_Template.xlsx');
+    
+    setAlert({
+      open: true,
+      message: 'Sample Excel template downloaded successfully!',
+      severity: 'success'
+    });
+  };
 
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
@@ -322,31 +425,90 @@ export default function ExcelImport() {
 
         {activeStep === 0 && (
           <Box>
-            <UploadBox component="label">
-              <CloudUploadIcon color="primary" sx={{ fontSize: 60, mb: 2 }} />
-              <Typography variant="h6" gutterBottom>
-                Upload Excel File
-              </Typography>
-              <Typography variant="body2" color="text.secondary" align="center" paragraph>
-                Click or drag and drop an Excel file (.xlsx, .xls)
-              </Typography>
-              <Button
-                component="span"
-                variant="contained"
-                startIcon={<UploadIcon />}
-                disabled={isLoading}
-              >
-                Select File
-              </Button>
-              <VisuallyHiddenInput
-                type="file"
-                onChange={handleFileUpload}
-                accept=".xlsx, .xls"
-              />
-              {isLoading && (
-                <CircularProgress size={24} sx={{ mt: 2 }} />
-              )}
-            </UploadBox>
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={6}>
+                <Card sx={{ p: 3, height: '100%', textAlign: 'center' }}>
+                  <DescriptionIcon color="primary" sx={{ fontSize: 48, mb: 2 }} />
+                  <Typography variant="h6" gutterBottom>
+                    Download Sample Format
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" paragraph>
+                    Get the Excel template with the correct format and sample data
+                  </Typography>
+                  <Button
+                    variant="outlined"
+                    startIcon={<DownloadIcon />}
+                    onClick={downloadSampleFormat}
+                    sx={{ mb: 2 }}
+                  >
+                    Download Template
+                  </Button>
+                  <Box sx={{ mt: 2, textAlign: 'left' }}>
+                    <Typography variant="subtitle2" gutterBottom sx={{ color: 'error.main', fontWeight: 'bold' }}>
+                      Compulsory Fields (Required):
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" component="div" sx={{ mb: 2 }}>
+                      • Customer Name<br/>
+                      • Dealer Name<br/>
+                      • Company (HPCL/BPCL/IOCL)<br/>
+                      • District<br/>
+                      • Zone<br/>
+                      • Sales Area<br/>
+                      • CO/CL/DO<br/>
+                      • Regional office<br/>
+                      • SAP Code<br/>
+                      • Address Line1<br/>
+                      • Pincode<br/>
+                      • Contact details<br/>
+                      • latitude, longitude
+                    </Typography>
+                    
+                    <Typography variant="subtitle2" gutterBottom sx={{ color: 'text.secondary', fontWeight: 'bold' }}>
+                      Optional Fields:
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" component="div">
+                      • Address Line2<br/>
+                      • Address Line3<br/>
+                      • Address Line4
+                    </Typography>
+                    
+                    <Alert severity="warning" sx={{ mt: 2, fontSize: '0.875rem' }}>
+                      <Typography variant="body2">
+                        <strong>Note:</strong> All compulsory fields must be filled. Missing compulsory fields may cause import errors.
+                      </Typography>
+                    </Alert>
+                  </Box>
+                </Card>
+              </Grid>
+              
+              <Grid item xs={12} md={6}>
+                <UploadBox component="label">
+                  <CloudUploadIcon color="primary" sx={{ fontSize: 60, mb: 2 }} />
+                  <Typography variant="h6" gutterBottom>
+                    Upload Excel File
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" align="center" paragraph>
+                    Click or drag and drop an Excel file (.xlsx, .xls)
+                  </Typography>
+                  <Button
+                    component="span"
+                    variant="contained"
+                    startIcon={<UploadIcon />}
+                    disabled={isLoading}
+                  >
+                    Select File
+                  </Button>
+                  <VisuallyHiddenInput
+                    type="file"
+                    onChange={handleFileUpload}
+                    accept=".xlsx, .xls"
+                  />
+                  {isLoading && (
+                    <CircularProgress size={24} sx={{ mt: 2 }} />
+                  )}
+                </UploadBox>
+              </Grid>
+            </Grid>
             
             <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
               <Button 
