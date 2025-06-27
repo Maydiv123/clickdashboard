@@ -1054,14 +1054,14 @@ export default function PetrolPumps() {
         </Typography>
         
         <Box sx={{ display: 'flex', gap: 2 }}>
-          <Button 
+          {/* <Button 
             variant="outlined" 
             startIcon={<UploadIcon />} 
             onClick={() => setImportDialogOpen(true)}
             sx={{ borderRadius: 2 }}
           >
             Import
-          </Button>
+          </Button> */}
           <Button 
             variant="contained" 
             startIcon={<AddIcon />} 

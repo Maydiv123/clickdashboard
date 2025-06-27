@@ -243,9 +243,9 @@ const menuItems = [
     hasSubmenu: true,
     submenu: [
       { text: 'View All', icon: <VisibilityIcon />, path: '/petrol-pumps' },
-      { text: 'Create New', icon: <AddIcon />, path: '/petrol-pumps/create' },
-      { text: 'Edit', icon: <EditIcon />, path: '/petrol-pumps/edit' },
-      { text: 'Delete', icon: <DeleteIcon />, path: '/petrol-pumps/delete' },
+      // { text: 'Create New', icon: <AddIcon />, path: '/petrol-pumps/create' },
+      // { text: 'Edit', icon: <EditIcon />, path: '/petrol-pumps/edit' },
+      // { text: 'Delete', icon: <DeleteIcon />, path: '/petrol-pumps/delete' },
     ]
   },
   { 
