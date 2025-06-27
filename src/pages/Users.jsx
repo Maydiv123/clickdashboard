@@ -40,7 +40,9 @@ import {
   ListItemText,
   Stepper,
   Step,
-  StepLabel
+  StepLabel,
+  Popover,
+  LinearProgress
 } from '@mui/material';
 import { styled, alpha } from '@mui/material/styles';
 import { 
@@ -167,6 +169,11 @@ export default function Users() {
   const [selectedRow, setSelectedRow] = useState(null);
   const [activeStep, setActiveStep] = useState(0);
   const steps = ['Basic Information', 'Contact Details', 'Additional Information'];
+  const [filterAnchorEl, setFilterAnchorEl] = useState(null);
+  const [userTypeFilter, setUserTypeFilter] = useState('all');
+  const [teamNameFilter, setTeamNameFilter] = useState('all');
+  const [profileCompletionFilter, setProfileCompletionFilter] = useState('all');
+  const [createdDateFilter, setCreatedDateFilter] = useState('all');
 
   // Menu handlers
   const handleOpenMenu = (event, user) => {
@@ -182,6 +189,21 @@ export default function Users() {
   // Tab change handler
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
+    let filtered = [...users];
+    if (newValue === 1) {
+      filtered = filtered.filter(user => 
+        user.preferredCompanies && user.preferredCompanies.includes('HPCL')
+      );
+    } else if (newValue === 2) {
+      filtered = filtered.filter(user => 
+        user.preferredCompanies && user.preferredCompanies.includes('BPCL')
+      );
+    } else if (newValue === 3) {
+      filtered = filtered.filter(user => 
+        user.preferredCompanies && user.preferredCompanies.includes('IOCL')
+      );
+    }
+    setFilteredUsers(filtered);
   };
 
   // Fetch users data
@@ -220,19 +242,68 @@ export default function Users() {
     fetchUsers();
   }, []);
 
-  // Filter users based on search term
+  // Filter users based on search term and filters
   useEffect(() => {
-    if (searchTerm.trim() === '') {
-      setFilteredUsers(users);
-    } else {
-      const filtered = users.filter(user => 
+    let filtered = [...users];
+    if (searchTerm.trim() !== '') {
+      filtered = filtered.filter(user => 
         (user.firstName && user.firstName.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (user.lastName && user.lastName.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (user.email && user.email.toLowerCase().includes(searchTerm.toLowerCase()))
+        (user.mobile && user.mobile.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (user.userType && user.userType.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (user.userId && user.userId.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (user.teamName && user.teamName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (user.preferredCompanies && user.preferredCompanies.some(company => 
+          company.toLowerCase().includes(searchTerm.toLowerCase())
+        ))
       );
-      setFilteredUsers(filtered);
     }
-  }, [searchTerm, users]);
+    if (userTypeFilter !== 'all') {
+      filtered = filtered.filter(user => user.userType === userTypeFilter);
+    }
+    if (teamNameFilter !== 'all') {
+      filtered = filtered.filter(user => user.teamName === teamNameFilter);
+    }
+    if (profileCompletionFilter !== 'all') {
+      const completion = parseInt(profileCompletionFilter);
+      console.log('Profile completion filter:', completion, 'Filtered users before:', filtered.length);
+      filtered = filtered.filter(user => {
+        const calculatedCompletion = calculateProfileCompletion(user);
+        console.log('User:', user.firstName, 'Calculated completion:', calculatedCompletion);
+        return calculatedCompletion >= completion;
+      });
+      console.log('Filtered users after profile completion filter:', filtered.length);
+    }
+    if (createdDateFilter !== 'all') {
+      const now = new Date();
+      const filterDate = new Date();
+      if (createdDateFilter === 'today') {
+        filterDate.setDate(now.getDate() - 1);
+      } else if (createdDateFilter === 'week') {
+        filterDate.setDate(now.getDate() - 7);
+      } else if (createdDateFilter === 'month') {
+        filterDate.setMonth(now.getMonth() - 1);
+      }
+      filtered = filtered.filter(user => {
+        const userCreatedAt = user.createdAt?.toDate ? user.createdAt.toDate() : new Date(user.createdAt);
+        return userCreatedAt >= filterDate;
+      });
+    }
+    if (tabValue === 1) {
+      filtered = filtered.filter(user => 
+        user.preferredCompanies && user.preferredCompanies.includes('HPCL')
+      );
+    } else if (tabValue === 2) {
+      filtered = filtered.filter(user => 
+        user.preferredCompanies && user.preferredCompanies.includes('BPCL')
+      );
+    } else if (tabValue === 3) {
+      filtered = filtered.filter(user => 
+        user.preferredCompanies && user.preferredCompanies.includes('IOCL')
+      );
+    }
+    setFilteredUsers(filtered);
+  }, [searchTerm, users, userTypeFilter, teamNameFilter, profileCompletionFilter, createdDateFilter, tabValue]);
 
   // Handle search term change
   const handleSearchChange = (event) => {
@@ -482,7 +553,7 @@ export default function Users() {
   const getUserType = (user) => {
     return user.userType === 'admin' 
       ? 'Admin' 
-      : user.userType === 'team_leader' 
+      : user.userType === 'Team Leader' 
         ? 'Team Leader' 
         : 'User';
   };
@@ -510,6 +581,80 @@ export default function Users() {
     return {
       sx: { bgcolor: stringToColor(user.id) }
     };
+  };
+
+  // Filter popover handlers
+  const handleFilterClick = (event) => {
+    setFilterAnchorEl(event.currentTarget);
+  };
+  const handleFilterClose = () => {
+    setFilterAnchorEl(null);
+  };
+  const clearFilters = () => {
+    setUserTypeFilter('all');
+    setTeamNameFilter('all');
+    setProfileCompletionFilter('all');
+    setCreatedDateFilter('all');
+    setFilterAnchorEl(null);
+  };
+  const getUniqueTeamNames = () => {
+    return users
+      .map(user => user.teamName)
+      .filter(name => name && name.trim() !== '')
+      .filter((value, index, self) => self.indexOf(value) === index)
+      .sort();
+  };
+
+  const getUniqueUserTypes = () => {
+    return users
+      .map(user => user.userType)
+      .filter(type => type && type.trim() !== '')
+      .filter((value, index, self) => self.indexOf(value) === index)
+      .sort();
+  };
+
+  const formatDate = (timestamp) => {
+    if (!timestamp) return 'N/A';
+    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    return date.toLocaleDateString('en-IN', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
+    });
+  };
+
+  const formatPreferredCompanies = (companies) => {
+    if (!companies || companies.length === 0) return 'None';
+    return companies.join(', ');
+  };
+
+  const calculateProfileCompletion = (user) => {
+    let completedFields = 0;
+    let totalFields = 0;
+    
+    // Basic Information (40% weight)
+    totalFields += 4;
+    if (user.firstName && user.firstName.trim()) completedFields++;
+    if (user.lastName && user.lastName.trim()) completedFields++;
+    if (user.mobile && user.mobile.trim()) completedFields++;
+    if (user.userId && user.userId.trim()) completedFields++;
+    
+    // Contact & Location (30% weight)
+    totalFields += 3;
+    if (user.location && user.location.latitude && user.location.longitude) completedFields++;
+    if (user.lastLocationUpdate) completedFields++;
+    if (user.lastLogin) completedFields++;
+    
+    // Preferences & Team (20% weight)
+    totalFields += 2;
+    if (user.preferredCompanies && user.preferredCompanies.length > 0) completedFields++;
+    if (user.teamId || user.teamName) completedFields++;
+    
+    // Stats & Activity (10% weight)
+    totalFields += 1;
+    if (user.stats && (user.stats.visits > 0 || user.stats.uploads > 0)) completedFields++;
+    
+    return Math.round((completedFields / totalFields) * 100);
   };
 
   if (loading) {
@@ -567,14 +712,16 @@ export default function Users() {
               sx={{ '.MuiTab-root': { fontWeight: 500, minWidth: 100 } }}
             >
               <Tab label="All Users" />
-              <Tab label="Active" />
-              <Tab label="Blocked" />
+              <Tab label="HPCL" />
+              <Tab label="BPCL" />
+              <Tab label="IOCL" />
             </Tabs>
             
             <Button
               variant="outlined"
               startIcon={<FilterIcon />}
               sx={{ borderRadius: 2 }}
+              onClick={handleFilterClick}
             >
               Filter
             </Button>
@@ -594,10 +741,11 @@ export default function Users() {
             <TableHead>
               <TableRow>
                 <StyledTableCell>User</StyledTableCell>
-                <StyledTableCell>Email</StyledTableCell>
                 <StyledTableCell>Mobile</StyledTableCell>
                 <StyledTableCell>Type</StyledTableCell>
-                <StyledTableCell>Status</StyledTableCell>
+                <StyledTableCell>Profile Completion</StyledTableCell>
+                <StyledTableCell>Created Date</StyledTableCell>
+                <StyledTableCell>Preferred Companies</StyledTableCell>
                 <StyledTableCell align="right">Actions</StyledTableCell>
               </TableRow>
             </TableHead>
@@ -615,22 +763,30 @@ export default function Users() {
                           <Typography variant="body1" fontWeight={500}>
                             {user.firstName} {user.lastName}
                           </Typography>
-                          <Typography variant="body2" color="text.secondary">
+                          {/* <Typography variant="body2" color="text.secondary">
                             {user.id}
-                          </Typography>
+                          </Typography> */}
                         </Box>
                       </Box>
                     </StyledTableCell>
-                    <StyledTableCell>{user.email}</StyledTableCell>
                     <StyledTableCell>{user.mobile || 'N/A'}</StyledTableCell>
                     <StyledTableCell>{getUserType(user)}</StyledTableCell>
                     <StyledTableCell>
-                      <UserStatusChip 
-                        label={getTeamStatus(user) === 'active' ? 'Active' : getTeamStatus(user) === 'blocked' ? 'Blocked' : 'Inactive'} 
-                        status={getTeamStatus(user)}
-                        size="small"
-                      />
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <Box sx={{ width: '100%', mr: 1 }}>
+                          <LinearProgress 
+                            variant="determinate" 
+                            value={calculateProfileCompletion(user)} 
+                            sx={{ height: 6, borderRadius: 3 }}
+                          />
+                        </Box>
+                        <Typography variant="body2" color="text.secondary">
+                          {calculateProfileCompletion(user)}%
+                        </Typography>
+                      </Box>
                     </StyledTableCell>
+                    <StyledTableCell>{formatDate(user.createdAt)}</StyledTableCell>
+                    <StyledTableCell>{formatPreferredCompanies(user.preferredCompanies)}</StyledTableCell>
                     <StyledTableCell align="right">
                       <IconButton
                         aria-label="more"
@@ -645,7 +801,7 @@ export default function Users() {
                 ))}
               {filteredUsers.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={6}>
+                  <TableCell colSpan={7}>
                     <Box sx={{ py: 4, textAlign: 'center' }}>
                       <Typography variant="body1" color="text.secondary">
                         No users found
@@ -824,7 +980,7 @@ export default function Users() {
                     label="User Type"
                   >
                     <MenuItem value="user">User</MenuItem>
-                    <MenuItem value="team_leader">Team Leader</MenuItem>
+                    <MenuItem value="Team Leader">Team Leader</MenuItem>
                     <MenuItem value="admin">Admin</MenuItem>
                     <MenuItem value="individual">Individual</MenuItem>
                     <MenuItem value="teamMember">Team Member</MenuItem>
@@ -1100,7 +1256,7 @@ export default function Users() {
                       }
                     >
                       <MenuItem value="user">User</MenuItem>
-                      <MenuItem value="team_leader">Team Leader</MenuItem>
+                      <MenuItem value="Team Leader">Team Leader</MenuItem>
                       <MenuItem value="admin">Admin</MenuItem>
                       <MenuItem value="individual">Individual</MenuItem>
                       <MenuItem value="teamMember">Team Member</MenuItem>
@@ -1453,6 +1609,90 @@ export default function Users() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Filter Popover */}
+      <Popover
+        open={Boolean(filterAnchorEl)}
+        anchorEl={filterAnchorEl}
+        onClose={handleFilterClose}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+        PaperProps={{ sx: { p: 2, width: 300, borderRadius: 2 } }}
+      >
+        <Typography variant="subtitle1" fontWeight={600} gutterBottom>
+          Filter Users
+        </Typography>
+        <FormControl fullWidth margin="normal" size="small">
+          <InputLabel id="user-type-filter-label">User Type</InputLabel>
+          <Select
+            labelId="user-type-filter-label"
+            id="user-type-filter"
+            value={userTypeFilter}
+            label="User Type"
+            onChange={e => setUserTypeFilter(e.target.value)}
+          >
+            <MenuItem value="all">All Types</MenuItem>
+            {getUniqueUserTypes().map(type => (
+              <MenuItem key={type} value={type}>{type}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <FormControl fullWidth margin="normal" size="small">
+          <InputLabel id="team-name-filter-label">Team Name</InputLabel>
+          <Select
+            labelId="team-name-filter-label"
+            id="team-name-filter"
+            value={teamNameFilter}
+            label="Team Name"
+            onChange={e => setTeamNameFilter(e.target.value)}
+          >
+            <MenuItem value="all">All Teams</MenuItem>
+            {getUniqueTeamNames().map(name => (
+              <MenuItem key={name} value={name}>{name}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <FormControl fullWidth margin="normal" size="small">
+          <InputLabel id="profile-completion-filter-label">Profile Completion</InputLabel>
+          <Select
+            labelId="profile-completion-filter-label"
+            id="profile-completion-filter"
+            value={profileCompletionFilter}
+            label="Profile Completion"
+            onChange={e => setProfileCompletionFilter(e.target.value)}
+          >
+            <MenuItem value="all">All Levels</MenuItem>
+            <MenuItem value="0">0%</MenuItem>
+            <MenuItem value="25">25%+</MenuItem>
+            <MenuItem value="50">50%+</MenuItem>
+            <MenuItem value="75">75%+</MenuItem>
+            <MenuItem value="100">100%</MenuItem>
+          </Select>
+        </FormControl>
+        <FormControl fullWidth margin="normal" size="small">
+          <InputLabel id="created-date-filter-label">Created Date</InputLabel>
+          <Select
+            labelId="created-date-filter-label"
+            id="created-date-filter"
+            value={createdDateFilter}
+            label="Created Date"
+            onChange={e => setCreatedDateFilter(e.target.value)}
+          >
+            <MenuItem value="all">All Time</MenuItem>
+            <MenuItem value="today">Today</MenuItem>
+            <MenuItem value="week">This Week</MenuItem>
+            <MenuItem value="month">This Month</MenuItem>
+          </Select>
+        </FormControl>
+        <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between' }}>
+          <Button variant="outlined" size="small" onClick={clearFilters}>
+            Clear Filters
+          </Button>
+          <Button variant="contained" size="small" onClick={handleFilterClose}>
+            Apply
+          </Button>
+        </Box>
+      </Popover>
 
       {/* Floating Action Button */}
       <Fab 
