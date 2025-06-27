@@ -293,12 +293,12 @@ export default function PetrolPumps() {
     const fetchPumps = async () => {
       try {
         console.log('Fetching petrol pumps...');
-        const pumpsRef = collection(db, 'map_locations');
+        const pumpsRef = collection(db, 'petrolPumps');
         const q = query(pumpsRef);
         const querySnapshot = await getDocs(q);
         
         if (!querySnapshot.empty) {
-          console.log(`Found ${querySnapshot.size} pumps in map_locations`);
+          console.log(`Found ${querySnapshot.size} pumps in petrolPumps`);
           const pumpsData = querySnapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()

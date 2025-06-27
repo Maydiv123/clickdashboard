@@ -22,7 +22,8 @@ import {
   Tooltip,
   Button,
   Paper,
-  Stack
+  Stack,
+  Collapse
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -41,7 +42,13 @@ import {
   Campaign as CampaignIcon,
   Brightness4 as DarkModeIcon,
   Brightness7 as LightModeIcon,
-  FavoriteBorder as HeartIcon
+  FavoriteBorder as HeartIcon,
+  ExpandLess as ExpandLessIcon,
+  ExpandMore as ExpandMoreIcon,
+  Visibility as VisibilityIcon,
+  Edit as EditIcon,
+  Add as AddIcon,
+  Delete as DeleteIcon
 } from '@mui/icons-material';
 import { auth } from '../firebase/config';
 import { signOut } from 'firebase/auth';
@@ -92,14 +99,16 @@ const AppBarStyled = styled(AppBar, {
   }),
 }));
 
-const DrawerHeader = styled('div')(({ theme, drawerMode }) => ({
+const DrawerHeader = styled('div', {
+  shouldForwardProp: (prop) => prop !== 'mode',
+})(({ theme, mode }) => ({
   display: 'flex',
   alignItems: 'center',
   padding: theme.spacing(0, 2),
   ...theme.mixins.toolbar,
   justifyContent: 'space-between',
-  background: drawerMode === 'dark' ? '#000000' : 'transparent',
-  color: drawerMode === 'dark' ? '#ffffff' : theme.palette.text.primary,
+  background: mode === 'dark' ? '#000000' : 'transparent',
+  color: mode === 'dark' ? '#ffffff' : theme.palette.text.primary,
 }));
 
 const Search = styled('div')(({ theme }) => ({
@@ -142,49 +151,114 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
   },
 }));
 
-const StyledListItemButton = styled(ListItemButton)(({ theme, drawerMode }) => ({
+const StyledListItemButton = styled(ListItemButton, {
+  shouldForwardProp: (prop) => prop !== 'mode',
+})(({ theme, mode }) => ({
   borderRadius: 8,
   margin: theme.spacing(0.5, 1),
   padding: theme.spacing(1, 2),
-  color: drawerMode === 'dark' ? '#ffffff' : undefined,
+  color: mode === 'dark' ? '#ffffff' : undefined,
+  fontSize: '0.9rem',
   '& .MuiListItemIcon-root': {
-    color: drawerMode === 'dark' ? '#ffffff' : undefined,
+    color: mode === 'dark' ? '#ffffff' : undefined,
+    minWidth: '40px',
+  },
+  '& .MuiListItemText-primary': {
+    fontSize: '0.9rem',
   },
   '&.Mui-selected': {
-    backgroundColor: drawerMode === 'dark' 
+    backgroundColor: mode === 'dark' 
       ? 'rgba(255, 255, 255, 0.15)' 
       : alpha(theme.palette.primary.main, 0.1),
-    color: drawerMode === 'dark' ? '#ffffff' : theme.palette.primary.main,
+    color: mode === 'dark' ? '#ffffff' : theme.palette.primary.main,
     '& .MuiListItemIcon-root': {
-      color: drawerMode === 'dark' ? '#ffffff' : theme.palette.primary.main,
+      color: mode === 'dark' ? '#ffffff' : theme.palette.primary.main,
     },
     '&:hover': {
-      backgroundColor: drawerMode === 'dark' 
+      backgroundColor: mode === 'dark' 
         ? 'rgba(255, 255, 255, 0.25)' 
         : alpha(theme.palette.primary.main, 0.15),
     },
   },
   '&:hover': {
-    backgroundColor: drawerMode === 'dark' 
+    backgroundColor: mode === 'dark' 
       ? 'rgba(255, 255, 255, 0.05)' 
       : alpha(theme.palette.primary.main, 0.05),
   },
 }));
 
-const Footer = styled(Paper)(({ theme, drawerMode }) => ({
+const NestedListItemButton = styled(ListItemButton, {
+  shouldForwardProp: (prop) => prop !== 'mode',
+})(({ theme, mode }) => ({
+  borderRadius: 8,
+  margin: theme.spacing(0.5, 1),
+  padding: theme.spacing(0.75, 2),
+  paddingLeft: theme.spacing(4),
+  color: mode === 'dark' ? '#ffffff' : undefined,
+  '& .MuiListItemIcon-root': {
+    color: mode === 'dark' ? '#ffffff' : undefined,
+    minWidth: '32px',
+  },
+  '& .MuiListItemText-primary': {
+    fontSize: '0.85rem',
+  },
+  '&.Mui-selected': {
+    backgroundColor: mode === 'dark' 
+      ? 'rgba(255, 255, 255, 0.15)' 
+      : alpha(theme.palette.primary.main, 0.1),
+    color: mode === 'dark' ? '#ffffff' : theme.palette.primary.main,
+    '& .MuiListItemIcon-root': {
+      color: mode === 'dark' ? '#ffffff' : theme.palette.primary.main,
+    },
+    '&:hover': {
+      backgroundColor: mode === 'dark' 
+        ? 'rgba(255, 255, 255, 0.25)' 
+        : alpha(theme.palette.primary.main, 0.15),
+    },
+  },
+  '&:hover': {
+    backgroundColor: mode === 'dark' 
+      ? 'rgba(255, 255, 255, 0.05)' 
+      : alpha(theme.palette.primary.main, 0.05),
+  },
+}));
+
+const Footer = styled(Paper, {
+  shouldForwardProp: (prop) => prop !== 'mode',
+})(({ theme, mode }) => ({
   padding: theme.spacing(2),
   marginTop: 'auto',
   textAlign: 'center',
-  backgroundColor: drawerMode === 'dark' ? '#000000' : theme.palette.background.paper,
-  color: drawerMode === 'dark' ? '#ffffff' : theme.palette.text.secondary,
+  backgroundColor: mode === 'dark' ? '#000000' : theme.palette.background.paper,
+  color: mode === 'dark' ? '#ffffff' : theme.palette.text.secondary,
   borderRadius: 0,
 }));
 
 const menuItems = [
   { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
   { text: 'Users', icon: <PeopleIcon />, path: '/users' },
-  { text: 'Petrol Pumps', icon: <PetrolPumpIcon />, path: '/petrol-pumps' },
-  { text: 'Petrol Pump Requests', icon: <RequestPageIcon />, path: '/petrol-pump-requests' },
+  { 
+    text: 'Petrol Pumps', 
+    icon: <PetrolPumpIcon />, 
+    hasSubmenu: true,
+    submenu: [
+      { text: 'View All', icon: <VisibilityIcon />, path: '/petrol-pumps' },
+      { text: 'Create New', icon: <AddIcon />, path: '/petrol-pumps/create' },
+      { text: 'Edit', icon: <EditIcon />, path: '/petrol-pumps/edit' },
+      { text: 'Delete', icon: <DeleteIcon />, path: '/petrol-pumps/delete' },
+    ]
+  },
+  { 
+    text: 'Petrol Pump Requests', 
+    icon: <RequestPageIcon />, 
+    hasSubmenu: true,
+    submenu: [
+      { text: 'View All', icon: <VisibilityIcon />, path: '/petrol-pump-requests' },
+      { text: 'Create New', icon: <AddIcon />, path: '/petrol-pump-requests/create' },
+      { text: 'Edit', icon: <EditIcon />, path: '/petrol-pump-requests/edit' },
+      { text: 'Delete', icon: <DeleteIcon />, path: '/petrol-pump-requests/delete' },
+    ]
+  },
   { text: 'Excel Import', icon: <UploadFileIcon />, path: '/excel-import' },
   { text: 'Imported Data', icon: <TableViewIcon />, path: '/imported-data' },
   { text: 'Teams', icon: <TeamIcon />, path: '/teams' },
@@ -201,6 +275,9 @@ export default function DashboardLayout() {
   const colorMode = useContext(ColorModeContext);
   const { drawerMode, toggleDrawerMode } = colorMode;
   const theme = useTheme();
+  
+  // State to track which submenus are open
+  const [openSubmenus, setOpenSubmenus] = useState({});
 
   const handleDrawerOpen = () => {
     setOpen(true);
@@ -225,6 +302,18 @@ export default function DashboardLayout() {
     } catch (error) {
       console.error('Error signing out:', error);
     }
+  };
+  
+  const handleSubmenuToggle = (text) => {
+    setOpenSubmenus(prev => ({
+      ...prev,
+      [text]: !prev[text]
+    }));
+  };
+  
+  // Check if any submenu item is active
+  const isSubmenuActive = (submenuItems) => {
+    return submenuItems.some(item => location.pathname === item.path);
   };
 
   return (
@@ -346,7 +435,7 @@ export default function DashboardLayout() {
         anchor="left"
         open={open}
       >
-        <DrawerHeader drawerMode={drawerMode}>
+        <DrawerHeader mode={drawerMode}>
           <Typography variant="h6" component="div" sx={{ 
             fontWeight: 'bold', 
             display: 'flex', 
@@ -375,23 +464,69 @@ export default function DashboardLayout() {
         
         <List sx={{ px: 1, py: 1 }}>
           {menuItems.map((item) => (
-            <ListItem key={item.text} disablePadding sx={{ mb: 0.5 }}>
-              <StyledListItemButton 
-                drawerMode={drawerMode}
-                selected={location.pathname === item.path}
-                onClick={() => navigate(item.path)}
-              >
-                <ListItemIcon>
-                  {item.icon}
-                </ListItemIcon>
-                <ListItemText 
-                  primary={item.text} 
-                  primaryTypographyProps={{ 
-                    fontWeight: location.pathname === item.path ? 600 : 500,
-                  }} 
-                />
-              </StyledListItemButton>
-            </ListItem>
+            item.hasSubmenu ? (
+              <Box key={item.text}>
+                <ListItem disablePadding sx={{ mb: 0.5 }}>
+                  <StyledListItemButton 
+                    mode={drawerMode}
+                    selected={isSubmenuActive(item.submenu)}
+                    onClick={() => handleSubmenuToggle(item.text)}
+                  >
+                    <ListItemIcon>
+                      {item.icon}
+                    </ListItemIcon>
+                    <ListItemText 
+                      primary={item.text} 
+                      primaryTypographyProps={{ 
+                        fontWeight: isSubmenuActive(item.submenu) ? 600 : 500,
+                      }} 
+                    />
+                    {openSubmenus[item.text] ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                  </StyledListItemButton>
+                </ListItem>
+                <Collapse in={openSubmenus[item.text]} timeout="auto" unmountOnExit>
+                  <List component="div" disablePadding>
+                    {item.submenu.map((subItem) => (
+                      <ListItem key={subItem.text} disablePadding sx={{ mb: 0.5 }}>
+                        <NestedListItemButton
+                          mode={drawerMode}
+                          selected={location.pathname === subItem.path}
+                          onClick={() => navigate(subItem.path)}
+                        >
+                          <ListItemIcon>
+                            {subItem.icon}
+                          </ListItemIcon>
+                          <ListItemText 
+                            primary={subItem.text} 
+                            primaryTypographyProps={{ 
+                              fontWeight: location.pathname === subItem.path ? 600 : 500,
+                            }} 
+                          />
+                        </NestedListItemButton>
+                      </ListItem>
+                    ))}
+                  </List>
+                </Collapse>
+              </Box>
+            ) : (
+              <ListItem key={item.text} disablePadding sx={{ mb: 0.5 }}>
+                <StyledListItemButton 
+                  mode={drawerMode}
+                  selected={location.pathname === item.path}
+                  onClick={() => navigate(item.path)}
+                >
+                  <ListItemIcon>
+                    {item.icon}
+                  </ListItemIcon>
+                  <ListItemText 
+                    primary={item.text} 
+                    primaryTypographyProps={{ 
+                      fontWeight: location.pathname === item.path ? 600 : 500,
+                    }} 
+                  />
+                </StyledListItemButton>
+              </ListItem>
+            )
           ))}
         </List>
       </Drawer>
@@ -399,7 +534,7 @@ export default function DashboardLayout() {
       <Main open={open}>
         <DrawerHeader />
         <Outlet />
-        <Footer elevation={0} drawerMode={drawerMode}>
+        <Footer elevation={0} mode={drawerMode}>
           <Stack direction="row" spacing={1} alignItems="center" justifyContent="center">
             <Typography variant="body2">
               Crafted with

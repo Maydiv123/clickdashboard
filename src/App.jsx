@@ -15,6 +15,9 @@ import Dashboard from './pages/Dashboard';
 import Users from './pages/Users';
 import PetrolPumps from './pages/PetrolPumps';
 import PetrolPumpRequests from './pages/PetrolPumpRequests';
+import PetrolPumpRequestsEdit from './pages/PetrolPumpRequestsEdit';
+import PetrolPumpRequestsDelete from './pages/PetrolPumpRequestsDelete';
+import PetrolPumpRequestsCreate from './pages/PetrolPumpRequestsCreate';
 import ExcelImport from './pages/ExcelImport';
 import ImportedData from './pages/ImportedData';
 import Teams from './pages/Teams';
@@ -145,7 +148,13 @@ function App() {
               <Route index element={<Dashboard />} />
               <Route path="users" element={<Users />} />
               <Route path="petrol-pumps" element={<PetrolPumps />} />
+              <Route path="petrol-pumps/create" element={<PetrolPumps />} />
+              <Route path="petrol-pumps/edit" element={<PetrolPumps />} />
+              <Route path="petrol-pumps/delete" element={<PetrolPumps />} />
               <Route path="petrol-pump-requests" element={<PetrolPumpRequests />} />
+              <Route path="petrol-pump-requests/edit" element={<PetrolPumpRequestsEdit />} />
+              <Route path="petrol-pump-requests/delete" element={<PetrolPumpRequestsDelete />} />
+              <Route path="petrol-pump-requests/create" element={<PetrolPumpRequestsCreate />} />
               <Route path="excel-import" element={<ExcelImport />} />
               <Route path="imported-data" element={<ImportedData />} />
               <Route path="teams" element={<Teams />} />
