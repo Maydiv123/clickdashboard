@@ -660,7 +660,7 @@ export default function Teams() {
         </DialogTitle>
         
         <DialogContent dividers>
-          <Grid container spacing={3}>
+          <Grid container spacing={3} direction="column">
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth

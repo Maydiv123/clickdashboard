@@ -242,10 +242,10 @@ const menuItems = [
     icon: <PetrolPumpIcon />, 
     hasSubmenu: true,
     submenu: [
-      { text: 'View All', icon: <VisibilityIcon />, path: '/petrol-pumps' },
-      // { text: 'Create New', icon: <AddIcon />, path: '/petrol-pumps/create' },
-      // { text: 'Edit', icon: <EditIcon />, path: '/petrol-pumps/edit' },
-      // { text: 'Delete', icon: <DeleteIcon />, path: '/petrol-pumps/delete' },
+      { text: 'View All', icon: <VisibilityIcon />, path: '/petrol-pumps/view' },
+      { text: 'Create New', icon: <AddIcon />, path: '/petrol-pumps/create' },
+      { text: 'Edit', icon: <EditIcon />, path: '/petrol-pumps/edit' },
+      { text: 'Delete', icon: <DeleteIcon />, path: '/petrol-pumps/delete' },
     ]
   },
   { 
@@ -254,7 +254,7 @@ const menuItems = [
     hasSubmenu: true,
     submenu: [
       { text: 'View All', icon: <VisibilityIcon />, path: '/petrol-pump-requests' },
-      { text: 'Create New', icon: <AddIcon />, path: '/petrol-pump-requests/create' },
+      // { text: 'Create New', icon: <AddIcon />, path: '/petrol-pump-requests/create' },
       { text: 'Edit', icon: <EditIcon />, path: '/petrol-pump-requests/edit' },
       { text: 'Delete', icon: <DeleteIcon />, path: '/petrol-pump-requests/delete' },
     ]
@@ -263,7 +263,7 @@ const menuItems = [
   // { text: 'Imported Data', icon: <TableViewIcon />, path: '/imported-data' },
   { text: 'Teams', icon: <TeamIcon />, path: '/teams' },
   { text: 'Advertisements', icon: <CampaignIcon />, path: '/ads' },
-  { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },
+  // { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },
 ];
 
 export default function DashboardLayout() {

@@ -608,7 +608,7 @@ const PetrolPumpRequests = () => {
   // Render request form fields for view/edit/create
   const renderRequestFields = (request, isEditable = false, onChange = null) => {
     return (
-      <Grid container spacing={2} sx={{ mt: 1 }}>
+      <Grid container spacing={2} sx={{ mt: 1 }} direction="column">
         <Grid item xs={12} md={6}>
           <TextField
             fullWidth
@@ -824,7 +824,7 @@ const PetrolPumpRequests = () => {
           Petrol Pump Requests
         </Typography>
         
-        <Button 
+        {/* <Button 
           variant="contained" 
           startIcon={<AddIcon />} 
           onClick={() => navigate('/petrol-pump-requests/create')}
@@ -836,7 +836,7 @@ const PetrolPumpRequests = () => {
           }}
         >
           Create New Request
-        </Button>
+        </Button> */}
       </Box>
       
       <Card sx={{ mb: 3, borderRadius: 3, overflow: 'hidden' }}>

@@ -124,7 +124,7 @@ const PetrolPumpRequestsCreate = () => {
       </Box>
 
       <Paper sx={{ p: 3, boxShadow: 3 }}>
-        <Grid container spacing={2}>
+        <Grid container spacing={2} direction="column">
           <Grid item xs={12} md={6}>
             <TextField
               fullWidth

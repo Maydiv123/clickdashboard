@@ -158,7 +158,7 @@ const PetrolPumpRequestsEdit = () => {
   // Render request form fields for edit
   const renderRequestFields = (request) => {
     return (
-      <Grid container spacing={2} sx={{ mt: 1 }}>
+      <Grid container spacing={2} sx={{ mt: 1 }} direction="column">
         <Grid item xs={12} md={6}>
           <TextField
             fullWidth

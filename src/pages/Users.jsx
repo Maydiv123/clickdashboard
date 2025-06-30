@@ -42,7 +42,10 @@ import {
   Step,
   StepLabel,
   Popover,
-  LinearProgress
+  LinearProgress,
+  Checkbox,
+  FormGroup,
+  FormControlLabel,
 } from '@mui/material';
 import { styled, alpha } from '@mui/material/styles';
 import { 
@@ -56,7 +59,8 @@ import {
   Add as AddIcon,
   FilterList as FilterIcon,
   MoreVert as MoreVertIcon,
-  Visibility as ViewIcon,
+  Visibility,
+  VisibilityOff,
   PersonAdd as PersonAddIcon,
   Person as PersonIcon,
   Badge as BadgeIcon,
@@ -126,6 +130,8 @@ const UserStatusChip = styled(Chip)(({ theme, status }) => ({
   })
 }));
 
+const companyOptions = ['HPCL', 'BPCL', 'IOCL'];
+
 export default function Users() {
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
@@ -174,6 +180,10 @@ export default function Users() {
   const [teamNameFilter, setTeamNameFilter] = useState('all');
   const [profileCompletionFilter, setProfileCompletionFilter] = useState('all');
   const [createdDateFilter, setCreatedDateFilter] = useState('all');
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [editFieldErrors, setEditFieldErrors] = useState({});
+  const [showPassword, setShowPassword] = useState(false);
+  const [showEditPassword, setShowEditPassword] = useState(false);
 
   // Menu handlers
   const handleOpenMenu = (event, user) => {
@@ -438,12 +448,24 @@ export default function Users() {
       ...prev,
       [field]: value
     }));
+    
+    // Clear field error when user starts typing
+    clearFieldErrors(field, true);
   };
 
   const handleSaveEdit = async () => {
     if (!editedUser) return;
     
+    const isValid = validateEditForm();
+    if (!isValid) {
+      setError('Please fix the validation errors below');
+      return;
+    }
+    
     setActionLoading(true);
+    setError(null);
+    setEditFieldErrors({});
+    
     try {
       const userDocRef = doc(db, 'user_data', editedUser.id);
       
@@ -521,10 +543,22 @@ export default function Users() {
       ...prev,
       [field]: value
     }));
+    
+    // Clear field error when user starts typing
+    clearFieldErrors(field, false);
   };
 
   const handleCreateUser = async () => {
+    const isValid = validateCreateForm();
+    if (!isValid) {
+      setError('Please fix the validation errors below');
+      return;
+    }
+
     setActionLoading(true);
+    setError(null);
+    setFieldErrors({});
+    
     try {
       const userDataRef = collection(db, 'user_data');
       
@@ -543,6 +577,7 @@ export default function Users() {
       
       setActionLoading(false);
       handleCloseCreateDialog();
+      setActiveStep(0);
     } catch (error) {
       console.error('Error creating user:', error);
       setError(error.message);
@@ -656,6 +691,172 @@ export default function Users() {
     
     return Math.round((completedFields / totalFields) * 100);
   };
+
+  // Validation functions
+  const validateCreateForm = () => {
+    const errors = {};
+    let hasErrors = false;
+    
+    // Required field validations
+    if (!newUser.firstName.trim()) {
+      errors.firstName = 'First name is required';
+      hasErrors = true;
+    }
+    
+    if (!newUser.userType.trim()) {
+      errors.userType = 'User type is required';
+      hasErrors = true;
+    }
+    
+    if (!newUser.mobile.trim()) {
+      errors.mobile = 'Mobile number is required';
+      hasErrors = true;
+    } else if (!/^\d{10}$/.test(newUser.mobile.replace(/\s/g, ''))) {
+      errors.mobile = 'Mobile number must be exactly 10 digits';
+      hasErrors = true;
+    }
+    
+    if (!newUser.password.trim()) {
+      errors.password = 'MPIN is required';
+      hasErrors = true;
+    } else if (!/^\d{6}$/.test(newUser.password)) {
+      errors.password = 'MPIN must be exactly 6 digits';
+      hasErrors = true;
+    }
+    
+    // Optional field validations
+    if (newUser.aadharNo && !/^\d{12}$/.test(newUser.aadharNo.replace(/\s/g, ''))) {
+      errors.aadharNo = 'Aadhar number must be exactly 12 digits';
+      hasErrors = true;
+    }
+    
+    if (newUser.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newUser.email)) {
+      errors.email = 'Please enter a valid email address';
+      hasErrors = true;
+    }
+    
+    if (!newUser.preferredCompanies || newUser.preferredCompanies.length === 0) {
+      errors.preferredCompanies = 'Select at least one company';
+      hasErrors = true;
+    }
+    
+    setFieldErrors(errors);
+    return !hasErrors;
+  };
+
+  const validateEditForm = () => {
+    const errors = {};
+    let hasErrors = false;
+    
+    // Required field validations
+    if (!editedUser.firstName.trim()) {
+      errors.firstName = 'First name is required';
+      hasErrors = true;
+    }
+    
+    if (!editedUser.userType.trim()) {
+      errors.userType = 'User type is required';
+      hasErrors = true;
+    }
+    
+    if (!editedUser.mobile.trim()) {
+      errors.mobile = 'Mobile number is required';
+      hasErrors = true;
+    } else if (!/^\d{10}$/.test(editedUser.mobile.replace(/\s/g, ''))) {
+      errors.mobile = 'Mobile number must be exactly 10 digits';
+      hasErrors = true;
+    }
+    
+    if (editedUser.password && !/^\d{6}$/.test(editedUser.password)) {
+      errors.password = 'MPIN must be exactly 6 digits';
+      hasErrors = true;
+    }
+    
+    // Optional field validations
+    if (editedUser.aadharNo && !/^\d{12}$/.test(editedUser.aadharNo.replace(/\s/g, ''))) {
+      errors.aadharNo = 'Aadhar number must be exactly 12 digits';
+      hasErrors = true;
+    }
+    
+    if (editedUser.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(editedUser.email)) {
+      errors.email = 'Please enter a valid email address';
+      hasErrors = true;
+    }
+    
+    if (!editedUser.preferredCompanies || editedUser.preferredCompanies.length === 0) {
+      errors.preferredCompanies = 'Select at least one company';
+      hasErrors = true;
+    }
+    
+    setEditFieldErrors(errors);
+    return !hasErrors;
+  };
+
+  // Input validation handlers
+  const handleMobileChange = (value, isEdit = false) => {
+    // Only allow digits and limit to 10 characters
+    const cleaned = value.replace(/\D/g, '').slice(0, 10);
+    if (isEdit) {
+      handleEditChange('mobile', cleaned);
+    } else {
+      handleCreateChange('mobile', cleaned);
+    }
+  };
+
+  const handlePasswordChange = (value, isEdit = false) => {
+    // Only allow digits and limit to 6 characters
+    const cleaned = value.replace(/\D/g, '').slice(0, 6);
+    if (isEdit) {
+      handleEditChange('password', cleaned);
+    } else {
+      handleCreateChange('password', cleaned);
+    }
+  };
+
+  const handleAadharChange = (value, isEdit = false) => {
+    // Only allow digits and limit to 12 characters
+    const cleaned = value.replace(/\D/g, '').slice(0, 12);
+    if (isEdit) {
+      handleEditChange('aadharNo', cleaned);
+    } else {
+      handleCreateChange('aadharNo', cleaned);
+    }
+  };
+
+  const clearFieldErrors = (field, isEdit = false) => {
+    if (isEdit) {
+      if (editFieldErrors[field]) {
+        setEditFieldErrors(prev => ({
+          ...prev,
+          [field]: ''
+        }));
+      }
+    } else {
+      if (fieldErrors[field]) {
+        setFieldErrors(prev => ({
+          ...prev,
+          [field]: ''
+        }));
+      }
+    }
+  };
+
+  const handleTogglePasswordVisibility = (isEdit = false) => {
+    if (isEdit) {
+      setShowEditPassword(!showEditPassword);
+    } else {
+      setShowPassword(!showPassword);
+    }
+  };
+
+  useEffect(() => {
+    if (openCreateDialog) {
+      setNewUser((prev) => ({
+        ...prev,
+        preferredCompanies: prev.preferredCompanies.length === 0 ? ['HPCL'] : prev.preferredCompanies
+      }));
+    }
+  }, [openCreateDialog]);
 
   if (loading) {
     return (
@@ -882,6 +1083,9 @@ export default function Users() {
                   label="First Name"
                   value={editedUser.firstName}
                   onChange={(e) => handleEditChange('firstName', e.target.value)}
+                  required
+                  error={!!editFieldErrors.firstName}
+                  helperText={editFieldErrors.firstName}
                   margin="normal"
                   variant="outlined"
                   sx={{ mb: 2 }}
@@ -945,7 +1149,11 @@ export default function Users() {
                   fullWidth
                   label="Mobile"
                   value={editedUser.mobile}
-                  onChange={(e) => handleEditChange('mobile', e.target.value)}
+                  onChange={(e) => handleMobileChange(e.target.value, true)}
+                  required
+                  error={!!editFieldErrors.mobile}
+                  helperText={editFieldErrors.mobile}
+                  placeholder="Enter exactly 10 digits (e.g., 9876543210)"
                   margin="normal"
                   variant="outlined"
                   sx={{ mb: 2 }}
@@ -972,7 +1180,7 @@ export default function Users() {
                 </Typography>
               </Grid>
               <Grid item xs={12} md={6}>
-                <FormControl fullWidth margin="normal" sx={{ mb: 2 }}>
+                <FormControl fullWidth required error={!!editFieldErrors.userType} margin="normal" sx={{ mb: 2 }}>
                   <InputLabel>User Type</InputLabel>
                   <Select
                     value={editedUser.userType}
@@ -986,6 +1194,11 @@ export default function Users() {
                     <MenuItem value="teamMember">Team Member</MenuItem>
                     <MenuItem value="teamOwner">Team Owner</MenuItem>
                   </Select>
+                  {editFieldErrors.userType && (
+                    <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.5 }}>
+                      {editFieldErrors.userType}
+                    </Typography>
+                  )}
                 </FormControl>
               </Grid>
               <Grid item xs={12} md={6}>
@@ -1068,21 +1281,45 @@ export default function Users() {
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
-                  label="Aadhar Number"
-                  value={editedUser.aadharNo}
-                  onChange={(e) => handleEditChange('aadharNo', e.target.value)}
+                  label="MPIN"
+                  type={showEditPassword ? 'text' : 'password'}
+                  value={editedUser.password}
+                  onChange={(e) => handlePasswordChange(e.target.value, true)}
+                  error={!!editFieldErrors.password}
+                  helperText={editFieldErrors.password}
+                  placeholder="Enter exactly 6 digits"
                   margin="normal"
                   variant="outlined"
                   sx={{ mb: 2 }}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <BadgeIcon color="action" />
+                      </InputAdornment>
+                    ),
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          aria-label="toggle password visibility"
+                          onClick={() => handleTogglePasswordVisibility(true)}
+                          edge="end"
+                        >
+                          {showEditPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
                 />
               </Grid>
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
-                  label="Password"
-                  type="password"
-                  value={editedUser.password}
-                  onChange={(e) => handleEditChange('password', e.target.value)}
+                  label="Aadhar Number"
+                  value={editedUser.aadharNo}
+                  onChange={(e) => handleAadharChange(e.target.value, true)}
+                  error={!!editFieldErrors.aadharNo}
+                  helperText={editFieldErrors.aadharNo}
+                  placeholder="Enter exactly 12 digits (optional)"
                   margin="normal"
                   variant="outlined"
                   sx={{ mb: 2 }}
@@ -1102,16 +1339,41 @@ export default function Users() {
                 </FormControl>
               </Grid>
               <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Preferred Companies"
-                  value={editedUser.preferredCompanies?.join(', ') || ''}
-                  onChange={(e) => handleEditChange('preferredCompanies', e.target.value.split(',').map(s => s.trim()).filter(s => s))}
-                  margin="normal"
-                  variant="outlined"
-                  helperText="Enter companies separated by commas"
-                  sx={{ mb: 2 }}
-                />
+                <FormControl component="fieldset" required>
+                  <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                    Preferred Companies
+                  </Typography>
+                  <FormGroup row>
+                    {companyOptions.map((company) => (
+                      <FormControlLabel
+                        key={company}
+                        control={
+                          <Checkbox
+                            checked={editedUser.preferredCompanies?.includes(company)}
+                            onChange={(e) => {
+                              let updated = [...(editedUser.preferredCompanies || [])];
+                              if (e.target.checked) {
+                                updated.push(company);
+                              } else {
+                                if (updated.length === 1) return; // Prevent removing last
+                                updated = updated.filter((c) => c !== company);
+                              }
+                              setEditedUser((prev) => ({ ...prev, preferredCompanies: updated }));
+                              clearFieldErrors('preferredCompanies', true);
+                            }}
+                            name={company}
+                          />
+                        }
+                        label={company}
+                      />
+                    ))}
+                  </FormGroup>
+                  {editFieldErrors.preferredCompanies && (
+                    <Typography variant="caption" color="error">
+                      {editFieldErrors.preferredCompanies}
+                    </Typography>
+                  )}
+                </FormControl>
               </Grid>
             </Grid>
           )}
@@ -1170,7 +1432,7 @@ export default function Users() {
         <DialogContent dividers>
           <Box sx={{ mt: 2 }}>
             {activeStep === 0 && (
-              <Grid container spacing={3}>
+              <Grid container spacing={3} direction="column">
                 <Grid item xs={12}>
                   <Typography variant="h6" fontWeight={600} sx={{ mb: 2, color: 'primary.main' }}>
                     Basic Information
@@ -1182,6 +1444,10 @@ export default function Users() {
                     label="First Name"
                     value={newUser.firstName}
                     onChange={(e) => handleCreateChange('firstName', e.target.value)}
+                    required
+                    error={!!fieldErrors.firstName}
+                    helperText={fieldErrors.firstName}
+                    placeholder="Enter first name"
                     variant="outlined"
                     InputProps={{
                       startAdornment: (
@@ -1211,22 +1477,6 @@ export default function Users() {
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    label="User ID"
-                    value={newUser.userId}
-                    onChange={(e) => handleCreateChange('userId', e.target.value)}
-                    variant="outlined"
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <BadgeIcon color="action" />
-                        </InputAdornment>
-                      ),
-                    }}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
                     label="Date of Birth"
                     type="date"
                     value={newUser.dob}
@@ -1243,7 +1493,7 @@ export default function Users() {
                   />
                 </Grid>
                 <Grid item xs={12} md={6}>
-                  <FormControl fullWidth>
+                  <FormControl fullWidth required error={!!fieldErrors.userType}>
                     <InputLabel>User Type</InputLabel>
                     <Select
                       value={newUser.userType}
@@ -1257,38 +1507,23 @@ export default function Users() {
                     >
                       <MenuItem value="user">User</MenuItem>
                       <MenuItem value="Team Leader">Team Leader</MenuItem>
-                      <MenuItem value="admin">Admin</MenuItem>
-                      <MenuItem value="individual">Individual</MenuItem>
-                      <MenuItem value="teamMember">Team Member</MenuItem>
+                      {/* <MenuItem value="admin">Admin</MenuItem> */}
+                      {/* <MenuItem value="individual">Individual</MenuItem> */}
+                      {/* <MenuItem value="teamMember">Team Member</MenuItem> */}
                       <MenuItem value="teamOwner">Team Owner</MenuItem>
                     </Select>
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>Team Member Status</InputLabel>
-                    <Select
-                      value={newUser.teamMemberStatus}
-                      onChange={(e) => handleCreateChange('teamMemberStatus', e.target.value)}
-                      label="Team Member Status"
-                      startAdornment={
-                        <InputAdornment position="start">
-                          <GroupIcon color="action" />
-                        </InputAdornment>
-                      }
-                    >
-                      <MenuItem value="active">Active</MenuItem>
-                      <MenuItem value="inactive">Inactive</MenuItem>
-                      <MenuItem value="pending">Pending</MenuItem>
-                      <MenuItem value="rejected">Rejected</MenuItem>
-                    </Select>
+                    {fieldErrors.userType && (
+                      <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.5 }}>
+                        {fieldErrors.userType}
+                      </Typography>
+                    )}
                   </FormControl>
                 </Grid>
               </Grid>
             )}
 
             {activeStep === 1 && (
-              <Grid container spacing={3}>
+              <Grid container spacing={3} direction="column">
                 <Grid item xs={12}>
                   <Typography variant="h6" fontWeight={600} sx={{ mb: 2, color: 'primary.main' }}>
                     Contact Information
@@ -1301,6 +1536,9 @@ export default function Users() {
                     type="email"
                     value={newUser.email}
                     onChange={(e) => handleCreateChange('email', e.target.value)}
+                    error={!!fieldErrors.email}
+                    helperText={fieldErrors.email}
+                    placeholder="Enter email address (optional)"
                     variant="outlined"
                     InputProps={{
                       startAdornment: (
@@ -1316,7 +1554,11 @@ export default function Users() {
                     fullWidth
                     label="Mobile"
                     value={newUser.mobile}
-                    onChange={(e) => handleCreateChange('mobile', e.target.value)}
+                    onChange={(e) => handleMobileChange(e.target.value, false)}
+                    required
+                    error={!!fieldErrors.mobile}
+                    helperText={fieldErrors.mobile}
+                    placeholder="Enter exactly 10 digits (e.g., 9876543210)"
                     variant="outlined"
                     InputProps={{
                       startAdornment: (
@@ -1348,15 +1590,30 @@ export default function Users() {
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    label="Password"
-                    type="password"
+                    label="MPIN"
+                    type={showPassword ? 'text' : 'password'}
                     value={newUser.password}
-                    onChange={(e) => handleCreateChange('password', e.target.value)}
+                    onChange={(e) => handlePasswordChange(e.target.value, false)}
+                    required
+                    error={!!fieldErrors.password}
+                    helperText={fieldErrors.password}
+                    placeholder="Enter exactly 6 digits"
                     variant="outlined"
                     InputProps={{
                       startAdornment: (
                         <InputAdornment position="start">
                           <BadgeIcon color="action" />
+                        </InputAdornment>
+                      ),
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton
+                            aria-label="toggle password visibility"
+                            onClick={() => handleTogglePasswordVisibility(false)}
+                            edge="end"
+                          >
+                            {showPassword ? <VisibilityOff /> : <Visibility />}
+                          </IconButton>
                         </InputAdornment>
                       ),
                     }}
@@ -1367,22 +1624,20 @@ export default function Users() {
                     fullWidth
                     label="Aadhar Number"
                     value={newUser.aadharNo}
-                    onChange={(e) => handleCreateChange('aadharNo', e.target.value)}
+                    onChange={(e) => handleAadharChange(e.target.value, false)}
+                    error={!!fieldErrors.aadharNo}
+                    helperText={fieldErrors.aadharNo}
+                    placeholder="Enter exactly 12 digits (optional)"
+                    margin="normal"
                     variant="outlined"
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <BadgeIcon color="action" />
-                        </InputAdornment>
-                      ),
-                    }}
+                    sx={{ mb: 2 }}
                   />
                 </Grid>
               </Grid>
             )}
 
             {activeStep === 2 && (
-              <Grid container spacing={3}>
+              <Grid container spacing={3} direction="column">
                 <Grid item xs={12}>
                   <Typography variant="h6" fontWeight={600} sx={{ mb: 2, color: 'primary.main' }}>
                     Team Information
@@ -1439,56 +1694,40 @@ export default function Users() {
                   </FormControl>
                 </Grid>
                 <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Profile Completion (%)"
-                    type="number"
-                    value={newUser.profileCompletion}
-                    onChange={(e) => handleCreateChange('profileCompletion', parseInt(e.target.value) || 0)}
-                    variant="outlined"
-                    inputProps={{ min: 0, max: 100 }}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <BadgeIcon color="action" />
-                        </InputAdornment>
-                      ),
-                    }}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Preferred Companies"
-                    value={newUser.preferredCompanies?.join(', ') || ''}
-                    onChange={(e) => handleCreateChange('preferredCompanies', e.target.value.split(',').map(s => s.trim()).filter(s => s))}
-                    variant="outlined"
-                    helperText="Enter companies separated by commas"
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <BadgeIcon color="action" />
-                        </InputAdornment>
-                      ),
-                    }}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>Blocked Status</InputLabel>
-                    <Select
-                      value={newUser.isBlocked ? 'true' : 'false'}
-                      onChange={(e) => handleCreateChange('isBlocked', e.target.value === 'true')}
-                      label="Blocked Status"
-                      startAdornment={
-                        <InputAdornment position="start">
-                          <BadgeIcon color="action" />
-                        </InputAdornment>
-                      }
-                    >
-                      <MenuItem value="false">Not Blocked</MenuItem>
-                      <MenuItem value="true">Blocked</MenuItem>
-                    </Select>
+                  <FormControl component="fieldset" required>
+                    <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                      Preferred Companies
+                    </Typography>
+                    <FormGroup row>
+                      {companyOptions.map((company) => (
+                        <FormControlLabel
+                          key={company}
+                          control={
+                            <Checkbox
+                              checked={newUser.preferredCompanies.includes(company)}
+                              onChange={(e) => {
+                                let updated = [...newUser.preferredCompanies];
+                                if (e.target.checked) {
+                                  updated.push(company);
+                                } else {
+                                  if (updated.length === 1) return; // Prevent removing last
+                                  updated = updated.filter((c) => c !== company);
+                                }
+                                setNewUser((prev) => ({ ...prev, preferredCompanies: updated }));
+                                clearFieldErrors('preferredCompanies', false);
+                              }}
+                              name={company}
+                            />
+                          }
+                          label={company}
+                        />
+                      ))}
+                    </FormGroup>
+                    {fieldErrors.preferredCompanies && (
+                      <Typography variant="caption" color="error">
+                        {fieldErrors.preferredCompanies}
+                      </Typography>
+                    )}
                   </FormControl>
                 </Grid>
               </Grid>
