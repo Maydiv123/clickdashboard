@@ -28,6 +28,9 @@ import PetrolPumpRequestsCreate from './pages/PetrolPumpRequestsCreate';
 import ExcelImport from './pages/ExcelImport';
 import ImportedData from './pages/ImportedData';
 import Teams from './pages/Teams';
+import TeamsCreate from './pages/TeamsCreate';
+import TeamsEdit from './pages/TeamsEdit';
+import TeamsDelete from './pages/TeamsDelete';
 import Settings from './pages/Settings';
 import Ads from './pages/Ads';
 
@@ -169,6 +172,9 @@ function App() {
               <Route path="excel-import" element={<ExcelImport />} />
               <Route path="imported-data" element={<ImportedData />} />
               <Route path="teams" element={<Teams />} />
+              <Route path="teams/create" element={<TeamsCreate />} />
+              <Route path="teams/edit" element={<TeamsEdit />} />
+              <Route path="teams/delete" element={<TeamsDelete />} />
               <Route path="settings" element={<Settings />} />
               <Route path="ads" element={<Ads />} />
             </Route>

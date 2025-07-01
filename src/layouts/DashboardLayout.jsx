@@ -271,7 +271,17 @@ const menuItems = [
   },
   { text: 'Excel Import', icon: <UploadFileIcon />, path: '/excel-import' },
   // { text: 'Imported Data', icon: <TableViewIcon />, path: '/imported-data' },
-  { text: 'Teams', icon: <TeamIcon />, path: '/teams' },
+  { 
+    text: 'Teams', 
+    icon: <TeamIcon />, 
+    hasSubmenu: true,
+    submenu: [
+      { text: 'View All', icon: <VisibilityIcon />, path: '/teams' },
+      { text: 'Create New', icon: <AddIcon />, path: '/teams/create' },
+      { text: 'Edit', icon: <EditIcon />, path: '/teams/edit' },
+      { text: 'Delete', icon: <DeleteIcon />, path: '/teams/delete' },
+    ]
+  },
   { text: 'Advertisements', icon: <CampaignIcon />, path: '/ads' },
   // { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },
 ];

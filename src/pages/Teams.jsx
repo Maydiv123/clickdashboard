@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { styled, alpha } from '@mui/material/styles';
 import { 
   Box, 
   Paper, 
@@ -22,50 +21,46 @@ import {
   CircularProgress,
   Chip,
   Grid,
-  Card,
-  CardContent,
-  CardActions,
-  List,
-  ListItem,
-  ListItemAvatar,
-  ListItemText,
-  Avatar,
-  AvatarGroup,
-  Divider,
   MenuItem,
   Alert,
   Fab,
-  Tabs,
-  Tab,
-  Menu,
-  ListItemIcon,
+  Avatar,
+  Tooltip,
+  Divider,
+  Card,
+  CardContent,
+  Select,
   FormControl,
   InputLabel,
-  Select,
-  Tooltip,
-  Stack
+  Tab,
+  Tabs,
+  Stack,
+  Menu,
+  ListItemIcon,
+  ListItemText,
+  Stepper,
+  Step,
+  StepLabel,
+  Popover,
+  LinearProgress,
+  Checkbox,
+  FormGroup,
+  FormControlLabel,
 } from '@mui/material';
+import { styled, alpha } from '@mui/material/styles';
 import { 
   Search as SearchIcon,
-  Delete as DeleteIcon,
-  Visibility as ViewIcon,
-  Group as TeamIcon,
-  Person as PersonIcon,
-  Edit as EditIcon,
-  DirectionsCar as CarIcon,
-  LocalGasStation as FuelIcon,
-  Speed as SpeedIcon,
-  Upload as UploadIcon,
-  Save as SaveIcon,
-  Cancel as CancelIcon,
   Add as AddIcon,
   FilterList as FilterIcon,
-  MoreVert as MoreVertIcon,
-  PersonAdd as PersonAddIcon,
-  ContentCopy as CopyIcon,
+  Visibility as VisibilityIcon,
   Group as GroupIcon,
   Code as CodeIcon,
-  Numbers as NumbersIcon
+  Person as PersonIcon,
+  Numbers as NumbersIcon,
+  CalendarToday as CalendarTodayIcon,
+  LocationOn as LocationOnIcon,
+  Email as EmailIcon,
+  Phone as PhoneIcon
 } from '@mui/icons-material';
 import { db } from '../firebase/config';
 import { collection, getDocs, query, doc, deleteDoc, orderBy, getDoc, updateDoc, addDoc } from 'firebase/firestore';
@@ -119,67 +114,89 @@ const TeamCard = styled(Card)(({ theme }) => ({
   }
 }));
 
-const StyledChip = styled(Chip)(({ theme }) => ({
+const TeamStatusChip = styled(Chip)(({ theme, status }) => ({
   borderRadius: theme.shape.borderRadius,
   fontWeight: 500,
-  backgroundColor: alpha(theme.palette.primary.main, 0.1),
-  color: theme.palette.primary.dark,
-  border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`
-}));
-
-const StatBox = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  padding: theme.spacing(1.5),
-  borderRadius: theme.shape.borderRadius,
-  backgroundColor: alpha(theme.palette.background.default, 0.7),
-  border: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
-  '& .MuiSvgIcon-root': {
-    color: theme.palette.primary.main,
-    marginRight: theme.spacing(1)
-  }
+  ...(status === 'active' && {
+    backgroundColor: alpha(theme.palette.success.main, 0.1),
+    color: theme.palette.success.dark,
+    border: `1px solid ${alpha(theme.palette.success.main, 0.2)}`
+  }),
+  ...(status === 'inactive' && {
+    backgroundColor: alpha(theme.palette.warning.main, 0.1),
+    color: theme.palette.warning.dark,
+    border: `1px solid ${alpha(theme.palette.warning.main, 0.2)}`
+  }),
+  ...(status === 'pending' && {
+    backgroundColor: alpha(theme.palette.info.main, 0.1),
+    color: theme.palette.info.dark,
+    border: `1px solid ${alpha(theme.palette.info.main, 0.2)}`
+  })
 }));
 
 export default function Teams() {
   const [teams, setTeams] = useState([]);
   const [filteredTeams, setFilteredTeams] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
-  const [teamToDelete, setTeamToDelete] = useState(null);
-  const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState(null);
-  const [teamMembers, setTeamMembers] = useState([]);
-  const [actionLoading, setActionLoading] = useState(false);
-  const [openCreateDialog, setOpenCreateDialog] = useState(false);
-  const [newTeam, setNewTeam] = useState({
-    teamName: '',
-    teamCode: '',
-    ownerId: '',
-    activeMembers: 0,
-    memberCount: 0,
-    pendingRequests: 0,
-    teamStats: {
-      totalUploads: 0,
-      totalDistance: 0,
-      totalVisits: 0,
-      fuelConsumption: 0
-    },
-    createdAt: new Date(),
-    isDummy: false
-  });
-  const [error, setError] = useState('');
+
+  const [tabValue, setTabValue] = useState(0);
+  const [filterAnchorEl, setFilterAnchorEl] = useState(null);
+  const [memberCountFilter, setMemberCountFilter] = useState('all');
+  const [createdDateFilter, setCreatedDateFilter] = useState('all');
+  const [memberNameFilter, setMemberNameFilter] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [ownerData, setOwnerData] = useState(null);
+  const [memberData, setMemberData] = useState([]);
+  const [loadingUserData, setLoadingUserData] = useState(false);
+  const [allTeamMembers, setAllTeamMembers] = useState([]);
+
+  // Fetch all team members for filter dropdown
+  const fetchAllTeamMembers = async (teamsData) => {
+    try {
+      const allMemberIds = new Set();
+      
+      // Collect all unique member IDs from all teams
+      teamsData.forEach(team => {
+        if (team.members && team.members.length > 0) {
+          team.members.forEach(memberId => allMemberIds.add(memberId));
+        }
+      });
+      
+      // Fetch user data for all unique members
+      const memberPromises = Array.from(allMemberIds).map(async (memberId) => {
+        try {
+          const memberDoc = await getDoc(doc(db, 'user_data', memberId));
+          if (memberDoc.exists()) {
+            return { id: memberId, ...memberDoc.data(), found: true };
+          } else {
+            return { id: memberId, found: false, name: `User ID: ${memberId}` };
+          }
+        } catch (error) {
+          return { id: memberId, found: false, name: `User ID: ${memberId}` };
+        }
+      });
+      
+      const members = await Promise.all(memberPromises);
+      setAllTeamMembers(members);
+    } catch (error) {
+      console.error('Error fetching all team members:', error);
+    }
+  };
 
   // Fetch teams data
   useEffect(() => {
     const fetchTeams = async () => {
-      setLoading(true);
       try {
-        console.log('Fetching teams...');
+        console.log('Starting to fetch teams...');
+        setLoading(true);
         const teamsRef = collection(db, 'teams');
-        const q = query(teamsRef);
+        const q = query(teamsRef, orderBy('createdAt', 'desc'));
         const querySnapshot = await getDocs(q);
         
         if (!querySnapshot.empty) {
@@ -195,12 +212,18 @@ export default function Teams() {
           
           setTeams(teamsData);
           setFilteredTeams(teamsData);
+          
+          // Fetch all unique team members for filter
+          await fetchAllTeamMembers(teamsData);
         } else {
           console.log('No teams found');
+          setTeams([]);
+          setFilteredTeams([]);
         }
-        setLoading(false);
       } catch (error) {
         console.error('Error fetching teams:', error);
+        setError(`Error fetching teams: ${error.message}`);
+      } finally {
         setLoading(false);
       }
     };
@@ -208,18 +231,46 @@ export default function Teams() {
     fetchTeams();
   }, []);
 
-  // Filter teams based on search term
+  // Filter teams based on search term and filters
   useEffect(() => {
-    if (searchTerm.trim() === '') {
-      setFilteredTeams(teams);
-    } else {
-      const filtered = teams.filter(team => 
+    let filtered = [...teams];
+
+    // Search filter
+    if (searchTerm.trim() !== '') {
+      filtered = filtered.filter(team => 
         (team.teamName && team.teamName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (team.teamCode && team.teamCode.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (team.id && team.id.toLowerCase().includes(searchTerm.toLowerCase()))
       );
-      setFilteredTeams(filtered);
     }
-  }, [searchTerm, teams]);
+
+    // Member count filter
+    if (memberCountFilter !== 'all') {
+      const count = parseInt(memberCountFilter);
+      filtered = filtered.filter(team => (team.memberCount || 0) >= count);
+    }
+
+    // Member name filter
+    if (memberNameFilter !== '') {
+      filtered = filtered.filter(team => {
+        if (!team.members || team.members.length === 0) return false;
+        return team.members.includes(memberNameFilter);
+      });
+    }
+
+    // Created date filter
+    if (createdDateFilter !== 'all') {
+      const now = new Date();
+      const daysAgo = parseInt(createdDateFilter);
+      const cutoffDate = new Date(now.getTime() - (daysAgo * 24 * 60 * 60 * 1000));
+      filtered = filtered.filter(team => {
+        const createdAt = team.createdAt?.toDate ? team.createdAt.toDate() : new Date(team.createdAt);
+        return createdAt >= cutoffDate;
+      });
+    }
+
+    setFilteredTeams(filtered);
+  }, [searchTerm, teams, memberCountFilter, memberNameFilter, createdDateFilter]);
 
   // Handle search term change
   const handleSearchChange = (event) => {
@@ -237,137 +288,233 @@ export default function Teams() {
     setPage(0);
   };
 
-  // Delete team handlers
-  const handleOpenDeleteDialog = (team) => {
-    setTeamToDelete(team);
-    setOpenDeleteDialog(true);
-  };
-
-  const handleCloseDeleteDialog = () => {
-    setOpenDeleteDialog(false);
-    setTeamToDelete(null);
-  };
-
-  const handleDeleteTeam = async () => {
-    if (!teamToDelete) return;
+  // Fetch user data for owner and members
+  const fetchUserData = async (team) => {
+    if (!team) return;
     
-    setActionLoading(true);
+    console.log('Fetching user data for team:', team);
+    setLoadingUserData(true);
     try {
-      const teamRef = doc(db, 'teams', teamToDelete.id);
-      await deleteDoc(teamRef);
-      
-      // Remove from state
-      setTeams(prevTeams => prevTeams.filter(team => team.id !== teamToDelete.id));
-      setFilteredTeams(prevTeams => prevTeams.filter(team => team.id !== teamToDelete.id));
-      
-      setActionLoading(false);
-      handleCloseDeleteDialog();
-    } catch (error) {
-      console.error('Error deleting team:', error);
-      setActionLoading(false);
-    }
-  };
-
-  // View team details handlers
-  const handleOpenDetailsDialog = async (team) => {
-    setSelectedTeam(team);
-    setOpenDetailsDialog(true);
-    
-    try {
-      // Fetch team members
-      const members = [];
-      if (team.members && team.members.length > 0) {
-        for (const memberId of team.members) {
-          const userRef = doc(db, 'users', memberId);
-          const userSnap = await getDoc(userRef);
-          if (userSnap.exists()) {
-            members.push({
-              id: userSnap.id,
-              ...userSnap.data()
-            });
-          } else {
-            members.push({ id: memberId, name: 'Unknown User' });
-          }
+      // Fetch owner data
+      if (team.ownerId) {
+        console.log('Fetching owner with ID:', team.ownerId);
+        const ownerDoc = await getDoc(doc(db, 'user_data', team.ownerId));
+        if (ownerDoc.exists()) {
+          console.log('Owner data found:', ownerDoc.data());
+          setOwnerData(ownerDoc.data());
+        } else {
+          console.log('Owner document does not exist');
         }
       }
-      setTeamMembers(members);
+
+      // Fetch member data from the members array
+      console.log('Team members array:', team.members);
+      if (team.members && team.members.length > 0) {
+        console.log('Fetching members with IDs:', team.members);
+        const memberPromises = team.members.map(async (memberId) => {
+          try {
+            const memberDoc = await getDoc(doc(db, 'user_data', memberId));
+            if (memberDoc.exists()) {
+              return { id: memberId, ...memberDoc.data(), found: true };
+            } else {
+              return { id: memberId, found: false, error: 'User not found' };
+            }
+          } catch (error) {
+            return { id: memberId, found: false, error: 'Error fetching user' };
+          }
+        });
+        
+        const members = await Promise.all(memberPromises);
+        console.log('Processed members:', members);
+        setMemberData(members);
+      } else {
+        console.log('No members array or empty members array');
+        setMemberData([]);
+      }
     } catch (error) {
-      console.error('Error fetching team members:', error);
-      setTeamMembers([]);
+      console.error('Error fetching user data:', error);
+    } finally {
+      setLoadingUserData(false);
     }
   };
 
-  const handleCloseDetailsDialog = () => {
-    setOpenDetailsDialog(false);
+  // View team handler
+  const handleViewTeam = async (team) => {
+    setSelectedTeam(team);
+    setViewDialogOpen(true);
+    await fetchUserData(team);
+  };
+
+  // Close dialog handler
+  const handleCloseViewDialog = () => {
+    setViewDialogOpen(false);
     setSelectedTeam(null);
-    setTeamMembers([]);
+    setOwnerData(null);
+    setMemberData([]);
   };
 
-  // Create team handlers
-  const handleOpenCreateDialog = () => {
-    setNewTeam({
-      teamName: '',
-      teamCode: '',
-      ownerId: '',
-      activeMembers: 0,
-      memberCount: 0,
-      pendingRequests: 0,
-      teamStats: {
-        totalUploads: 0,
-        totalDistance: 0,
-        totalVisits: 0,
-        fuelConsumption: 0
-      },
-      createdAt: new Date(),
-      isDummy: false
-    });
-    setOpenCreateDialog(true);
-  };
-
-  const handleCloseCreateDialog = () => {
-    setOpenCreateDialog(false);
-  };
-
-  const handleCreateChange = (field, value) => {
-    if (field.includes('.')) {
-      const [parent, child] = field.split('.');
-      setNewTeam(prev => ({
-        ...prev,
-        [parent]: {
-          ...prev[parent],
-          [child]: value
-        }
-      }));
-    } else {
-      setNewTeam(prev => ({
-        ...prev,
-        [field]: value
-      }));
+  // Tab change handler
+  const handleTabChange = (event, newValue) => {
+    setTabValue(newValue);
+    let filtered = [...teams];
+    if (newValue === 1) {
+      filtered = filtered.filter(team => (team.memberCount || 0) >= 10);
     }
+    setFilteredTeams(filtered);
   };
 
-  const handleCreateTeam = async () => {
-    setActionLoading(true);
+  // Filter handlers
+  const handleFilterClick = (event) => {
+    setFilterAnchorEl(event.currentTarget);
+  };
+
+  const handleFilterClose = () => {
+    setFilterAnchorEl(null);
+  };
+
+  const clearFilters = () => {
+    setMemberCountFilter('all');
+    setCreatedDateFilter('all');
+    setMemberNameFilter('');
+  };
+
+  // Utility functions
+  const getTeamStatus = (team) => {
+    if (team.activeMembers > 0) return 'active';
+    if (team.pendingRequests > 0) return 'pending';
+    return 'inactive';
+  };
+
+  const getInitials = (team) => {
+    return team.teamName ? team.teamName.substring(0, 2).toUpperCase() : 'TM';
+  };
+
+  const formatDate = (timestamp) => {
+    if (!timestamp) return 'N/A';
     try {
-      const teamsRef = collection(db, 'teams');
-      const docRef = await addDoc(teamsRef, newTeam);
-      
-      // Add the new team to the local state
-      const createdTeam = {
-        id: docRef.id,
-        ...newTeam
-      };
-      
-      setTeams(prevTeams => [...prevTeams, createdTeam]);
-      
-      setActionLoading(false);
-      handleCloseCreateDialog();
-    } catch (error) {
-      console.error('Error creating team:', error);
-      setError(error.message);
-      setActionLoading(false);
+      return new Date(timestamp.toDate()).toLocaleDateString();
+    } catch {
+      return new Date(timestamp).toLocaleDateString();
     }
   };
+
+  const renderTeamFields = (team) => {
+    console.log('Rendering team fields for team:', team);
+    console.log('Owner data:', ownerData);
+    console.log('Member data:', memberData);
+    console.log('Loading user data:', loadingUserData);
+    
+    return (
+      <Grid container spacing={2} sx={{ mt: 1 }} direction="column">
+        <Grid item xs={12} md={6}>
+          <TextField
+            fullWidth
+            label="Team Name"
+            value={team?.teamName || ''}
+            InputProps={{ readOnly: true }}
+          />
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <TextField
+            fullWidth
+            label="Team Code"
+            value={team?.teamCode || ''}
+            InputProps={{ readOnly: true }}
+          />
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <TextField
+            fullWidth
+            label="Owner ID"
+            value={team?.ownerId || ''}
+            InputProps={{ readOnly: true }}
+          />
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <TextField
+            fullWidth
+            label="Owner Name"
+            value={loadingUserData ? 'Loading...' : (ownerData ? `${ownerData.firstName || ''} ${ownerData.lastName || ''}`.trim() || 'N/A' : 'N/A')}
+            InputProps={{ readOnly: true }}
+          />
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <TextField
+            fullWidth
+            label="Member Count"
+            value={team?.memberCount || 0}
+            InputProps={{ readOnly: true }}
+          />
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <TextField
+            fullWidth
+            label="Created Date"
+            value={team?.createdAt ? new Date(team.createdAt.toDate()).toLocaleDateString() : 'N/A'}
+            InputProps={{ readOnly: true }}
+          />
+        </Grid>
+        
+        {/* Members List */}
+        {memberData.length > 0 && (
+          <Grid item xs={12}>
+            <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2, mt: 2 }}>
+              Team Members ({memberData.length})
+            </Typography>
+            <Box sx={{ maxHeight: 200, overflow: 'auto', border: '1px solid #e0e0e0', borderRadius: 1, p: 2 }}>
+              {loadingUserData ? (
+                <Typography variant="body2" color="text.secondary">Loading members...</Typography>
+              ) : (
+                memberData.map((member, index) => (
+                  <Box key={member.id} sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: 1, 
+                    mb: 1,
+                    p: 1,
+                    borderRadius: 1,
+                    backgroundColor: member.found ? 'background.default' : 'error.light'
+                  }}>
+                    <Avatar sx={{ 
+                      width: 24, 
+                      height: 24, 
+                      bgcolor: member.found ? 'primary.main' : 'error.main', 
+                      fontSize: '0.75rem' 
+                    }}>
+                      {member.found ? (member.firstName ? member.firstName.charAt(0).toUpperCase() : 'U') : '?'}
+                    </Avatar>
+                    <Box sx={{ flex: 1 }}>
+                      {member.found ? (
+                        <>
+                          <Typography variant="body2">
+                            {`${member.firstName || ''} ${member.lastName || ''}`.trim() || 'Unknown User'}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            ({member.email || 'No email'}) - ID: {member.id}
+                          </Typography>
+                        </>
+                      ) : (
+                        <>
+                          <Typography variant="body2" color="error.main">
+                            User ID: {member.id}
+                          </Typography>
+                          <Typography variant="caption" color="error.main">
+                            {member.error || 'User not available'}
+                          </Typography>
+                        </>
+                      )}
+                    </Box>
+                  </Box>
+                ))
+              )}
+            </Box>
+          </Grid>
+        )}
+      </Grid>
+    );
+  };
+
+
 
   if (loading) {
     return (
@@ -379,99 +526,222 @@ export default function Teams() {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography variant="h4">
-          Team Management
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Typography variant="h4" fontWeight="bold">
+          Teams
         </Typography>
-        <Fab
-          color="primary"
-          size="medium"
-          onClick={handleOpenCreateDialog}
-          sx={{ ml: 2 }}
-        >
-          <AddIcon />
-        </Fab>
       </Box>
-      
-      {/* Search Bar */}
-      <Box sx={{ mb: 3 }}>
-        <TextField
-          fullWidth
-          variant="outlined"
-          placeholder="Search teams by name or ID"
-          value={searchTerm}
-          onChange={handleSearchChange}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon />
-              </InputAdornment>
-            ),
-          }}
-        />
-      </Box>
-      
-      {/* Teams Table */}
-      <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-        <TableContainer sx={{ maxHeight: 440 }}>
-          <Table stickyHeader aria-label="sticky table">
+
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {error}
+        </Alert>
+      )}
+
+      <Card sx={{ mb: 3, borderRadius: 3, overflow: 'hidden' }}>
+        <CardContent sx={{ p: 2 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
+            <SearchField
+              placeholder="Search teams..."
+              variant="outlined"
+              value={searchTerm}
+              onChange={handleSearchChange}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon color="action" />
+                  </InputAdornment>
+                ),
+              }}
+            />
+            
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Button
+                variant="outlined"
+                startIcon={<FilterIcon />}
+                onClick={handleFilterClick}
+                sx={{ 
+                  borderRadius: 2,
+                  px: 2,
+                  py: 0.75
+                }}
+              >
+                Filter
+              </Button>
+              {(memberCountFilter !== 'all' || createdDateFilter !== 'all' || memberNameFilter !== '') && (
+                <Button
+                  variant="text"
+                  onClick={clearFilters}
+                  size="small"
+                  sx={{ color: 'text.secondary' }}
+                >
+                  Clear Filters
+                </Button>
+              )}
+            </Box>
+          </Box>
+        </CardContent>
+      </Card>
+
+      {/* Filter Popover */}
+      <Popover
+        open={Boolean(filterAnchorEl)}
+        anchorEl={filterAnchorEl}
+        onClose={handleFilterClose}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'left',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'left',
+        }}
+        PaperProps={{
+          sx: { p: 2, minWidth: 300 }
+        }}
+      >
+        <Typography variant="h6" sx={{ mb: 2 }}>Filter Options</Typography>
+        
+        <FormControl fullWidth sx={{ mb: 2 }}>
+          <InputLabel>Member Count</InputLabel>
+          <Select
+            value={memberCountFilter}
+            label="Member Count"
+            onChange={(e) => setMemberCountFilter(e.target.value)}
+          >
+            <MenuItem value="all">All Teams</MenuItem>
+            <MenuItem value="1">1+ Members</MenuItem>
+            <MenuItem value="5">5+ Members</MenuItem>
+            <MenuItem value="10">10+ Members</MenuItem>
+            <MenuItem value="20">20+ Members</MenuItem>
+          </Select>
+        </FormControl>
+
+        <FormControl fullWidth sx={{ mb: 2 }}>
+          <InputLabel>Created Date</InputLabel>
+          <Select
+            value={createdDateFilter}
+            label="Created Date"
+            onChange={(e) => setCreatedDateFilter(e.target.value)}
+          >
+            <MenuItem value="all">All Time</MenuItem>
+            <MenuItem value="7">Last 7 Days</MenuItem>
+            <MenuItem value="30">Last 30 Days</MenuItem>
+            <MenuItem value="90">Last 90 Days</MenuItem>
+          </Select>
+        </FormControl>
+
+        <FormControl fullWidth sx={{ mb: 2 }}>
+          <InputLabel>Team Member</InputLabel>
+          <Select
+            value={memberNameFilter}
+            label="Team Member"
+            onChange={e => setMemberNameFilter(e.target.value)}
+            displayEmpty
+          >
+            <MenuItem value="">All Members</MenuItem>
+            {allTeamMembers
+              .filter(member => member.found && (member.firstName || member.lastName))
+              .map(member => (
+                <MenuItem key={member.id} value={member.id}>
+                  {`${member.firstName || ''} ${member.lastName || ''}`.trim()}
+                </MenuItem>
+              ))}
+          </Select>
+        </FormControl>
+
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <Button
+            variant="contained"
+            onClick={handleFilterClose}
+            fullWidth
+          >
+            Apply Filters
+          </Button>
+        </Box>
+      </Popover>
+
+      <Card sx={{ borderRadius: 3, overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
+        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+          <Tabs value={tabValue} onChange={handleTabChange} aria-label="team tabs">
+            <Tab label={`All Teams (${teams.length})`} />
+            <Tab label={`Large Teams (${teams.filter(team => (team.memberCount || 0) >= 10).length})`} />
+          </Tabs>
+        </Box>
+
+        <TableContainer>
+          <Table sx={{ minWidth: 650 }} aria-label="teams table">
             <TableHead>
               <TableRow>
-                <TableCell>Team ID</TableCell>
-                <TableCell>Team Name</TableCell>
-                <TableCell>Active Members</TableCell>
-                <TableCell>Pending Requests</TableCell>
-                <TableCell>Created At</TableCell>
-                <TableCell>Actions</TableCell>
+                <StyledTableCell>Team Name</StyledTableCell>
+                <StyledTableCell>Team Code</StyledTableCell>
+                <StyledTableCell>Active Members</StyledTableCell>
+                <StyledTableCell>Created At</StyledTableCell>
+                <StyledTableCell align="right">Actions</StyledTableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {filteredTeams.length === 0 ? (
+              {loading ? (
                 <TableRow>
-                  <TableCell colSpan={6} align="center">
-                    No teams found
+                  <TableCell colSpan={5}>
+                    <Box sx={{ py: 4, textAlign: 'center' }}>
+                      <CircularProgress />
+                    </Box>
                   </TableCell>
                 </TableRow>
-              ) : (
-                filteredTeams
-                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                  .map((team) => (
-                    <TableRow hover key={team.id}>
-                      <TableCell>{team.id}</TableCell>
-                      <TableCell>{team.teamName || 'Unnamed Team'}</TableCell>
-                      <TableCell>
-                        <Chip 
-                          label={`${team.activeMembers || 0} members`}
-                          color="primary"
-                          size="small"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Chip 
-                          label={`${team.pendingRequests || 0} requests`}
-                          color={team.pendingRequests > 0 ? 'warning' : 'default'}
-                          size="small"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        {team.createdAt ? new Date(team.createdAt.toDate()).toLocaleDateString() : 'N/A'}
-                      </TableCell>
-                      <TableCell>
-                        <IconButton size="small" color="primary" onClick={() => handleOpenDetailsDialog(team)}>
-                          <ViewIcon />
-                        </IconButton>
-                        <IconButton size="small" color="error" onClick={() => handleOpenDeleteDialog(team)}>
-                          <DeleteIcon />
-                        </IconButton>
-                      </TableCell>
-                    </TableRow>
-                  ))
+              ) : filteredTeams
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                .map((team) => (
+                  <StyledTableRow key={team.id}>
+                    <StyledTableCell>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main' }}>
+                          {getInitials(team)}
+                        </Avatar>
+                        <Typography variant="body2" fontWeight={500}>
+                          {team.teamName || 'Unnamed Team'}
+                        </Typography>
+                      </Box>
+                    </StyledTableCell>
+                    <StyledTableCell>{team.teamCode || 'N/A'}</StyledTableCell>
+                    <StyledTableCell>
+                      <TeamStatusChip
+                        label={`${team.activeMembers || 0} members`}
+                        status={getTeamStatus(team)}
+                        size="small"
+                      />
+                    </StyledTableCell>
+                    <StyledTableCell>{formatDate(team.createdAt)}</StyledTableCell>
+                    <StyledTableCell align="right">
+                      <IconButton
+                        onClick={() => handleViewTeam(team)}
+                        color="primary"
+                        size="small"
+                      >
+                        <VisibilityIcon />
+                      </IconButton>
+                    </StyledTableCell>
+                  </StyledTableRow>
+                ))}
+              {!loading && filteredTeams.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={5}>
+                    <Box sx={{ py: 4, textAlign: 'center' }}>
+                      <Typography variant="body1" color="text.secondary">
+                        No teams found
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                        {searchTerm ? "Try adjusting your search query" : "No teams in this category"}
+                      </Typography>
+                    </Box>
+                  </TableCell>
+                </TableRow>
               )}
             </TableBody>
           </Table>
         </TableContainer>
         <TablePagination
-          rowsPerPageOptions={[10, 25, 100]}
+          rowsPerPageOptions={[5, 10, 25]}
           component="div"
           count={filteredTeams.length}
           rowsPerPage={rowsPerPage}
@@ -479,328 +749,40 @@ export default function Teams() {
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
-      </Paper>
+      </Card>
       
-      {/* Delete Team Dialog */}
+      {/* View Team Dialog */}
       <Dialog
-        open={openDeleteDialog}
-        onClose={handleCloseDeleteDialog}
-      >
-        <DialogTitle>Confirm Deletion</DialogTitle>
-        <DialogContent>
-          Are you sure you want to delete the team{' '}
-          {teamToDelete ? `"${teamToDelete.teamName || teamToDelete.id}"` : ''}? 
-          This action cannot be undone.
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDeleteDialog} disabled={actionLoading}>
-            Cancel
-          </Button>
-          <Button 
-            onClick={handleDeleteTeam} 
-            color="error" 
-            disabled={actionLoading}
-            startIcon={actionLoading ? <CircularProgress size={20} /> : null}
-          >
-            {actionLoading ? 'Deleting...' : 'Delete'}
-          </Button>
-        </DialogActions>
-      </Dialog>
-      
-      {/* Team Details Dialog */}
-      <Dialog
-        open={openDetailsDialog}
-        onClose={handleCloseDetailsDialog}
+        open={viewDialogOpen}
+        onClose={handleCloseViewDialog}
         maxWidth="md"
         fullWidth
       >
         {selectedTeam && (
           <>
             <DialogTitle>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <TeamIcon sx={{ fontSize: 28, mr: 1 }} />
-                {selectedTeam.teamName || `Team ${selectedTeam.id}`}
+              <Box display="flex" justifyContent="space-between" alignItems="center">
+                <Typography variant="h6" fontWeight={600}>Team Details</Typography>
+                <TeamStatusChip
+                  label={`${selectedTeam.activeMembers || 0} members`}
+                  status={getTeamStatus(selectedTeam)}
+                  size="small"
+                />
               </Box>
             </DialogTitle>
-            <DialogContent>
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
-                  <Typography variant="subtitle1" gutterBottom>Team Details</Typography>
-                  
-                  <Typography variant="subtitle2">Team ID:</Typography>
-                  <Typography variant="body2" paragraph>
-                    {selectedTeam.id}
-                  </Typography>
-                  
-                  <Typography variant="subtitle2">Active Members:</Typography>
-                  <Typography variant="body2" paragraph>
-                    {selectedTeam.activeMembers || 0} members
-                  </Typography>
-                  
-                  <Typography variant="subtitle2">Pending Requests:</Typography>
-                  <Typography variant="body2" paragraph>
-                    {selectedTeam.pendingRequests || 0} requests
-                  </Typography>
-                  
-                  <Typography variant="subtitle2">Created At:</Typography>
-                  <Typography variant="body2" paragraph>
-                    {selectedTeam.createdAt ? new Date(selectedTeam.createdAt.toDate()).toLocaleDateString() : 'N/A'}
-                  </Typography>
-                </Grid>
-                
-                <Grid item xs={12} md={6}>
-                  <Typography variant="subtitle1" gutterBottom>
-                    Team Statistics
-                  </Typography>
-                  
-                  <Grid container spacing={2}>
-                    <Grid item xs={6}>
-                      <Card>
-                        <CardContent>
-                          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                            <UploadIcon sx={{ mr: 1 }} />
-                            <Typography variant="h6">
-                              {selectedTeam.teamStats?.totalUploads || 0}
-                            </Typography>
-                          </Box>
-                          <Typography variant="body2" color="text.secondary">
-                            Total Uploads
-                          </Typography>
-                        </CardContent>
-                      </Card>
-                    </Grid>
-                    
-                    <Grid item xs={6}>
-                      <Card>
-                        <CardContent>
-                          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                            <SpeedIcon sx={{ mr: 1 }} />
-                            <Typography variant="h6">
-                              {selectedTeam.teamStats?.totalDistance || 0} km
-                            </Typography>
-                          </Box>
-                          <Typography variant="body2" color="text.secondary">
-                            Total Distance
-                          </Typography>
-                        </CardContent>
-                      </Card>
-                    </Grid>
-                    
-                    <Grid item xs={6}>
-                      <Card>
-                        <CardContent>
-                          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                            <CarIcon sx={{ mr: 1 }} />
-                            <Typography variant="h6">
-                              {selectedTeam.teamStats?.totalVisits || 0}
-                            </Typography>
-                          </Box>
-                          <Typography variant="body2" color="text.secondary">
-                            Total Visits
-                          </Typography>
-                        </CardContent>
-                      </Card>
-                    </Grid>
-                    
-                    <Grid item xs={6}>
-                      <Card>
-                        <CardContent>
-                          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                            <FuelIcon sx={{ mr: 1 }} />
-                            <Typography variant="h6">
-                              {selectedTeam.teamStats?.totalFuelConsumption || 0} L
-                            </Typography>
-                          </Box>
-                          <Typography variant="body2" color="text.secondary">
-                            Fuel Consumption
-                          </Typography>
-                        </CardContent>
-                      </Card>
-                    </Grid>
-                  </Grid>
-                </Grid>
-              </Grid>
+            <DialogContent dividers>
+              {renderTeamFields(selectedTeam)}
             </DialogContent>
             <DialogActions>
-              <Button onClick={handleCloseDetailsDialog}>Close</Button>
-              <Button 
-                color="error"
-                onClick={() => {
-                  handleCloseDetailsDialog();
-                  handleOpenDeleteDialog(selectedTeam);
-                }}
-              >
-                Delete Team
+              <Button onClick={handleCloseViewDialog}>
+                Close
               </Button>
             </DialogActions>
           </>
         )}
       </Dialog>
 
-      {/* Create Team Dialog */}
-      <Dialog
-        open={openCreateDialog}
-        onClose={handleCloseCreateDialog}
-        maxWidth="md"
-        fullWidth
-        PaperProps={{
-          sx: {
-            borderRadius: 3,
-            boxShadow: '0 8px 32px rgba(0,0,0,0.1)'
-          }
-        }}
-      >
-        <DialogTitle sx={{ pb: 1 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <GroupIcon color="primary" />
-            <Typography variant="h6" fontWeight={600}>
-              Create New Team
-            </Typography>
-          </Box>
-        </DialogTitle>
-        
-        <DialogContent dividers>
-          <Grid container spacing={3} direction="column">
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Team Name"
-                value={newTeam.teamName}
-                onChange={(e) => handleCreateChange('teamName', e.target.value)}
-                variant="outlined"
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <GroupIcon color="action" />
-                    </InputAdornment>
-                  ),
-                }}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Team Code"
-                value={newTeam.teamCode}
-                onChange={(e) => handleCreateChange('teamCode', e.target.value)}
-                variant="outlined"
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <CodeIcon color="action" />
-                    </InputAdornment>
-                  ),
-                }}
-              />
-            </Grid>
-            
-            <Grid item xs={12}>
-              <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <PersonIcon color="primary" />
-                Team Leader
-              </Typography>
-            </Grid>
-            
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Owner ID"
-                value={newTeam.ownerId}
-                onChange={(e) => handleCreateChange('ownerId', e.target.value)}
-                variant="outlined"
-                helperText="Enter the user ID of the team owner"
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <PersonIcon color="action" />
-                    </InputAdornment>
-                  ),
-                }}
-              />
-            </Grid>
-            
-            <Grid item xs={12}>
-              <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <NumbersIcon color="primary" />
-                Team Statistics
-              </Typography>
-            </Grid>
-            
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                type="number"
-                label="Active Members"
-                value={newTeam.activeMembers}
-                onChange={(e) => handleCreateChange('activeMembers', parseInt(e.target.value))}
-                variant="outlined"
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <NumbersIcon color="action" />
-                    </InputAdornment>
-                  ),
-                }}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                type="number"
-                label="Member Count"
-                value={newTeam.memberCount}
-                onChange={(e) => handleCreateChange('memberCount', parseInt(e.target.value))}
-                variant="outlined"
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <NumbersIcon color="action" />
-                    </InputAdornment>
-                  ),
-                }}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                type="number"
-                label="Pending Requests"
-                value={newTeam.pendingRequests}
-                onChange={(e) => handleCreateChange('pendingRequests', parseInt(e.target.value))}
-                variant="outlined"
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <NumbersIcon color="action" />
-                    </InputAdornment>
-                  ),
-                }}
-              />
-            </Grid>
-          </Grid>
-        </DialogContent>
-        
-        <DialogActions sx={{ px: 3, py: 2 }}>
-          <Button 
-            onClick={handleCloseCreateDialog} 
-            variant="outlined"
-            color="inherit"
-            startIcon={<CancelIcon />}
-            sx={{ borderRadius: 2, px: 3 }}
-          >
-            Cancel
-          </Button>
-          <Button 
-            onClick={handleCreateTeam} 
-            variant="contained"
-            disabled={actionLoading}
-            startIcon={actionLoading ? <CircularProgress size={20} /> : <SaveIcon />}
-            sx={{ borderRadius: 2, px: 3 }}
-          >
-            Create Team
-          </Button>
-        </DialogActions>
-      </Dialog>
+
     </Box>
   );
-} 
+}
