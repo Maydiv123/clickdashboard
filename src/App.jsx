@@ -6,6 +6,9 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import RequestPageIcon from '@mui/icons-material/RequestPage';
 
+// Contexts
+import { SearchProvider } from './contexts/SearchContext';
+
 // Layouts
 import DashboardLayout from './layouts/DashboardLayout';
 
@@ -33,6 +36,7 @@ import TeamsEdit from './pages/TeamsEdit';
 import TeamsDelete from './pages/TeamsDelete';
 import Settings from './pages/Settings';
 import Ads from './pages/Ads';
+import SearchResults from './pages/SearchResults';
 
 // Create Theme Context
 export const ColorModeContext = createContext({ 
@@ -147,40 +151,43 @@ function App() {
 
   return (
     <ColorModeContext.Provider value={colorMode}>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <Router>
-          <Routes>
-            <Route path="/login" element={!user ? <Login /> : <Navigate to="/" />} />
-            
-            {/* Protected Routes */}
-            <Route path="/" element={user ? <DashboardLayout /> : <Navigate to="/login" />}>
-              <Route index element={<Dashboard />} />
-              <Route path="users" element={<Users />} />
-              <Route path="users/create" element={<UsersCreate />} />
-              <Route path="users/edit" element={<UsersEdit />} />
-              <Route path="users/delete" element={<UsersDelete />} />
-              <Route path="petrol-pumps" element={<PetrolPumps />} />
-              <Route path="petrol-pumps/create" element={<PetrolPumpsCreate />} />
-              <Route path="petrol-pumps/edit" element={<PetrolPumpsEdit />} />
-              <Route path="petrol-pumps/delete" element={<PetrolPumpsDelete />} />
-              <Route path="petrol-pumps/view" element={<PetrolPumpsView />} />
-              <Route path="petrol-pump-requests" element={<PetrolPumpRequests />} />
-              <Route path="petrol-pump-requests/edit" element={<PetrolPumpRequestsEdit />} />
-              <Route path="petrol-pump-requests/delete" element={<PetrolPumpRequestsDelete />} />
-              <Route path="petrol-pump-requests/create" element={<PetrolPumpRequestsCreate />} />
-              <Route path="excel-import" element={<ExcelImport />} />
-              <Route path="imported-data" element={<ImportedData />} />
-              <Route path="teams" element={<Teams />} />
-              <Route path="teams/create" element={<TeamsCreate />} />
-              <Route path="teams/edit" element={<TeamsEdit />} />
-              <Route path="teams/delete" element={<TeamsDelete />} />
-              <Route path="settings" element={<Settings />} />
-              <Route path="ads" element={<Ads />} />
-            </Route>
-          </Routes>
-        </Router>
-      </ThemeProvider>
+      <SearchProvider>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <Router>
+            <Routes>
+              <Route path="/login" element={!user ? <Login /> : <Navigate to="/" />} />
+              
+              {/* Protected Routes */}
+              <Route path="/" element={user ? <DashboardLayout /> : <Navigate to="/login" />}>
+                <Route index element={<Dashboard />} />
+                <Route path="users" element={<Users />} />
+                <Route path="users/create" element={<UsersCreate />} />
+                <Route path="users/edit" element={<UsersEdit />} />
+                <Route path="users/delete" element={<UsersDelete />} />
+                <Route path="petrol-pumps" element={<PetrolPumps />} />
+                <Route path="petrol-pumps/create" element={<PetrolPumpsCreate />} />
+                <Route path="petrol-pumps/edit" element={<PetrolPumpsEdit />} />
+                <Route path="petrol-pumps/delete" element={<PetrolPumpsDelete />} />
+                <Route path="petrol-pumps/view" element={<PetrolPumpsView />} />
+                <Route path="petrol-pump-requests" element={<PetrolPumpRequests />} />
+                <Route path="petrol-pump-requests/edit" element={<PetrolPumpRequestsEdit />} />
+                <Route path="petrol-pump-requests/delete" element={<PetrolPumpRequestsDelete />} />
+                <Route path="petrol-pump-requests/create" element={<PetrolPumpRequestsCreate />} />
+                <Route path="excel-import" element={<ExcelImport />} />
+                <Route path="imported-data" element={<ImportedData />} />
+                <Route path="teams" element={<Teams />} />
+                <Route path="teams/create" element={<TeamsCreate />} />
+                <Route path="teams/edit" element={<TeamsEdit />} />
+                <Route path="teams/delete" element={<TeamsDelete />} />
+                <Route path="settings" element={<Settings />} />
+                <Route path="ads" element={<Ads />} />
+                <Route path="search" element={<SearchResults />} />
+              </Route>
+            </Routes>
+          </Router>
+        </ThemeProvider>
+      </SearchProvider>
     </ColorModeContext.Provider>
   );
 }

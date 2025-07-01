@@ -1,4 +1,4 @@
-import { useState, useContext } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { styled, alpha, useTheme } from '@mui/material/styles';
 import { 
@@ -53,6 +53,7 @@ import {
 import { auth } from '../firebase/config';
 import { signOut } from 'firebase/auth';
 import { ColorModeContext } from '../App';
+import { useSearch } from '../contexts/SearchContext';
 
 const drawerWidth = 260;
 
@@ -289,6 +290,7 @@ const menuItems = [
 export default function DashboardLayout() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { searchQuery, setSearchQuery, performSearch } = useSearch();
   const [open, setOpen] = useState(true);
   const [anchorEl, setAnchorEl] = useState(null);
   const openMenu = Boolean(anchorEl);
@@ -298,6 +300,7 @@ export default function DashboardLayout() {
   
   // State to track which submenus are open
   const [openSubmenus, setOpenSubmenus] = useState({});
+  const [localSearchQuery, setLocalSearchQuery] = useState('');
 
   const handleDrawerOpen = () => {
     setOpen(true);
@@ -336,6 +339,32 @@ export default function DashboardLayout() {
     return submenuItems.some(item => location.pathname === item.path);
   };
 
+  // Search handlers
+  const handleSearch = () => {
+    console.log('Handle search called with:', localSearchQuery);
+    if (localSearchQuery.trim()) {
+      console.log('Searching for:', localSearchQuery);
+      setSearchQuery(localSearchQuery);
+      performSearch(localSearchQuery);
+      navigate('/search');
+    } else {
+      console.log('Empty search query');
+    }
+  };
+
+  const handleKeyPress = (event) => {
+    console.log('Key pressed:', event.key);
+    if (event.key === 'Enter') {
+      console.log('Enter pressed, triggering search');
+      handleSearch();
+    }
+  };
+
+  const handleClearSearch = () => {
+    console.log('Clearing search');
+    setLocalSearchQuery('');
+  };
+
   return (
     <Box sx={{ display: 'flex' }}>
       <AppBarStyled position="fixed" open={open}>
@@ -350,15 +379,29 @@ export default function DashboardLayout() {
             <MenuIcon />
           </IconButton>
           
-          <Search>
+          {/* <Search>
             <SearchIconWrapper>
               <SearchIcon />
             </SearchIconWrapper>
             <StyledInputBase
-              placeholder="Search…"
+              placeholder="Search users, teams, petrol pumps, requests..."
+              value={localSearchQuery}
+              onChange={(e) => {
+                console.log('Search input changed:', e.target.value);
+                setLocalSearchQuery(e.target.value);
+              }}
+              onKeyPress={handleKeyPress}
               inputProps={{ 'aria-label': 'search' }}
             />
           </Search>
+          <Button
+            variant="contained"
+            size="small"
+            onClick={handleSearch}
+            sx={{ minWidth: 'auto', px: 2, ml: 1 }}
+          >
+            Search
+          </Button> */}
           
           <Box sx={{ flexGrow: 1 }} />
           
