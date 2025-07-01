@@ -50,17 +50,9 @@ import {
 import { styled, alpha } from '@mui/material/styles';
 import { 
   Search as SearchIcon,
-  Delete as DeleteIcon,
-  Block as BlockIcon,
-  CheckCircle as ActiveIcon,
-  Edit as EditIcon,
-  Save as SaveIcon,
-  Cancel as CancelIcon,
   Add as AddIcon,
   FilterList as FilterIcon,
-  MoreVert as MoreVertIcon,
-  Visibility,
-  VisibilityOff,
+  Visibility as VisibilityIcon,
   PersonAdd as PersonAddIcon,
   Person as PersonIcon,
   Badge as BadgeIcon,
@@ -140,14 +132,8 @@ export default function Users() {
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
-  const [userToDelete, setUserToDelete] = useState(null);
-  const [openBlockDialog, setOpenBlockDialog] = useState(false);
-  const [userToToggleBlock, setUserToToggleBlock] = useState(null);
-  const [actionLoading, setActionLoading] = useState(false);
-  const [openEditDialog, setOpenEditDialog] = useState(false);
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
-  const [editedUser, setEditedUser] = useState(null);
   const [openCreateDialog, setOpenCreateDialog] = useState(false);
   const [newUser, setNewUser] = useState({
     firstName: '',
@@ -171,8 +157,6 @@ export default function Users() {
     isDummy: false
   });
   const [tabValue, setTabValue] = useState(0);
-  const [anchorEl, setAnchorEl] = useState(null);
-  const [selectedRow, setSelectedRow] = useState(null);
   const [activeStep, setActiveStep] = useState(0);
   const steps = ['Basic Information', 'Contact Details', 'Additional Information'];
   const [filterAnchorEl, setFilterAnchorEl] = useState(null);
@@ -181,19 +165,12 @@ export default function Users() {
   const [profileCompletionFilter, setProfileCompletionFilter] = useState('all');
   const [createdDateFilter, setCreatedDateFilter] = useState('all');
   const [fieldErrors, setFieldErrors] = useState({});
-  const [editFieldErrors, setEditFieldErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
-  const [showEditPassword, setShowEditPassword] = useState(false);
 
-  // Menu handlers
-  const handleOpenMenu = (event, user) => {
-    setAnchorEl(event.currentTarget);
-    setSelectedRow(user);
-  };
-
-  const handleCloseMenu = () => {
-    setAnchorEl(null);
-    setSelectedRow(null);
+  // View handler
+  const handleViewUser = (user) => {
+    setSelectedUser(user);
+    setViewDialogOpen(true);
   };
 
   // Tab change handler
@@ -329,183 +306,6 @@ export default function Users() {
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
-  };
-
-  // Delete user handlers
-  const handleOpenDeleteDialog = (user) => {
-    setUserToDelete(user);
-    setOpenDeleteDialog(true);
-    handleCloseMenu();
-  };
-
-  const handleCloseDeleteDialog = () => {
-    setOpenDeleteDialog(false);
-    setUserToDelete(null);
-  };
-
-  const handleDeleteUser = async () => {
-    if (!userToDelete) return;
-    
-    setActionLoading(true);
-    try {
-      const userDocRef = doc(db, 'user_data', userToDelete.id);
-      await deleteDoc(userDocRef);
-      
-      // Remove from state
-      setUsers(prevUsers => prevUsers.filter(user => user.id !== userToDelete.id));
-      setFilteredUsers(prevUsers => prevUsers.filter(user => user.id !== userToDelete.id));
-      
-      setActionLoading(false);
-      handleCloseDeleteDialog();
-    } catch (error) {
-      console.error('Error deleting user:', error);
-      setError(error.message);
-      setActionLoading(false);
-    }
-  };
-
-  // Block/Unblock user handlers
-  const handleOpenBlockDialog = (user) => {
-    setUserToToggleBlock(user);
-    setOpenBlockDialog(true);
-    handleCloseMenu();
-  };
-
-  const handleCloseBlockDialog = () => {
-    setOpenBlockDialog(false);
-    setUserToToggleBlock(null);
-  };
-
-  const handleToggleBlockUser = async () => {
-    if (!userToToggleBlock) return;
-    
-    setActionLoading(true);
-    try {
-      const userDocRef = doc(db, 'user_data', userToToggleBlock.id);
-      const newBlockedStatus = !userToToggleBlock.isBlocked;
-      
-      await updateDoc(userDocRef, {
-        isBlocked: newBlockedStatus
-      });
-      
-      // Update state
-      setUsers(prevUsers => prevUsers.map(user => 
-        user.id === userToToggleBlock.id 
-          ? { ...user, isBlocked: newBlockedStatus } 
-          : user
-      ));
-      
-      setFilteredUsers(prevUsers => prevUsers.map(user => 
-        user.id === userToToggleBlock.id 
-          ? { ...user, isBlocked: newBlockedStatus } 
-          : user
-      ));
-      
-      setActionLoading(false);
-      handleCloseBlockDialog();
-    } catch (error) {
-      console.error('Error updating user status:', error);
-      setError(error.message);
-      setActionLoading(false);
-    }
-  };
-
-  // Edit user handlers
-  const handleOpenEditDialog = (user) => {
-    setSelectedUser(user);
-    setEditedUser({
-      ...user,
-      firstName: user.firstName || '',
-      lastName: user.lastName || '',
-      mobile: user.mobile || '',
-      email: user.email || '',
-      userType: user.userType || 'user',
-      teamMemberStatus: user.teamMemberStatus || 'inactive',
-      address: user.address || '',
-      aadharNo: user.aadharNo || '',
-      dob: user.dob || '',
-      preferredCompanies: user.preferredCompanies || [],
-      teamCode: user.teamCode || '',
-      teamName: user.teamName || '',
-      isTeamOwner: user.isTeamOwner || false,
-      profileCompletion: user.profileCompletion || 0,
-      password: user.password || '',
-      userId: user.userId || user.id,
-      isBlocked: user.isBlocked || false
-    });
-    setOpenEditDialog(true);
-    handleCloseMenu();
-  };
-
-  const handleCloseEditDialog = () => {
-    setOpenEditDialog(false);
-    setSelectedUser(null);
-    setEditedUser(null);
-  };
-
-  const handleEditChange = (field, value) => {
-    setEditedUser(prev => ({
-      ...prev,
-      [field]: value
-    }));
-    
-    // Clear field error when user starts typing
-    clearFieldErrors(field, true);
-  };
-
-  const handleSaveEdit = async () => {
-    if (!editedUser) return;
-    
-    const isValid = validateEditForm();
-    if (!isValid) {
-      setError('Please fix the validation errors below');
-      return;
-    }
-    
-    setActionLoading(true);
-    setError(null);
-    setEditFieldErrors({});
-    
-    try {
-      const userDocRef = doc(db, 'user_data', editedUser.id);
-      
-      await updateDoc(userDocRef, {
-        firstName: editedUser.firstName,
-        lastName: editedUser.lastName,
-        mobile: editedUser.mobile,
-        email: editedUser.email,
-        userType: editedUser.userType,
-        teamMemberStatus: editedUser.teamMemberStatus,
-        address: editedUser.address,
-        aadharNo: editedUser.aadharNo,
-        dob: editedUser.dob,
-        preferredCompanies: editedUser.preferredCompanies,
-        teamCode: editedUser.teamCode,
-        teamName: editedUser.teamName,
-        isTeamOwner: editedUser.isTeamOwner,
-        profileCompletion: editedUser.profileCompletion,
-        password: editedUser.password,
-        userId: editedUser.userId,
-        isBlocked: editedUser.isBlocked,
-        updatedAt: new Date()
-      });
-      
-      // Update state
-      setUsers(prevUsers => prevUsers.map(user => 
-        user.id === editedUser.id ? editedUser : user
-      ));
-      
-      setFilteredUsers(prevUsers => prevUsers.map(user => 
-        user.id === editedUser.id ? editedUser : user
-      ));
-      
-      setActionLoading(false);
-      handleCloseEditDialog();
-    } catch (error) {
-      console.error('Error updating user:', error);
-      setError(error.message);
-      setActionLoading(false);
-    }
   };
 
   // Create user handlers
@@ -744,109 +544,183 @@ export default function Users() {
     return !hasErrors;
   };
 
-  const validateEditForm = () => {
-    const errors = {};
-    let hasErrors = false;
-    
-    // Required field validations
-    if (!editedUser.firstName.trim()) {
-      errors.firstName = 'First name is required';
-      hasErrors = true;
-    }
-    
-    if (!editedUser.userType.trim()) {
-      errors.userType = 'User type is required';
-      hasErrors = true;
-    }
-    
-    if (!editedUser.mobile.trim()) {
-      errors.mobile = 'Mobile number is required';
-      hasErrors = true;
-    } else if (!/^\d{10}$/.test(editedUser.mobile.replace(/\s/g, ''))) {
-      errors.mobile = 'Mobile number must be exactly 10 digits';
-      hasErrors = true;
-    }
-    
-    if (editedUser.password && !/^\d{6}$/.test(editedUser.password)) {
-      errors.password = 'MPIN must be exactly 6 digits';
-      hasErrors = true;
-    }
-    
-    // Optional field validations
-    if (editedUser.aadharNo && !/^\d{12}$/.test(editedUser.aadharNo.replace(/\s/g, ''))) {
-      errors.aadharNo = 'Aadhar number must be exactly 12 digits';
-      hasErrors = true;
-    }
-    
-    if (editedUser.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(editedUser.email)) {
-      errors.email = 'Please enter a valid email address';
-      hasErrors = true;
-    }
-    
-    if (!editedUser.preferredCompanies || editedUser.preferredCompanies.length === 0) {
-      errors.preferredCompanies = 'Select at least one company';
-      hasErrors = true;
-    }
-    
-    setEditFieldErrors(errors);
-    return !hasErrors;
-  };
+
 
   // Input validation handlers
-  const handleMobileChange = (value, isEdit = false) => {
+  const handleMobileChange = (value) => {
     // Only allow digits and limit to 10 characters
     const cleaned = value.replace(/\D/g, '').slice(0, 10);
-    if (isEdit) {
-      handleEditChange('mobile', cleaned);
-    } else {
-      handleCreateChange('mobile', cleaned);
-    }
+    handleCreateChange('mobile', cleaned);
   };
 
-  const handlePasswordChange = (value, isEdit = false) => {
+  const handlePasswordChange = (value) => {
     // Only allow digits and limit to 6 characters
     const cleaned = value.replace(/\D/g, '').slice(0, 6);
-    if (isEdit) {
-      handleEditChange('password', cleaned);
-    } else {
-      handleCreateChange('password', cleaned);
-    }
+    handleCreateChange('password', cleaned);
   };
 
-  const handleAadharChange = (value, isEdit = false) => {
+  const handleAadharChange = (value) => {
     // Only allow digits and limit to 12 characters
     const cleaned = value.replace(/\D/g, '').slice(0, 12);
-    if (isEdit) {
-      handleEditChange('aadharNo', cleaned);
-    } else {
-      handleCreateChange('aadharNo', cleaned);
+    handleCreateChange('aadharNo', cleaned);
+  };
+
+  const clearFieldErrors = (field) => {
+    if (fieldErrors[field]) {
+      setFieldErrors(prev => ({
+        ...prev,
+        [field]: ''
+      }));
     }
   };
 
-  const clearFieldErrors = (field, isEdit = false) => {
-    if (isEdit) {
-      if (editFieldErrors[field]) {
-        setEditFieldErrors(prev => ({
-          ...prev,
-          [field]: ''
-        }));
-      }
-    } else {
-      if (fieldErrors[field]) {
-        setFieldErrors(prev => ({
-          ...prev,
-          [field]: ''
-        }));
-      }
-    }
+  const handleTogglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
   };
 
-  const handleTogglePasswordVisibility = (isEdit = false) => {
-    if (isEdit) {
-      setShowEditPassword(!showEditPassword);
-    } else {
-      setShowPassword(!showPassword);
-    }
+  const renderUserFields = (user) => {
+    return (
+      <Grid container spacing={2} sx={{ mt: 1 }} direction="column">
+        <Grid item xs={12} md={6}>
+          <TextField
+            fullWidth
+            label="First Name"
+            value={user?.firstName || ''}
+            InputProps={{ readOnly: true }}
+          />
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <TextField
+            fullWidth
+            label="Last Name"
+            value={user?.lastName || ''}
+            InputProps={{ readOnly: true }}
+          />
+        </Grid>
+        {/* <Grid item xs={12} md={6}>
+          <TextField
+            fullWidth
+            label="User ID"
+            value={user?.userId || ''}
+            InputProps={{ readOnly: true }}
+          />
+        </Grid> */}
+        <Grid item xs={12} md={6}>
+          <TextField
+            fullWidth
+            label="User Type"
+            value={getUserType(user) || ''}
+            InputProps={{ readOnly: true }}
+          />
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <TextField
+            fullWidth
+            label="Email"
+            value={user?.email || ''}
+            InputProps={{ readOnly: true }}
+          />
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <TextField
+            fullWidth
+            label="Mobile"
+            value={user?.mobile || ''}
+            InputProps={{ readOnly: true }}
+          />
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <TextField
+            fullWidth
+            label="Date of Birth"
+            value={user?.dob || ''}
+            InputProps={{ readOnly: true }}
+          />
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <TextField
+            fullWidth
+            label="Aadhar Number"
+            value={user?.aadharNo || ''}
+            InputProps={{ readOnly: true }}
+          />
+        </Grid>
+        <Grid item xs={12}>
+          <TextField
+            fullWidth
+            label="Address"
+            value={user?.address || ''}
+            InputProps={{ readOnly: true }}
+            multiline
+            rows={2}
+          />
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <TextField
+            fullWidth
+            label="Team Name"
+            value={user?.teamName || ''}
+            InputProps={{ readOnly: true }}
+          />
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <TextField
+            fullWidth
+            label="Team Code"
+            value={user?.teamCode || ''}
+            InputProps={{ readOnly: true }}
+          />
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <TextField
+            fullWidth
+            label="Team Member Status"
+            value={user?.teamMemberStatus || ''}
+            InputProps={{ readOnly: true }}
+          />
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <TextField
+            fullWidth
+            label="Team Owner"
+            value={user?.isTeamOwner ? 'Yes' : 'No'}
+            InputProps={{ readOnly: true }}
+          />
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <TextField
+            fullWidth
+            label="Profile Completion"
+            value={`${calculateProfileCompletion(user)}%`}
+            InputProps={{ readOnly: true }}
+          />
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <TextField
+            fullWidth
+            label="Preferred Companies"
+            value={formatPreferredCompanies(user?.preferredCompanies)}
+            InputProps={{ readOnly: true }}
+          />
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <TextField
+            fullWidth
+            label="Created Date"
+            value={formatDate(user?.createdAt)}
+            InputProps={{ readOnly: true }}
+          />
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <TextField
+            fullWidth
+            label="Status"
+            value={user?.isBlocked ? 'Blocked' : 'Active'}
+            InputProps={{ readOnly: true }}
+          />
+        </Grid>
+      </Grid>
+    );
   };
 
   useEffect(() => {
@@ -990,12 +864,11 @@ export default function Users() {
                     <StyledTableCell>{formatPreferredCompanies(user.preferredCompanies)}</StyledTableCell>
                     <StyledTableCell align="right">
                       <IconButton
-                        aria-label="more"
-                        aria-controls="row-menu"
-                        aria-haspopup="true"
-                        onClick={(event) => handleOpenMenu(event, user)}
+                        onClick={() => handleViewUser(user)}
+                        color="primary"
+                        size="small"
                       >
-                        <MoreVertIcon />
+                        <VisibilityIcon />
                       </IconButton>
                     </StyledTableCell>
                   </StyledTableRow>
@@ -1025,378 +898,35 @@ export default function Users() {
         />
       </Card>
 
-      {/* Row Actions Menu */}
-      <Menu
-        id="row-menu"
-        anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
-        onClose={handleCloseMenu}
-        elevation={3}
-        PaperProps={{
-          sx: {
-            borderRadius: 2,
-            minWidth: 180,
-            boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-          }
-        }}
+      {/* View User Dialog */}
+      <Dialog
+        open={viewDialogOpen}
+        onClose={() => setViewDialogOpen(false)}
+        maxWidth="md"
+        fullWidth
       >
-        <MenuItem onClick={() => handleOpenEditDialog(selectedRow)}>
-          <ListItemIcon>
-            <EditIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText primary="Edit" />
-        </MenuItem>
-        <MenuItem onClick={() => handleOpenBlockDialog(selectedRow)}>
-          <ListItemIcon>
-            {selectedRow?.isBlocked ? <ActiveIcon fontSize="small" color="success" /> : <BlockIcon fontSize="small" color="error" />}
-          </ListItemIcon>
-          <ListItemText primary={selectedRow?.isBlocked ? "Unblock User" : "Block User"} />
-        </MenuItem>
-        <Divider />
-        <MenuItem onClick={() => handleOpenDeleteDialog(selectedRow)}>
-          <ListItemIcon>
-            <DeleteIcon fontSize="small" color="error" />
-          </ListItemIcon>
-          <ListItemText primary="Delete" sx={{ color: 'error.main' }} />
-        </MenuItem>
-      </Menu>
-
-      {/* Edit User Dialog */}
-      <Dialog open={openEditDialog} onClose={handleCloseEditDialog} maxWidth="md" fullWidth>
-        <DialogTitle>
-          <Typography variant="h6" fontWeight={600}>
-            Edit User
-          </Typography>
-        </DialogTitle>
-        <DialogContent dividers>
-          {editedUser && (
-            <Grid container spacing={3}>
-              {/* Basic Information */}
-              <Grid item xs={12}>
-                <Typography variant="h6" fontWeight={600} sx={{ mb: 2, color: 'primary.main' }}>
-                  Basic Information
-                </Typography>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="First Name"
-                  value={editedUser.firstName}
-                  onChange={(e) => handleEditChange('firstName', e.target.value)}
-                  required
-                  error={!!editFieldErrors.firstName}
-                  helperText={editFieldErrors.firstName}
-                  margin="normal"
-                  variant="outlined"
-                  sx={{ mb: 2 }}
+        {selectedUser && (
+          <>
+            <DialogTitle>
+              <Box display="flex" justifyContent="space-between" alignItems="center">
+                <Typography variant="h6" fontWeight={600}>User Details</Typography>
+                <UserStatusChip
+                  label={selectedUser.isBlocked ? 'Blocked' : 'Active'}
+                  status={selectedUser.isBlocked ? 'blocked' : 'active'}
+                  size="small"
                 />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Last Name"
-                  value={editedUser.lastName}
-                  onChange={(e) => handleEditChange('lastName', e.target.value)}
-                  margin="normal"
-                  variant="outlined"
-                  sx={{ mb: 2 }}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="User ID"
-                  value={editedUser.userId}
-                  onChange={(e) => handleEditChange('userId', e.target.value)}
-                  margin="normal"
-                  variant="outlined"
-                  sx={{ mb: 2 }}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Date of Birth"
-                  type="date"
-                  value={editedUser.dob}
-                  onChange={(e) => handleEditChange('dob', e.target.value)}
-                  margin="normal"
-                  variant="outlined"
-                  InputLabelProps={{ shrink: true }}
-                  sx={{ mb: 2 }}
-                />
-              </Grid>
-
-              {/* Contact Information */}
-              <Grid item xs={12}>
-                <Typography variant="h6" fontWeight={600} sx={{ mb: 2, color: 'primary.main' }}>
-                  Contact Information
-                </Typography>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Email"
-                  value={editedUser.email}
-                  onChange={(e) => handleEditChange('email', e.target.value)}
-                  margin="normal"
-                  variant="outlined"
-                  sx={{ mb: 2 }}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Mobile"
-                  value={editedUser.mobile}
-                  onChange={(e) => handleMobileChange(e.target.value, true)}
-                  required
-                  error={!!editFieldErrors.mobile}
-                  helperText={editFieldErrors.mobile}
-                  placeholder="Enter exactly 10 digits (e.g., 9876543210)"
-                  margin="normal"
-                  variant="outlined"
-                  sx={{ mb: 2 }}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Address"
-                  value={editedUser.address}
-                  onChange={(e) => handleEditChange('address', e.target.value)}
-                  margin="normal"
-                  variant="outlined"
-                  multiline
-                  rows={2}
-                  sx={{ mb: 2 }}
-                />
-              </Grid>
-
-              {/* User Type & Status */}
-              <Grid item xs={12}>
-                <Typography variant="h6" fontWeight={600} sx={{ mb: 2, color: 'primary.main' }}>
-                  User Type & Status
-                </Typography>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <FormControl fullWidth required error={!!editFieldErrors.userType} margin="normal" sx={{ mb: 2 }}>
-                  <InputLabel>User Type</InputLabel>
-                  <Select
-                    value={editedUser.userType}
-                    onChange={(e) => handleEditChange('userType', e.target.value)}
-                    label="User Type"
-                  >
-                    <MenuItem value="user">User</MenuItem>
-                    <MenuItem value="Team Leader">Team Leader</MenuItem>
-                    <MenuItem value="admin">Admin</MenuItem>
-                    <MenuItem value="individual">Individual</MenuItem>
-                    <MenuItem value="teamMember">Team Member</MenuItem>
-                    <MenuItem value="teamOwner">Team Owner</MenuItem>
-                  </Select>
-                  {editFieldErrors.userType && (
-                    <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.5 }}>
-                      {editFieldErrors.userType}
-                    </Typography>
-                  )}
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <FormControl fullWidth margin="normal" sx={{ mb: 2 }}>
-                  <InputLabel>Team Member Status</InputLabel>
-                  <Select
-                    value={editedUser.teamMemberStatus}
-                    onChange={(e) => handleEditChange('teamMemberStatus', e.target.value)}
-                    label="Team Member Status"
-                  >
-                    <MenuItem value="active">Active</MenuItem>
-                    <MenuItem value="inactive">Inactive</MenuItem>
-                    <MenuItem value="pending">Pending</MenuItem>
-                    <MenuItem value="rejected">Rejected</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-
-              {/* Team Information */}
-              <Grid item xs={12}>
-                <Typography variant="h6" fontWeight={600} sx={{ mb: 2, color: 'primary.main' }}>
-                  Team Information
-                </Typography>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Team Code"
-                  value={editedUser.teamCode}
-                  onChange={(e) => handleEditChange('teamCode', e.target.value)}
-                  margin="normal"
-                  variant="outlined"
-                  sx={{ mb: 2 }}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Team Name"
-                  value={editedUser.teamName}
-                  onChange={(e) => handleEditChange('teamName', e.target.value)}
-                  margin="normal"
-                  variant="outlined"
-                  sx={{ mb: 2 }}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <FormControl fullWidth margin="normal" sx={{ mb: 2 }}>
-                  <InputLabel>Is Team Owner</InputLabel>
-                  <Select
-                    value={editedUser.isTeamOwner ? 'true' : 'false'}
-                    onChange={(e) => handleEditChange('isTeamOwner', e.target.value === 'true')}
-                    label="Is Team Owner"
-                  >
-                    <MenuItem value="true">Yes</MenuItem>
-                    <MenuItem value="false">No</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Profile Completion (%)"
-                  type="number"
-                  value={editedUser.profileCompletion}
-                  onChange={(e) => handleEditChange('profileCompletion', parseInt(e.target.value) || 0)}
-                  margin="normal"
-                  variant="outlined"
-                  inputProps={{ min: 0, max: 100 }}
-                  sx={{ mb: 2 }}
-                />
-              </Grid>
-
-              {/* Additional Information */}
-              <Grid item xs={12}>
-                <Typography variant="h6" fontWeight={600} sx={{ mb: 2, color: 'primary.main' }}>
-                  Additional Information
-                </Typography>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="MPIN"
-                  type={showEditPassword ? 'text' : 'password'}
-                  value={editedUser.password}
-                  onChange={(e) => handlePasswordChange(e.target.value, true)}
-                  error={!!editFieldErrors.password}
-                  helperText={editFieldErrors.password}
-                  placeholder="Enter exactly 6 digits"
-                  margin="normal"
-                  variant="outlined"
-                  sx={{ mb: 2 }}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <BadgeIcon color="action" />
-                      </InputAdornment>
-                    ),
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton
-                          aria-label="toggle password visibility"
-                          onClick={() => handleTogglePasswordVisibility(true)}
-                          edge="end"
-                        >
-                          {showEditPassword ? <VisibilityOff /> : <Visibility />}
-                        </IconButton>
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Aadhar Number"
-                  value={editedUser.aadharNo}
-                  onChange={(e) => handleAadharChange(e.target.value, true)}
-                  error={!!editFieldErrors.aadharNo}
-                  helperText={editFieldErrors.aadharNo}
-                  placeholder="Enter exactly 12 digits (optional)"
-                  margin="normal"
-                  variant="outlined"
-                  sx={{ mb: 2 }}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <FormControl fullWidth margin="normal" sx={{ mb: 2 }}>
-                  <InputLabel>Blocked Status</InputLabel>
-                  <Select
-                    value={editedUser.isBlocked ? 'true' : 'false'}
-                    onChange={(e) => handleEditChange('isBlocked', e.target.value === 'true')}
-                    label="Blocked Status"
-                  >
-                    <MenuItem value="false">Not Blocked</MenuItem>
-                    <MenuItem value="true">Blocked</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <FormControl component="fieldset" required>
-                  <Typography variant="subtitle1" sx={{ mb: 1 }}>
-                    Preferred Companies
-                  </Typography>
-                  <FormGroup row>
-                    {companyOptions.map((company) => (
-                      <FormControlLabel
-                        key={company}
-                        control={
-                          <Checkbox
-                            checked={editedUser.preferredCompanies?.includes(company)}
-                            onChange={(e) => {
-                              let updated = [...(editedUser.preferredCompanies || [])];
-                              if (e.target.checked) {
-                                updated.push(company);
-                              } else {
-                                if (updated.length === 1) return; // Prevent removing last
-                                updated = updated.filter((c) => c !== company);
-                              }
-                              setEditedUser((prev) => ({ ...prev, preferredCompanies: updated }));
-                              clearFieldErrors('preferredCompanies', true);
-                            }}
-                            name={company}
-                          />
-                        }
-                        label={company}
-                      />
-                    ))}
-                  </FormGroup>
-                  {editFieldErrors.preferredCompanies && (
-                    <Typography variant="caption" color="error">
-                      {editFieldErrors.preferredCompanies}
-                    </Typography>
-                  )}
-                </FormControl>
-              </Grid>
-            </Grid>
-          )}
-        </DialogContent>
-        <DialogActions sx={{ px: 3, py: 2 }}>
-          <Button 
-            onClick={handleCloseEditDialog} 
-            variant="outlined"
-            color="inherit"
-            sx={{ borderRadius: 2, px: 3 }}
-          >
-            Cancel
-          </Button>
-          <Button 
-            onClick={handleSaveEdit} 
-            variant="contained"
-            disabled={actionLoading}
-            startIcon={actionLoading ? <CircularProgress size={20} /> : <SaveIcon />}
-            sx={{ borderRadius: 2, px: 3 }}
-          >
-            Save Changes
-          </Button>
-        </DialogActions>
+              </Box>
+            </DialogTitle>
+            <DialogContent dividers>
+              {renderUserFields(selectedUser)}
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setViewDialogOpen(false)}>
+                Close
+              </Button>
+            </DialogActions>
+          </>
+        )}
       </Dialog>
 
       {/* Create User Dialog */}
@@ -1773,79 +1303,6 @@ export default function Users() {
               Create User
             </Button>
           )}
-        </DialogActions>
-      </Dialog>
-
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={openDeleteDialog} onClose={handleCloseDeleteDialog}>
-        <DialogTitle>
-          <Typography variant="h6" fontWeight={600}>
-            Confirm Delete
-          </Typography>
-        </DialogTitle>
-        <DialogContent>
-          <Typography variant="body1">
-            Are you sure you want to delete the user <strong>{userToDelete?.firstName} {userToDelete?.lastName}</strong>? This action cannot be undone.
-          </Typography>
-        </DialogContent>
-        <DialogActions sx={{ px: 3, py: 2 }}>
-          <Button 
-            onClick={handleCloseDeleteDialog} 
-            variant="outlined"
-            color="inherit"
-            sx={{ borderRadius: 2 }}
-          >
-            Cancel
-          </Button>
-          <Button 
-            onClick={handleDeleteUser} 
-            variant="contained"
-            color="error"
-            disabled={actionLoading}
-            startIcon={actionLoading ? <CircularProgress size={20} /> : <DeleteIcon />}
-            sx={{ borderRadius: 2 }}
-          >
-            Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Block/Unblock Confirmation Dialog */}
-      <Dialog open={openBlockDialog} onClose={handleCloseBlockDialog}>
-        <DialogTitle>
-          <Typography variant="h6" fontWeight={600}>
-            {userToToggleBlock?.isBlocked ? 'Unblock User' : 'Block User'}
-          </Typography>
-        </DialogTitle>
-        <DialogContent>
-          <Typography variant="body1">
-            {userToToggleBlock?.isBlocked
-              ? `Are you sure you want to unblock ${userToToggleBlock?.firstName} ${userToToggleBlock?.lastName}?`
-              : `Are you sure you want to block ${userToToggleBlock?.firstName} ${userToToggleBlock?.lastName}? This will prevent them from using the system.`}
-          </Typography>
-        </DialogContent>
-        <DialogActions sx={{ px: 3, py: 2 }}>
-          <Button 
-            onClick={handleCloseBlockDialog} 
-            variant="outlined"
-            color="inherit"
-            sx={{ borderRadius: 2 }}
-          >
-            Cancel
-          </Button>
-          <Button 
-            onClick={handleToggleBlockUser} 
-            variant="contained"
-            color={userToToggleBlock?.isBlocked ? "success" : "warning"}
-            disabled={actionLoading}
-            startIcon={actionLoading ? 
-              <CircularProgress size={20} /> : 
-              userToToggleBlock?.isBlocked ? <ActiveIcon /> : <BlockIcon />
-            }
-            sx={{ borderRadius: 2 }}
-          >
-            {userToToggleBlock?.isBlocked ? 'Unblock' : 'Block'}
-          </Button>
         </DialogActions>
       </Dialog>
 

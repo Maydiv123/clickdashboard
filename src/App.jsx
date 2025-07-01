@@ -13,6 +13,9 @@ import DashboardLayout from './layouts/DashboardLayout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Users from './pages/Users';
+import UsersCreate from './pages/UsersCreate';
+import UsersEdit from './pages/UsersEdit';
+import UsersDelete from './pages/UsersDelete';
 import PetrolPumps from './pages/PetrolPumps';
 import PetrolPumpsView from './pages/PetrolPumpsView';
 import PetrolPumpsCreate from './pages/PetrolPumpsCreate';
@@ -151,6 +154,9 @@ function App() {
             <Route path="/" element={user ? <DashboardLayout /> : <Navigate to="/login" />}>
               <Route index element={<Dashboard />} />
               <Route path="users" element={<Users />} />
+              <Route path="users/create" element={<UsersCreate />} />
+              <Route path="users/edit" element={<UsersEdit />} />
+              <Route path="users/delete" element={<UsersDelete />} />
               <Route path="petrol-pumps" element={<PetrolPumps />} />
               <Route path="petrol-pumps/create" element={<PetrolPumpsCreate />} />
               <Route path="petrol-pumps/edit" element={<PetrolPumpsEdit />} />

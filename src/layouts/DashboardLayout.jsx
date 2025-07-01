@@ -236,7 +236,17 @@ const Footer = styled(Paper, {
 
 const menuItems = [
   { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
-  { text: 'Users', icon: <PeopleIcon />, path: '/users' },
+  { 
+    text: 'Users', 
+    icon: <PeopleIcon />, 
+    hasSubmenu: true,
+    submenu: [
+      { text: 'View All', icon: <VisibilityIcon />, path: '/users' },
+      { text: 'Create New', icon: <AddIcon />, path: '/users/create' },
+      { text: 'Edit', icon: <EditIcon />, path: '/users/edit' },
+      { text: 'Delete', icon: <DeleteIcon />, path: '/users/delete' },
+    ]
+  },
   { 
     text: 'Petrol Pumps', 
     icon: <PetrolPumpIcon />, 
