@@ -338,7 +338,7 @@ export default function PetrolPumpsCreate() {
       <Card sx={{ borderRadius: 3, boxShadow: 3 }}>
         <CardContent sx={{ p: 4 }}>
           <form onSubmit={handleSubmit}>
-            <Grid container spacing={3} direction="column">
+            <Grid container spacing={2} direction="column">
               {/* Basic Information Section */}
               <Grid item>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
@@ -349,81 +349,86 @@ export default function PetrolPumpsCreate() {
                 </Box>
               </Grid>
 
-              <Grid item>
-                <TextField
-                  fullWidth
-                  label="Customer Name"
-                  value={formData.customerName}
-                  onChange={(e) => handleInputChange('customerName', e.target.value)}
-                  required
-                  error={!!fieldErrors.customerName}
-                  helperText={fieldErrors.customerName}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <PersonIcon color="action" />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-              </Grid>
+              <Grid container spacing={2}>
 
-              <Grid item>
-                <TextField
-                  fullWidth
-                  label="Dealer Name"
-                  value={formData.dealerName}
-                  onChange={(e) => handleInputChange('dealerName', e.target.value)}
-                  required
-                  error={!!fieldErrors.dealerName}
-                  helperText={fieldErrors.dealerName}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <PersonIcon color="action" />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-              </Grid>
+              <Grid item xs={12} sm={6} sx={{ width: '300px' }}>
+                  <FormControl fullWidth required>
+                    <InputLabel>Company</InputLabel>
+                    <Select
+                      value={formData.company}
+                      onChange={(e) => handleInputChange('company', e.target.value)}
+                      startAdornment={
+                        <InputAdornment position="start">
+                          <BusinessIcon color="action" />
+                        </InputAdornment>
+                      }
+                    >
+                      <MenuItem value="HPCL">HPCL</MenuItem>
+                      <MenuItem value="BPCL">BPCL</MenuItem>
+                      <MenuItem value="IOCL">IOCL</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
 
-              <Grid item>
-                <FormControl fullWidth required>
-                  <InputLabel>Company</InputLabel>
-                  <Select
-                    value={formData.company}
-                    onChange={(e) => handleInputChange('company', e.target.value)}
-                    startAdornment={
-                      <InputAdornment position="start">
-                        <BusinessIcon color="action" />
-                      </InputAdornment>
-                    }
-                  >
-                    <MenuItem value="HPCL">HPCL</MenuItem>
-                    <MenuItem value="BPCL">BPCL</MenuItem>
-                    <MenuItem value="IOCL">IOCL</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
+                <Grid item xs={12} sm={6} sx={{ width: '700px' }}>
+                  <TextField
+                    fullWidth
+                    label="Petrol Pump Name"
+                    value={formData.customerName}
+                    onChange={(e) => handleInputChange('customerName', e.target.value)}
+                    required
+                    error={!!fieldErrors.customerName}
+                    helperText={fieldErrors.customerName}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <PersonIcon color="action" />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Grid>
 
-              <Grid item>
-                <TextField
-                  fullWidth
-                  label="SAP Code"
-                  value={formData.sapCode}
-                  onChange={(e) => handleSapCodeChange(e.target.value)}
-                  required
-                  error={!!fieldErrors.sapCode}
-                  helperText={fieldErrors.sapCode}
-                  placeholder="Enter at least 6 digits (numbers only)"
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <BadgeIcon color="action" />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
+                <Grid item xs={12} sm={6} sx={{ width: '300px' }}>
+                  <TextField
+                    fullWidth
+                    label="SAP Code"
+                    value={formData.sapCode}
+                    onChange={(e) => handleSapCodeChange(e.target.value)}
+                    required
+                    error={!!fieldErrors.sapCode}
+                    helperText={fieldErrors.sapCode}
+                    placeholder="Enter at least 6 digits (numbers only)"
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <BadgeIcon color="action" />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Grid>
+
+                <Grid item xs={12} sm={6} sx={{ width: '700px' }}>
+                  <TextField
+                    fullWidth
+                    label="Dealer Name"
+                    value={formData.dealerName}
+                    onChange={(e) => handleInputChange('dealerName', e.target.value)}
+                    required
+                    error={!!fieldErrors.dealerName}
+                    helperText={fieldErrors.dealerName}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <PersonIcon color="action" />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Grid>
+
+                
               </Grid>
 
               {/* Company Information Section */}
@@ -436,94 +441,96 @@ export default function PetrolPumpsCreate() {
                 </Box>
               </Grid>
 
-              <Grid item>
-                <FormControl fullWidth required error={!!fieldErrors.zone}>
-                  <InputLabel>Zone</InputLabel>
-                  <Select
-                    value={formData.zone}
-                    onChange={(e) => handleInputChange('zone', e.target.value)}
-                    startAdornment={
-                      <InputAdornment position="start">
-                        <LocationIcon color="action" />
-                      </InputAdornment>
-                    }
-                  >
-                    {zoneOptions.map((zone) => (
-                      <MenuItem key={zone} value={zone}>
-                        {zone}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                  {fieldErrors.zone && (
-                    <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.5 }}>
-                      {fieldErrors.zone}
-                    </Typography>
-                  )}
-                </FormControl>
-              </Grid>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6} sx={{ width: '300px' }}>
+                  <FormControl fullWidth required error={!!fieldErrors.zone}>
+                    <InputLabel>Zone</InputLabel>
+                    <Select
+                      value={formData.zone}
+                      onChange={(e) => handleInputChange('zone', e.target.value)}
+                      startAdornment={
+                        <InputAdornment position="start">
+                          <LocationIcon color="action" />
+                        </InputAdornment>
+                      }
+                    >
+                      {zoneOptions.map((zone) => (
+                        <MenuItem key={zone} value={zone}>
+                          {zone}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                    {fieldErrors.zone && (
+                      <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.5 }}>
+                        {fieldErrors.zone}
+                      </Typography>
+                    )}
+                  </FormControl>
+                </Grid>
 
-              <Grid item>
-                <TextField
-                  fullWidth
-                  label="Sales Area"
-                  value={formData.salesArea}
-                  onChange={(e) => handleInputChange('salesArea', e.target.value)}
-                  required
-                  error={!!fieldErrors.salesArea}
-                  helperText={fieldErrors.salesArea}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <LocationIcon color="action" />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-              </Grid>
+                <Grid item xs={12} sm={6} sx={{ width: '500px' }}>
+                  <TextField
+                    fullWidth
+                    label="Sales Area"
+                    value={formData.salesArea}
+                    onChange={(e) => handleInputChange('salesArea', e.target.value)}
+                    required
+                    error={!!fieldErrors.salesArea}
+                    helperText={fieldErrors.salesArea}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <LocationIcon color="action" />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Grid>
 
-              <Grid item>
-                <FormControl fullWidth required error={!!fieldErrors.coClDo}>
-                  <InputLabel>CO/CL/DO</InputLabel>
-                  <Select
-                    value={formData.coClDo}
-                    onChange={(e) => handleInputChange('coClDo', e.target.value)}
-                    startAdornment={
-                      <InputAdornment position="start">
-                        <BusinessIcon color="action" />
-                      </InputAdornment>
-                    }
-                  >
-                    {coClDoOptions.map((option) => (
-                      <MenuItem key={option} value={option}>
-                        {option}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                  {fieldErrors.coClDo && (
-                    <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.5 }}>
-                      {fieldErrors.coClDo}
-                    </Typography>
-                  )}
-                </FormControl>
-              </Grid>
+                <Grid item xs={12} sm={6} sx={{ width: '300px' }}>
+                  <FormControl fullWidth required error={!!fieldErrors.coClDo}>
+                    <InputLabel>CO/CL/DO</InputLabel>
+                    <Select
+                      value={formData.coClDo}
+                      onChange={(e) => handleInputChange('coClDo', e.target.value)}
+                      startAdornment={
+                        <InputAdornment position="start">
+                          <BusinessIcon color="action" />
+                        </InputAdornment>
+                      }
+                    >
+                      {coClDoOptions.map((option) => (
+                        <MenuItem key={option} value={option}>
+                          {option}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                    {fieldErrors.coClDo && (
+                      <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.5 }}>
+                        {fieldErrors.coClDo}
+                      </Typography>
+                    )}
+                  </FormControl>
+                </Grid>
 
-              <Grid item>
-                <TextField
-                  fullWidth
-                  label="Regional Office"
-                  value={formData.regionalOffice}
-                  onChange={(e) => handleInputChange('regionalOffice', e.target.value)}
-                  required
-                  error={!!fieldErrors.regionalOffice}
-                  helperText={fieldErrors.regionalOffice}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <BusinessIcon color="action" />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
+                <Grid item xs={12} sm={6} sx={{ width: '500px' }}>
+                  <TextField
+                    fullWidth
+                    label="Regional Office"
+                    value={formData.regionalOffice}
+                    onChange={(e) => handleInputChange('regionalOffice', e.target.value)}
+                    required
+                    error={!!fieldErrors.regionalOffice}
+                    helperText={fieldErrors.regionalOffice}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <BusinessIcon color="action" />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Grid>
               </Grid>
 
               {/* Location Information Section */}
@@ -536,174 +543,178 @@ export default function PetrolPumpsCreate() {
                 </Box>
               </Grid>
 
-              <Grid item>
-                <Autocomplete
-                  freeSolo
-                  value={formData.district}
-                  onChange={(event, newValue) => {
-                    if (typeof newValue === 'string') {
-                      handleInputChange('district', newValue);
-                    } else if (newValue && newValue.inputValue) {
-                      handleInputChange('district', newValue.inputValue);
-                    } else if (newValue) {
-                      handleInputChange('district', newValue.title);
-                    }
-                  }}
-                  onInputChange={(event, newInputValue) => {
-                    handleInputChange('district', newInputValue);
-                  }}
-                  options={districts.map((district) => ({
-                    title: district,
-                    inputValue: district
-                  }))}
-                  getOptionLabel={(option) => {
-                    if (typeof option === 'string') {
-                      return option;
-                    }
-                    if (option.inputValue) {
-                      return option.inputValue;
-                    }
-                    return option.title;
-                  }}
-                  filterOptions={(options, params) => {
-                    const filtered = options.filter((option) =>
-                      option.title.toLowerCase().includes(params.inputValue.toLowerCase())
-                    );
-                    
-                    const { inputValue } = params;
-                    const isExisting = options.some((option) => inputValue === option.title);
-                    if (inputValue !== '' && !isExisting) {
-                      filtered.push({
-                        inputValue,
-                        title: `Add "${inputValue}"`,
-                      });
-                    }
-                    
-                    return filtered;
-                  }}
-                  renderOption={(props, option) => (
-                    <li {...props}>
-                      {option.title}
-                    </li>
-                  )}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      label="District"
-                      required
-                      error={!!fieldErrors.district}
-                      helperText={fieldErrors.district}
-                      InputProps={{
-                        ...params.InputProps,
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <LocationIcon color="action" />
-                          </InputAdornment>
-                        ),
-                        endAdornment: (
-                          <>
-                            {fetchingDistricts ? (
-                              <CircularProgress size={20} sx={{ mr: 1 }} />
-                            ) : null}
-                            {params.InputProps.endAdornment}
-                          </>
-                        ),
-                      }}
-                    />
-                  )}
-                />
-              </Grid>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6} sx={{ width: '300px' }}>
+                  <Autocomplete
+                    freeSolo
+                    value={formData.district}
+                    onChange={(event, newValue) => {
+                      if (typeof newValue === 'string') {
+                        handleInputChange('district', newValue);
+                      } else if (newValue && newValue.inputValue) {
+                        handleInputChange('district', newValue.inputValue);
+                      } else if (newValue) {
+                        handleInputChange('district', newValue.title);
+                      }
+                    }}
+                    onInputChange={(event, newInputValue) => {
+                      handleInputChange('district', newInputValue);
+                    }}
+                    options={districts.map((district) => ({
+                      title: district,
+                      inputValue: district
+                    }))}
+                    getOptionLabel={(option) => {
+                      if (typeof option === 'string') {
+                        return option;
+                      }
+                      if (option.inputValue) {
+                        return option.inputValue;
+                      }
+                      return option.title;
+                    }}
+                    filterOptions={(options, params) => {
+                      const filtered = options.filter((option) =>
+                        option.title.toLowerCase().includes(params.inputValue.toLowerCase())
+                      );
+                      
+                      const { inputValue } = params;
+                      const isExisting = options.some((option) => inputValue === option.title);
+                      if (inputValue !== '' && !isExisting) {
+                        filtered.push({
+                          inputValue,
+                          title: `Add "${inputValue}"`,
+                        });
+                      }
+                      
+                      return filtered;
+                    }}
+                    renderOption={(props, option) => (
+                      <li {...props}>
+                        {option.title}
+                      </li>
+                    )}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="District"
+                        required
+                        error={!!fieldErrors.district}
+                        helperText={fieldErrors.district}
+                        InputProps={{
+                          ...params.InputProps,
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <LocationIcon color="action" />
+                            </InputAdornment>
+                          ),
+                          endAdornment: (
+                            <>
+                              {fetchingDistricts ? (
+                                <CircularProgress size={20} sx={{ mr: 1 }} />
+                              ) : null}
+                              {params.InputProps.endAdornment}
+                            </>
+                          ),
+                        }}
+                      />
+                    )}
+                  />
+                </Grid>
 
-              <Grid item>
-                <TextField
-                  fullWidth
-                  label="Address Line 1"
-                  value={formData.addressLine1}
-                  onChange={(e) => handleInputChange('addressLine1', e.target.value)}
-                  required
-                  error={!!fieldErrors.addressLine1}
-                  helperText={fieldErrors.addressLine1}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <LocationIcon color="action" />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-              </Grid>
+                <Grid item xs={12} sm={6} sx={{ width: '300px' }}>
+                  <TextField
+                    fullWidth
+                    label="Pincode"
+                    value={formData.pincode}
+                    onChange={(e) => handlePincodeChange(e.target.value)}
+                    required
+                    error={!!fieldErrors.pincode}
+                    helperText={fieldErrors.pincode}
+                    placeholder="Enter exactly 6 digits"
+                    inputProps={{ maxLength: 6 }}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <LocationIcon color="action" />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Grid>
 
-              <Grid item>
-                <TextField
-                  fullWidth
-                  label="Address Line 2"
-                  value={formData.addressLine2}
-                  onChange={(e) => handleInputChange('addressLine2', e.target.value)}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <LocationIcon color="action" />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-              </Grid>
+                <Grid item xs={12} sm={6} sx={{ width: '800px' }}>
+                  <TextField
+                    fullWidth
+                    label="Address Line 1"
+                    value={formData.addressLine1}
+                    onChange={(e) => handleInputChange('addressLine1', e.target.value)}
+                    required
+                    error={!!fieldErrors.addressLine1}
+                    helperText={fieldErrors.addressLine1}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <LocationIcon color="action" />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Grid>
 
-              <Grid item>
-                <TextField
-                  fullWidth
-                  label="Address Line 3"
-                  value={formData.addressLine3}
-                  onChange={(e) => handleInputChange('addressLine3', e.target.value)}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <LocationIcon color="action" />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-              </Grid>
+                <Grid item xs={12} sm={6} sx={{ width: '800px' }}>
+                  <TextField
+                    fullWidth
+                    label="Address Line 2"
+                    value={formData.addressLine2}
+                    onChange={(e) => handleInputChange('addressLine2', e.target.value)}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <LocationIcon color="action" />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Grid>
 
-              <Grid item>
-                <TextField
-                  fullWidth
-                  label="Address Line 4"
-                  value={formData.addressLine4}
-                  onChange={(e) => handleInputChange('addressLine4', e.target.value)}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <LocationIcon color="action" />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-              </Grid>
+                {/* <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Address Line 3"
+                    value={formData.addressLine3}
+                    onChange={(e) => handleInputChange('addressLine3', e.target.value)}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <LocationIcon color="action" />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Grid> */}
 
-              <Grid item>
-                <TextField
-                  fullWidth
-                  label="Pincode"
-                  value={formData.pincode}
-                  onChange={(e) => handlePincodeChange(e.target.value)}
-                  required
-                  error={!!fieldErrors.pincode}
-                  helperText={fieldErrors.pincode}
-                  placeholder="Enter exactly 6 digits (numbers only)"
-                  inputProps={{ maxLength: 6 }}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <LocationIcon color="action" />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
+                {/* <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Address Line 4"
+                    value={formData.addressLine4}
+                    onChange={(e) => handleInputChange('addressLine4', e.target.value)}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <LocationIcon color="action" />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Grid> */}
+
+                
               </Grid>
 
               {/* Contact Information Section */}
-              <Grid item>
+              <Grid item xs={12} sm={6}>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, mt: 2 }}>
                   <PhoneIcon sx={{ mr: 1, color: 'primary.main' }} />
                   <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
@@ -712,7 +723,7 @@ export default function PetrolPumpsCreate() {
                 </Box>
               </Grid>
 
-              <Grid item>
+              <Grid item xs={12} sm={6} sx={{ width: '300px' }}>
                 <TextField
                   fullWidth
                   label="Contact Details"
@@ -721,7 +732,7 @@ export default function PetrolPumpsCreate() {
                   required
                   error={!!fieldErrors.contactDetails}
                   helperText={fieldErrors.contactDetails}
-                  placeholder="Enter exactly 10 digits (e.g., 9876543210, no +91)"
+                  placeholder="Enter exactly 10 digits"
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
@@ -742,48 +753,50 @@ export default function PetrolPumpsCreate() {
                 </Box>
               </Grid>
 
-              <Grid item>
-                <TextField
-                  fullWidth
-                  label="Latitude"
-                  value={formData.location.latitude}
-                  onChange={(e) => handleLatitudeChange(e.target.value)}
-                  required
-                  error={!!fieldErrors.latitude}
-                  helperText={fieldErrors.latitude}
-                  placeholder="Enter latitude between -90 and 90 (e.g., 28.6139)"
-                  type="number"
-                  inputProps={{ step: 'any' }}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <MyLocationIcon color="action" />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-              </Grid>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6} sx={{ width: '300px' }}>
+                  <TextField
+                    fullWidth
+                    label="Latitude"
+                    value={formData.location.latitude}
+                    onChange={(e) => handleLatitudeChange(e.target.value)}
+                    required
+                    error={!!fieldErrors.latitude}
+                    helperText={fieldErrors.latitude}
+                    placeholder="Enter latitude between -90 and 90 (e.g., 28.6139)"
+                    type="number"
+                    inputProps={{ step: 'any' }}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <MyLocationIcon color="action" />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Grid>
 
-              <Grid item>
-                <TextField
-                  fullWidth
-                  label="Longitude"
-                  value={formData.location.longitude}
-                  onChange={(e) => handleLongitudeChange(e.target.value)}
-                  required
-                  error={!!fieldErrors.longitude}
-                  helperText={fieldErrors.longitude}
-                  placeholder="Enter longitude between -180 and 180 (e.g., 77.2090)"
-                  type="number"
-                  inputProps={{ step: 'any' }}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <MyLocationIcon color="action" />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
+                <Grid item xs={12} sm={6} sx={{ width: '300px' }}>
+                  <TextField
+                    fullWidth
+                    label="Longitude"
+                    value={formData.location.longitude}
+                    onChange={(e) => handleLongitudeChange(e.target.value)}
+                    required
+                    error={!!fieldErrors.longitude}
+                    helperText={fieldErrors.longitude}
+                    placeholder="Enter longitude between -180 and 180 (e.g., 77.2090)"
+                    type="number"
+                    inputProps={{ step: 'any' }}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <MyLocationIcon color="action" />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Grid>
               </Grid>
 
               {/* Submit Button */}
