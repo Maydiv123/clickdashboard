@@ -431,105 +431,138 @@ export default function PetrolPumpsCreate() {
                 
               </Grid>
 
-              {/* Company Information Section */}
-              <Grid item>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, mt: 2 }}>
-                  <BusinessIcon sx={{ mr: 1, color: 'primary.main' }} />
-                  <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                    Company Information
-                  </Typography>
-                </Box>
-              </Grid>
+              {/* Company Information and Contact Information Sections Side by Side */}
+              <Grid container spacing={3} >
+                {/* Company Information Section - 80% */}
+                <Grid item xs={12} md={8.6} sx={{ width: '650px' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, mt: 2 }}>
+                    <BusinessIcon sx={{ mr: 1, color: 'primary.main' }} />
+                    <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                      Company Information
+                    </Typography>
+                  </Box>
 
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={6} sx={{ width: '300px' }}>
-                  <FormControl fullWidth required error={!!fieldErrors.zone}>
-                    <InputLabel>Zone</InputLabel>
-                    <Select
-                      value={formData.zone}
-                      onChange={(e) => handleInputChange('zone', e.target.value)}
-                      startAdornment={
-                        <InputAdornment position="start">
-                          <LocationIcon color="action" />
-                        </InputAdornment>
-                      }
-                    >
-                      {zoneOptions.map((zone) => (
-                        <MenuItem key={zone} value={zone}>
-                          {zone}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                    {fieldErrors.zone && (
-                      <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.5 }}>
-                        {fieldErrors.zone}
-                      </Typography>
-                    )}
-                  </FormControl>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6} sx={{ width: '200px' }}>
+                      <FormControl fullWidth required error={!!fieldErrors.zone}>
+                        <InputLabel>Zone</InputLabel>
+                        <Select
+                          value={formData.zone}
+                          onChange={(e) => handleInputChange('zone', e.target.value)}
+                          startAdornment={
+                            <InputAdornment position="start">
+                              <LocationIcon color="action" />
+                            </InputAdornment>
+                          }
+                        >
+                          {zoneOptions.map((zone) => (
+                            <MenuItem key={zone} value={zone}>
+                              {zone}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                        {fieldErrors.zone && (
+                          <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.5 }}>
+                            {fieldErrors.zone}
+                          </Typography>
+                        )}
+                      </FormControl>
+                    </Grid>
+
+                    <Grid item xs={12} sm={6} sx={{ width: '400px' }}>
+                      <TextField
+                        fullWidth
+                        label="Sales Area"
+                        value={formData.salesArea}
+                        onChange={(e) => handleInputChange('salesArea', e.target.value)}
+                        required
+                        error={!!fieldErrors.salesArea}
+                        helperText={fieldErrors.salesArea}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <LocationIcon color="action" />
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                    </Grid>
+
+                    <Grid item xs={12} sm={6} sx={{ width: '200px' }}>
+                      <FormControl fullWidth required error={!!fieldErrors.coClDo}>
+                        <InputLabel>CO/CL/DO</InputLabel>
+                        <Select
+                          value={formData.coClDo}
+                          onChange={(e) => handleInputChange('coClDo', e.target.value)}
+                          startAdornment={
+                            <InputAdornment position="start">
+                              <BusinessIcon color="action" />
+                            </InputAdornment>
+                          }
+                        >
+                          {coClDoOptions.map((option) => (
+                            <MenuItem key={option} value={option}>
+                              {option}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                        {fieldErrors.coClDo && (
+                          <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.5 }}>
+                            {fieldErrors.coClDo}
+                          </Typography>
+                        )}
+                      </FormControl>
+                    </Grid>
+
+                    <Grid item xs={12} sm={6} sx={{ width: '400px' }}>
+                      <TextField
+                        fullWidth
+                        label="Regional Office"
+                        value={formData.regionalOffice}
+                        onChange={(e) => handleInputChange('regionalOffice', e.target.value)}
+                        required
+                        error={!!fieldErrors.regionalOffice}
+                        helperText={fieldErrors.regionalOffice}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <BusinessIcon color="action" />
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                    </Grid>
+                  </Grid>
                 </Grid>
 
-                <Grid item xs={12} sm={6} sx={{ width: '500px' }}>
-                  <TextField
-                    fullWidth
-                    label="Sales Area"
-                    value={formData.salesArea}
-                    onChange={(e) => handleInputChange('salesArea', e.target.value)}
-                    required
-                    error={!!fieldErrors.salesArea}
-                    helperText={fieldErrors.salesArea}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <LocationIcon color="action" />
-                        </InputAdornment>
-                      ),
-                    }}
-                  />
-                </Grid>
+                {/* Contact Information Section - 20% */}
+                <Grid item xs={12} md={3.6} sx={{ width: '300px' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, mt: 2 }}>
+                    <PhoneIcon sx={{ mr: 1, color: 'primary.main' }} />
+                    <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                      Contact Information
+                    </Typography>
+                  </Box>
 
-                <Grid item xs={12} sm={6} sx={{ width: '300px' }}>
-                  <FormControl fullWidth required error={!!fieldErrors.coClDo}>
-                    <InputLabel>CO/CL/DO</InputLabel>
-                    <Select
-                      value={formData.coClDo}
-                      onChange={(e) => handleInputChange('coClDo', e.target.value)}
-                      startAdornment={
-                        <InputAdornment position="start">
-                          <BusinessIcon color="action" />
-                        </InputAdornment>
-                      }
-                    >
-                      {coClDoOptions.map((option) => (
-                        <MenuItem key={option} value={option}>
-                          {option}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                    {fieldErrors.coClDo && (
-                      <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.5 }}>
-                        {fieldErrors.coClDo}
-                      </Typography>
-                    )}
-                  </FormControl>
-                </Grid>
-
-                <Grid item xs={12} sm={6} sx={{ width: '500px' }}>
-                  <TextField
-                    fullWidth
-                    label="Regional Office"
-                    value={formData.regionalOffice}
-                    onChange={(e) => handleInputChange('regionalOffice', e.target.value)}
-                    required
-                    error={!!fieldErrors.regionalOffice}
-                    helperText={fieldErrors.regionalOffice}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <BusinessIcon color="action" />
-                        </InputAdornment>
-                      ),
-                    }}
-                  />
+                  <Grid item xs={12} sm={6} sx={{ width: '300px' }}>
+                    <TextField
+                      fullWidth
+                      label="Contact Details"
+                      value={formData.contactDetails}
+                      onChange={(e) => handleContactChange(e.target.value)}
+                      required
+                      error={!!fieldErrors.contactDetails}
+                      helperText={fieldErrors.contactDetails}
+                      placeholder="Enter exactly 10 digits"
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <PhoneIcon color="action" />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Grid>
                 </Grid>
               </Grid>
 
@@ -667,6 +700,7 @@ export default function PetrolPumpsCreate() {
                     fullWidth
                     label="Address Line 2"
                     value={formData.addressLine2}
+                    placeholder='(Optional)'
                     onChange={(e) => handleInputChange('addressLine2', e.target.value)}
                     InputProps={{
                       startAdornment: (
@@ -713,35 +747,7 @@ export default function PetrolPumpsCreate() {
                 
               </Grid>
 
-              {/* Contact Information Section */}
-              <Grid item xs={12} sm={6}>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, mt: 2 }}>
-                  <PhoneIcon sx={{ mr: 1, color: 'primary.main' }} />
-                  <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                    Contact Information
-                  </Typography>
-                </Box>
-              </Grid>
-
-              <Grid item xs={12} sm={6} sx={{ width: '300px' }}>
-                <TextField
-                  fullWidth
-                  label="Contact Details"
-                  value={formData.contactDetails}
-                  onChange={(e) => handleContactChange(e.target.value)}
-                  required
-                  error={!!fieldErrors.contactDetails}
-                  helperText={fieldErrors.contactDetails}
-                  placeholder="Enter exactly 10 digits"
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <PhoneIcon color="action" />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-              </Grid>
+              
 
               {/* Coordinates Section */}
               <Grid item>

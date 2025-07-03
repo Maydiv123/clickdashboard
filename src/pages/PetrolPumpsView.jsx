@@ -797,7 +797,7 @@ export default function PetrolPumpsView() {
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
-                  label="Customer Name"
+                  label="Petrol Pump Name"
                   value={selectedPump.customerName || ''}
                   InputProps={{ 
                     readOnly: true,
