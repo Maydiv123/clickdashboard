@@ -36,6 +36,7 @@ import {
   Checkbox,
   FormGroup,
   FormControlLabel,
+  Divider,
 } from '@mui/material';
 import { styled, alpha } from '@mui/material/styles';
 import { 
@@ -51,8 +52,16 @@ import {
   Group as GroupIcon,
   Email as EmailIcon,
   Phone as PhoneIcon,
-  LocationOn as LocationOnIcon,
-  CalendarToday as CalendarTodayIcon
+  LocationOn as LocationIcon,
+  CalendarToday as CalendarTodayIcon,
+  ContactPhone as ContactPhoneIcon,
+  QrCode as QrCodeIcon,
+  AdminPanelSettings as AdminPanelSettingsIcon,
+  Info as InfoIcon,
+  CreditCard as CreditCardIcon,
+  Business as BusinessIcon,
+  CheckCircle as CheckCircleIcon,
+  Block as BlockIcon,
 } from '@mui/icons-material';
 import { db } from '../firebase/config';
 import { collection, getDocs, query, where, doc, updateDoc, orderBy } from 'firebase/firestore';
@@ -679,328 +688,455 @@ export default function UsersEdit() {
       </Card>
 
       {/* Edit User Dialog */}
-      <Dialog open={openEditDialog} onClose={handleCloseEditDialog} maxWidth="md" fullWidth>
-        <DialogTitle>
-          <Typography variant="h6" fontWeight={600}>
-            Edit User
+      <Dialog 
+        open={openEditDialog} 
+        onClose={handleCloseEditDialog} 
+        maxWidth="md" 
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.1)'
+          }
+        }}
+      >
+        <DialogTitle sx={{ pb: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+            <EditIcon color="primary" />
+            <Typography variant="h6" fontWeight={600}>
+              Edit User
+            </Typography>
+          </Box>
+          <Typography variant="body2" color="text.secondary">
+            Update user information and settings
           </Typography>
         </DialogTitle>
         <DialogContent dividers>
           {editedUser && (
-            <Grid container spacing={3}>
-              {/* Basic Information */}
-              <Grid item xs={12}>
-                <Typography variant="h6" fontWeight={600} sx={{ mb: 2, color: 'primary.main' }}>
-                  Basic Information
-                </Typography>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="First Name"
-                  value={editedUser.firstName}
-                  onChange={(e) => handleEditChange('firstName', e.target.value)}
-                  required
-                  error={!!editFieldErrors.firstName}
-                  helperText={editFieldErrors.firstName}
-                  margin="normal"
-                  variant="outlined"
-                  sx={{ mb: 2 }}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Last Name"
-                  value={editedUser.lastName}
-                  onChange={(e) => handleEditChange('lastName', e.target.value)}
-                  margin="normal"
-                  variant="outlined"
-                  sx={{ mb: 2 }}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="User ID"
-                  value={editedUser.userId}
-                  onChange={(e) => handleEditChange('userId', e.target.value)}
-                  margin="normal"
-                  variant="outlined"
-                  sx={{ mb: 2 }}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Date of Birth"
-                  type="date"
-                  value={editedUser.dob}
-                  onChange={(e) => handleEditChange('dob', e.target.value)}
-                  margin="normal"
-                  variant="outlined"
-                  InputLabelProps={{ shrink: true }}
-                  sx={{ mb: 2 }}
-                />
-              </Grid>
-
-              {/* Contact Information */}
-              <Grid item xs={12}>
-                <Typography variant="h6" fontWeight={600} sx={{ mb: 2, color: 'primary.main' }}>
-                  Contact Information
-                </Typography>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Email"
-                  value={editedUser.email}
-                  onChange={(e) => handleEditChange('email', e.target.value)}
-                  margin="normal"
-                  variant="outlined"
-                  sx={{ mb: 2 }}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Mobile"
-                  value={editedUser.mobile}
-                  onChange={(e) => handleMobileChange(e.target.value)}
-                  required
-                  error={!!editFieldErrors.mobile}
-                  helperText={editFieldErrors.mobile}
-                  placeholder="Enter exactly 10 digits (e.g., 9876543210)"
-                  margin="normal"
-                  variant="outlined"
-                  sx={{ mb: 2 }}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Address"
-                  value={editedUser.address}
-                  onChange={(e) => handleEditChange('address', e.target.value)}
-                  margin="normal"
-                  variant="outlined"
-                  multiline
-                  rows={2}
-                  sx={{ mb: 2 }}
-                />
-              </Grid>
-
-              {/* User Type & Status */}
-              <Grid item xs={12}>
-                <Typography variant="h6" fontWeight={600} sx={{ mb: 2, color: 'primary.main' }}>
-                  User Type & Status
-                </Typography>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <FormControl fullWidth required error={!!editFieldErrors.userType} margin="normal" sx={{ mb: 2 }}>
-                  <InputLabel>User Type</InputLabel>
-                  <Select
-                    value={editedUser.userType}
-                    onChange={(e) => handleEditChange('userType', e.target.value)}
-                    label="User Type"
-                  >
-                    <MenuItem value="user">User</MenuItem>
-                    <MenuItem value="Team Leader">Team Leader</MenuItem>
-                    <MenuItem value="admin">Admin</MenuItem>
-                    <MenuItem value="individual">Individual</MenuItem>
-                    <MenuItem value="teamMember">Team Member</MenuItem>
-                    <MenuItem value="teamOwner">Team Owner</MenuItem>
-                  </Select>
-                  {editFieldErrors.userType && (
-                    <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.5 }}>
-                      {editFieldErrors.userType}
-                    </Typography>
-                  )}
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <FormControl fullWidth margin="normal" sx={{ mb: 2 }}>
-                  <InputLabel>Team Member Status</InputLabel>
-                  <Select
-                    value={editedUser.teamMemberStatus}
-                    onChange={(e) => handleEditChange('teamMemberStatus', e.target.value)}
-                    label="Team Member Status"
-                  >
-                    <MenuItem value="active">Active</MenuItem>
-                    <MenuItem value="inactive">Inactive</MenuItem>
-                    <MenuItem value="pending">Pending</MenuItem>
-                    <MenuItem value="rejected">Rejected</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-
-              {/* Team Information */}
-              <Grid item xs={12}>
-                <Typography variant="h6" fontWeight={600} sx={{ mb: 2, color: 'primary.main' }}>
-                  Team Information
-                </Typography>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Team Code"
-                  value={editedUser.teamCode}
-                  onChange={(e) => handleEditChange('teamCode', e.target.value)}
-                  margin="normal"
-                  variant="outlined"
-                  sx={{ mb: 2 }}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Team Name"
-                  value={editedUser.teamName}
-                  onChange={(e) => handleEditChange('teamName', e.target.value)}
-                  margin="normal"
-                  variant="outlined"
-                  sx={{ mb: 2 }}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <FormControl fullWidth margin="normal" sx={{ mb: 2 }}>
-                  <InputLabel>Is Team Owner</InputLabel>
-                  <Select
-                    value={editedUser.isTeamOwner ? 'true' : 'false'}
-                    onChange={(e) => handleEditChange('isTeamOwner', e.target.value === 'true')}
-                    label="Is Team Owner"
-                  >
-                    <MenuItem value="true">Yes</MenuItem>
-                    <MenuItem value="false">No</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Profile Completion (%)"
-                  type="number"
-                  value={editedUser.profileCompletion}
-                  onChange={(e) => handleEditChange('profileCompletion', parseInt(e.target.value) || 0)}
-                  margin="normal"
-                  variant="outlined"
-                  inputProps={{ min: 0, max: 100 }}
-                  sx={{ mb: 2 }}
-                />
-              </Grid>
-
-              {/* Additional Information */}
-              <Grid item xs={12}>
-                <Typography variant="h6" fontWeight={600} sx={{ mb: 2, color: 'primary.main' }}>
-                  Additional Information
-                </Typography>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="MPIN"
-                  type={showEditPassword ? 'text' : 'password'}
-                  value={editedUser.password}
-                  onChange={(e) => handlePasswordChange(e.target.value)}
-                  error={!!editFieldErrors.password}
-                  helperText={editFieldErrors.password}
-                  placeholder="Enter exactly 6 digits"
-                  margin="normal"
-                  variant="outlined"
-                  sx={{ mb: 2 }}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <BadgeIcon color="action" />
-                      </InputAdornment>
-                    ),
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton
-                          aria-label="toggle password visibility"
-                          onClick={handleTogglePasswordVisibility}
-                          edge="end"
-                        >
-                          {showEditPassword ? <VisibilityOff /> : <Visibility />}
-                        </IconButton>
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Aadhar Number"
-                  value={editedUser.aadharNo}
-                  onChange={(e) => handleAadharChange(e.target.value)}
-                  error={!!editFieldErrors.aadharNo}
-                  helperText={editFieldErrors.aadharNo}
-                  placeholder="Enter exactly 12 digits (optional)"
-                  margin="normal"
-                  variant="outlined"
-                  sx={{ mb: 2 }}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <FormControl fullWidth margin="normal" sx={{ mb: 2 }}>
-                  <InputLabel>Blocked Status</InputLabel>
-                  <Select
-                    value={editedUser.isBlocked ? 'true' : 'false'}
-                    onChange={(e) => handleEditChange('isBlocked', e.target.value === 'true')}
-                    label="Blocked Status"
-                  >
-                    <MenuItem value="false">Not Blocked</MenuItem>
-                    <MenuItem value="true">Blocked</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <FormControl component="fieldset" required>
-                  <Typography variant="subtitle1" sx={{ mb: 1 }}>
-                    Preferred Companies
+            <Box sx={{ mt: 2 }}>
+              {/* Basic Information Section */}
+              <Box sx={{ mb: 3 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                  <PersonIcon color="primary" fontSize="small" />
+                  <Typography variant="h6" fontWeight={600} color="primary.main">
+                    Basic Information
                   </Typography>
-                  <FormGroup row>
-                    {companyOptions.map((company) => (
-                      <FormControlLabel
-                        key={company}
-                        control={
-                          <Checkbox
-                            checked={editedUser.preferredCompanies?.includes(company)}
-                            onChange={(e) => {
-                              let updated = [...(editedUser.preferredCompanies || [])];
-                              if (e.target.checked) {
-                                updated.push(company);
-                              } else {
-                                if (updated.length === 1) return; // Prevent removing last
-                                updated = updated.filter((c) => c !== company);
-                              }
-                              setEditedUser((prev) => ({ ...prev, preferredCompanies: updated }));
-                              clearFieldErrors('preferredCompanies');
-                            }}
-                            name={company}
-                          />
+                </Box>
+                <Divider sx={{ mb: 2 }} />
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={6} sx={{ width: '300px' }}>
+                    <TextField
+                      fullWidth
+                      label="First Name"
+                      value={editedUser.firstName}
+                      onChange={(e) => handleEditChange('firstName', e.target.value)}
+                      required
+                      error={!!editFieldErrors.firstName}
+                      helperText={editFieldErrors.firstName}
+                      variant="outlined"
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <PersonIcon color="action" />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6} sx={{ width: '300px' }}>
+                    <TextField
+                      fullWidth
+                      label="Last Name"
+                      value={editedUser.lastName}
+                      onChange={(e) => handleEditChange('lastName', e.target.value)}
+                      variant="outlined"
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <PersonIcon color="action" />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Grid>
+                  {/* <Grid item xs={12} sm={6} sx={{ width: '300px' }}>
+                    <TextField
+                      fullWidth
+                      label="User ID"
+                      value={editedUser.userId}
+                      onChange={(e) => handleEditChange('userId', e.target.value)}
+                      variant="outlined"
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <BadgeIcon color="action" />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Grid> */}
+                  <Grid item xs={12} sm={6} sx={{ width: '300px' }}>
+                    <TextField
+                      fullWidth
+                      label="Date of Birth"
+                      type="date"
+                      value={editedUser.dob}
+                      onChange={(e) => handleEditChange('dob', e.target.value)}
+                      variant="outlined"
+                      InputLabelProps={{ shrink: true }}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <CalendarTodayIcon color="action" />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Grid>
+                </Grid>
+              </Box>
+
+              {/* Contact Information Section */}
+              <Box sx={{ mb: 3 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                  <ContactPhoneIcon color="primary" fontSize="small" />
+                  <Typography variant="h6" fontWeight={600} color="primary.main">
+                    Contact Information
+                  </Typography>
+                </Box>
+                <Divider sx={{ mb: 2 }} />
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Email"
+                      value={editedUser.email}
+                      onChange={(e) => handleEditChange('email', e.target.value)}
+                      variant="outlined"
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <EmailIcon color="action" />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Mobile"
+                      value={editedUser.mobile}
+                      onChange={(e) => handleMobileChange(e.target.value)}
+                      required
+                      error={!!editFieldErrors.mobile}
+                      helperText={editFieldErrors.mobile}
+                      placeholder="Enter exactly 10 digits (e.g., 9876543210)"
+                      variant="outlined"
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <PhoneIcon color="action" />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sx={{ width: '560px' }}>
+                    <TextField
+                      fullWidth
+                      label="Address"
+                      value={editedUser.address}
+                      onChange={(e) => handleEditChange('address', e.target.value)}
+                      variant="outlined"
+                      multiline
+                      rows={2}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <LocationIcon color="action" />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Grid>
+                </Grid>
+              </Box>
+
+              {/* User Type & Status Section */}
+              <Box sx={{ mb: 3 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                  <BadgeIcon color="primary" fontSize="small" />
+                  <Typography variant="h6" fontWeight={600} color="primary.main">
+                    User Type & Status
+                  </Typography>
+                </Box>
+                <Divider sx={{ mb: 2 }} />
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={6} sx={{ width: '150px' }}>
+                    <FormControl fullWidth required error={!!editFieldErrors.userType}>
+                      <InputLabel>User Type</InputLabel>
+                      <Select
+                        value={editedUser.userType}
+                        onChange={(e) => handleEditChange('userType', e.target.value)}
+                        label="User Type"
+                        startAdornment={
+                          <InputAdornment position="start">
+                            <BadgeIcon color="action" />
+                          </InputAdornment>
                         }
-                        label={company}
-                      />
-                    ))}
-                  </FormGroup>
-                  {editFieldErrors.preferredCompanies && (
-                    <Typography variant="caption" color="error">
-                      {editFieldErrors.preferredCompanies}
-                    </Typography>
-                  )}
-                </FormControl>
-              </Grid>
-            </Grid>
+                      >
+                        <MenuItem value="user">User</MenuItem>
+                        <MenuItem value="Team Leader">Team Leader</MenuItem>
+                        <MenuItem value="admin">Admin</MenuItem>
+                        <MenuItem value="individual">Individual</MenuItem>
+                        <MenuItem value="teamMember">Team Member</MenuItem>
+                        <MenuItem value="teamOwner">Team Owner</MenuItem>
+                      </Select>
+                      {editFieldErrors.userType && (
+                        <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.5 }}>
+                          {editFieldErrors.userType}
+                        </Typography>
+                      )}
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={12} sm={6} sx={{ width: '150px' }}>
+                    <FormControl fullWidth>
+                      <InputLabel>Team Member Status</InputLabel>
+                      <Select
+                        value={editedUser.teamMemberStatus}
+                        onChange={(e) => handleEditChange('teamMemberStatus', e.target.value)}
+                        label="Team Member Status"
+                        startAdornment={
+                          <InputAdornment position="start">
+                            <PersonIcon color="action" />
+                          </InputAdornment>
+                        }
+                      >
+                        <MenuItem value="active">Active</MenuItem>
+                        <MenuItem value="inactive">Inactive</MenuItem>
+                        <MenuItem value="pending">Pending</MenuItem>
+                        <MenuItem value="rejected">Rejected</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                </Grid>
+              </Box>
+
+              {/* Team Information Section */}
+              <Box sx={{ mb: 3 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                  <GroupIcon color="primary" fontSize="small" />
+                  <Typography variant="h6" fontWeight={600} color="primary.main">
+                    Team Information
+                  </Typography>
+                </Box>
+                <Divider sx={{ mb: 2 }} />
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Team Code"
+                      value={editedUser.teamCode}
+                      onChange={(e) => handleEditChange('teamCode', e.target.value)}
+                      variant="outlined"
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <QrCodeIcon color="action" />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Team Name"
+                      value={editedUser.teamName}
+                      onChange={(e) => handleEditChange('teamName', e.target.value)}
+                      variant="outlined"
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <GroupIcon color="action" />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Grid>
+                  {/* <Grid item xs={12} sm={6} sx={{ width: '150px' }}>
+                    <FormControl fullWidth>
+                      <InputLabel>Is Team Owner</InputLabel>
+                      <Select
+                        value={editedUser.isTeamOwner ? 'true' : 'false'}
+                        onChange={(e) => handleEditChange('isTeamOwner', e.target.value === 'true')}
+                        label="Is Team Owner"
+                        startAdornment={
+                          <InputAdornment position="start">
+                            <AdminPanelSettingsIcon color="action" />
+                          </InputAdornment>
+                        }
+                      >
+                        <MenuItem value="true">Yes</MenuItem>
+                        <MenuItem value="false">No</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid> */}
+                  {/* <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Profile Completion (%)"
+                      type="number"
+                      value={editedUser.profileCompletion}
+                      onChange={(e) => handleEditChange('profileCompletion', parseInt(e.target.value) || 0)}
+                      variant="outlined"
+                      inputProps={{ min: 0, max: 100 }}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <CheckCircleIcon color="action" />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Grid> */}
+                </Grid>
+              </Box>
+
+              {/* Additional Information Section */}
+              <Box sx={{ mb: 3 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                  <InfoIcon color="primary" fontSize="small" />
+                  <Typography variant="h6" fontWeight={600} color="primary.main">
+                    Additional Information
+                  </Typography>
+                </Box>
+                <Divider sx={{ mb: 2 }} />
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="MPIN"
+                      type={showEditPassword ? 'text' : 'password'}
+                      value={editedUser.password}
+                      onChange={(e) => handlePasswordChange(e.target.value)}
+                      error={!!editFieldErrors.password}
+                      helperText={editFieldErrors.password}
+                      placeholder="Enter exactly 6 digits"
+                      variant="outlined"
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <BadgeIcon color="action" />
+                          </InputAdornment>
+                        ),
+                        endAdornment: (
+                          <InputAdornment position="end">
+                            <IconButton
+                              aria-label="toggle password visibility"
+                              onClick={handleTogglePasswordVisibility}
+                              edge="end"
+                            >
+                              {showEditPassword ? <VisibilityOff /> : <Visibility />}
+                            </IconButton>
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Aadhar Number"
+                      value={editedUser.aadharNo}
+                      onChange={(e) => handleAadharChange(e.target.value)}
+                      error={!!editFieldErrors.aadharNo}
+                      helperText={editFieldErrors.aadharNo}
+                      placeholder="Enter exactly 12 digits (optional)"
+                      variant="outlined"
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <CreditCardIcon color="action" />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Grid>
+                  {/* <Grid item xs={12} sm={6} sx={{ width: '150px' }}>
+                    <FormControl fullWidth>
+                      <InputLabel>Blocked Status</InputLabel>
+                      <Select
+                        value={editedUser.isBlocked ? 'true' : 'false'}
+                        onChange={(e) => handleEditChange('isBlocked', e.target.value === 'true')}
+                        label="Blocked Status"
+                        startAdornment={
+                          <InputAdornment position="start">
+                            <BlockIcon color="action" />
+                          </InputAdornment>
+                        }
+                      >
+                        <MenuItem value="false">Not Blocked</MenuItem>
+                        <MenuItem value="true">Blocked</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid> */}
+                  <Grid item xs={12}>
+                    <FormControl component="fieldset" required error={!!editFieldErrors.preferredCompanies}>
+                      <Typography variant="subtitle1" sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <BusinessIcon color="action" fontSize="small" />
+                        Preferred Companies
+                      </Typography>
+                      <FormGroup row>
+                        {companyOptions.map((company) => (
+                          <FormControlLabel
+                            key={company}
+                            control={
+                              <Checkbox
+                                checked={editedUser.preferredCompanies?.includes(company)}
+                                onChange={(e) => {
+                                  let updated = [...(editedUser.preferredCompanies || [])];
+                                  if (e.target.checked) {
+                                    updated.push(company);
+                                  } else {
+                                    if (updated.length === 1) return; // Prevent removing last
+                                    updated = updated.filter((c) => c !== company);
+                                  }
+                                  setEditedUser((prev) => ({ ...prev, preferredCompanies: updated }));
+                                  clearFieldErrors('preferredCompanies');
+                                }}
+                                name={company}
+                              />
+                            }
+                            label={company}
+                          />
+                        ))}
+                      </FormGroup>
+                      {editFieldErrors.preferredCompanies && (
+                        <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block' }}>
+                          {editFieldErrors.preferredCompanies}
+                        </Typography>
+                      )}
+                    </FormControl>
+                  </Grid>
+                </Grid>
+              </Box>
+            </Box>
           )}
         </DialogContent>
-        <DialogActions sx={{ px: 3, py: 2 }}>
+        <DialogActions sx={{ p: 3, gap: 1 }}>
           <Button 
             onClick={handleCloseEditDialog} 
             variant="outlined"
             color="inherit"
-            sx={{ borderRadius: 2, px: 3 }}
+            sx={{ 
+              borderRadius: 2, 
+              px: 3, 
+              py: 1,
+              textTransform: 'none',
+              fontWeight: 500
+            }}
           >
             Cancel
           </Button>
@@ -1009,7 +1145,14 @@ export default function UsersEdit() {
             variant="contained"
             disabled={actionLoading}
             startIcon={actionLoading ? <CircularProgress size={20} /> : <SaveIcon />}
-            sx={{ borderRadius: 2, px: 3 }}
+            sx={{ 
+              borderRadius: 2, 
+              px: 3, 
+              py: 1,
+              textTransform: 'none',
+              fontWeight: 500,
+              boxShadow: '0 4px 12px rgba(58, 134, 255, 0.2)'
+            }}
           >
             Save Changes
           </Button>

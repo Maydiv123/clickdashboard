@@ -910,7 +910,7 @@ export default function Users() {
           User Management
         </Typography>
         
-        <Button 
+        {/* <Button 
           variant="contained" 
           startIcon={<PersonAddIcon />} 
           onClick={handleOpenCreateDialog}
@@ -922,7 +922,7 @@ export default function Users() {
           }}
         >
           Add New User
-        </Button>
+        </Button> */}
       </Box>
       
       <Card sx={{ mb: 3, borderRadius: 3, overflow: 'hidden' }}>

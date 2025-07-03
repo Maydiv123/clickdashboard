@@ -28,6 +28,7 @@ import {
   DialogContent,
   DialogActions,
   FormGroup,
+  Divider,
 } from '@mui/material';
 import { styled, alpha } from '@mui/material/styles';
 import { 
@@ -37,11 +38,19 @@ import {
   Person as PersonIcon,
   Email as EmailIcon,
   Phone as PhoneIcon,
-  LocationOn as LocationOnIcon,
+  LocationOn as LocationIcon,
   Group as GroupIcon,
   Badge as BadgeIcon,
   PersonAdd as PersonAddIcon,
   Add as AddIcon,
+  CalendarToday as CalendarTodayIcon,
+  ContactPhone as ContactPhoneIcon,
+  QrCode as QrCodeIcon,
+  AdminPanelSettings as AdminPanelSettingsIcon,
+  Info as InfoIcon,
+  CreditCard as CreditCardIcon,
+  Business as BusinessIcon,
+  CheckCircle as CheckCircleIcon,
 } from '@mui/icons-material';
 import { db } from '../firebase/config';
 import { collection, addDoc } from 'firebase/firestore';
@@ -278,294 +287,344 @@ export default function UsersCreate() {
 
           <Box sx={{ mt: 2 }}>
             {activeStep === 0 && (
-              <Grid container spacing={3}>
-                <Grid item xs={12}>
-                  <Typography variant="h6" fontWeight={600} sx={{ mb: 2, color: 'primary.main' }}>
-                    Basic Information
-                  </Typography>
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="First Name"
-                    value={newUser.firstName}
-                    onChange={(e) => handleCreateChange('firstName', e.target.value)}
-                    required
-                    error={!!fieldErrors.firstName}
-                    helperText={fieldErrors.firstName}
-                    margin="normal"
-                    variant="outlined"
-                    sx={{ mb: 2 }}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Last Name"
-                    value={newUser.lastName}
-                    onChange={(e) => handleCreateChange('lastName', e.target.value)}
-                    required
-                    error={!!fieldErrors.lastName}
-                    helperText={fieldErrors.lastName}
-                    margin="normal"
-                    variant="outlined"
-                    sx={{ mb: 2 }}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <FormControl fullWidth margin="normal" sx={{ mb: 2 }}>
-                    <InputLabel>User Type</InputLabel>
-                    <Select
-                      value={newUser.userType}
-                      onChange={(e) => handleCreateChange('userType', e.target.value)}
-                      label="User Type"
-                      error={!!fieldErrors.userType}
-                    >
-                      <MenuItem value="user">User</MenuItem>
-                      <MenuItem value="admin">Admin</MenuItem>
-                      <MenuItem value="super_admin">Super Admin</MenuItem>
-                    </Select>
-                    {fieldErrors.userType && (
-                      <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block' }}>
-                        {fieldErrors.userType}
-                      </Typography>
-                    )}
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Date of Birth"
-                    type="date"
-                    value={newUser.dob}
-                    onChange={(e) => handleCreateChange('dob', e.target.value)}
-                    margin="normal"
-                    variant="outlined"
-                    InputLabelProps={{ shrink: true }}
-                    sx={{ mb: 2 }}
-                  />
-                </Grid>
-              </Grid>
+              <Box>
+                {/* Basic Information Section */}
+                <Box sx={{ mb: 3 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                    <PersonIcon color="primary" fontSize="small" />
+                    <Typography variant="h6" fontWeight={600} color="primary.main">
+                      Basic Information
+                    </Typography>
+                  </Box>
+                  <Divider sx={{ mb: 2 }} />
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="First Name"
+                        value={newUser.firstName}
+                        onChange={(e) => handleCreateChange('firstName', e.target.value)}
+                        required
+                        error={!!fieldErrors.firstName}
+                        helperText={fieldErrors.firstName}
+                        variant="outlined"
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <PersonIcon color="action" />
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="Last Name"
+                        value={newUser.lastName}
+                        onChange={(e) => handleCreateChange('lastName', e.target.value)}
+                        required
+                        error={!!fieldErrors.lastName}
+                        helperText={fieldErrors.lastName}
+                        variant="outlined"
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <PersonIcon color="action" />
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6} sx={{ width: '150px' }}>
+                      <FormControl fullWidth error={!!fieldErrors.userType}>
+                        <InputLabel>User Type</InputLabel>
+                        <Select
+                          value={newUser.userType}
+                          onChange={(e) => handleCreateChange('userType', e.target.value)}
+                          label="User Type"
+                          startAdornment={
+                            <InputAdornment position="start">
+                              <BadgeIcon color="action" />
+                            </InputAdornment>
+                          }
+                        >
+                          <MenuItem value="user">User</MenuItem>
+                          <MenuItem value="Team Leader">Team Leader</MenuItem>
+                          <MenuItem value="teamOwner">Team Owner</MenuItem>
+                        </Select>
+                        {fieldErrors.userType && (
+                          <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.5 }}>
+                            {fieldErrors.userType}
+                          </Typography>
+                        )}
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="Date of Birth"
+                        type="date"
+                        value={newUser.dob}
+                        onChange={(e) => handleCreateChange('dob', e.target.value)}
+                        variant="outlined"
+                        InputLabelProps={{ shrink: true }}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <CalendarTodayIcon color="action" />
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                    </Grid>
+                  </Grid>
+                </Box>
+              </Box>
             )}
 
             {activeStep === 1 && (
-              <Grid container spacing={3}>
-                <Grid item xs={12}>
-                  <Typography variant="h6" fontWeight={600} sx={{ mb: 2, color: 'primary.main' }}>
-                    Contact Details
-                  </Typography>
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Mobile Number"
-                    value={newUser.mobile}
-                    onChange={(e) => handleMobileChange(e.target.value)}
-                    required
-                    error={!!fieldErrors.mobile}
-                    helperText={fieldErrors.mobile}
-                    placeholder="Enter exactly 10 digits"
-                    margin="normal"
-                    variant="outlined"
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <PhoneIcon color="action" />
-                        </InputAdornment>
-                      ),
-                    }}
-                    sx={{ mb: 2 }}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Email"
-                    type="email"
-                    value={newUser.email}
-                    onChange={(e) => handleCreateChange('email', e.target.value)}
-                    required
-                    error={!!fieldErrors.email}
-                    helperText={fieldErrors.email}
-                    margin="normal"
-                    variant="outlined"
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <EmailIcon color="action" />
-                        </InputAdornment>
-                      ),
-                    }}
-                    sx={{ mb: 2 }}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="MPIN"
-                    type={showPassword ? 'text' : 'password'}
-                    value={newUser.password}
-                    onChange={(e) => handlePasswordChange(e.target.value)}
-                    required
-                    error={!!fieldErrors.password}
-                    helperText={fieldErrors.password}
-                    placeholder="Enter exactly 6 digits"
-                    variant="outlined"
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <BadgeIcon color="action" />
-                        </InputAdornment>
-                      ),
-                      endAdornment: (
-                        <InputAdornment position="end">
-                          <IconButton
-                            aria-label="toggle password visibility"
-                            onClick={handleTogglePasswordVisibility}
-                            edge="end"
-                          >
-                            {showPassword ? <VisibilityOff /> : <Visibility />}
-                          </IconButton>
-                        </InputAdornment>
-                      ),
-                    }}
-                    sx={{ mb: 2 }}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Aadhar Number"
-                    value={newUser.aadharNo}
-                    onChange={(e) => handleAadharChange(e.target.value)}
-                    error={!!fieldErrors.aadharNo}
-                    helperText={fieldErrors.aadharNo}
-                    placeholder="Enter exactly 12 digits (optional)"
-                    margin="normal"
-                    variant="outlined"
-                    sx={{ mb: 2 }}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="Address"
-                    value={newUser.address}
-                    onChange={(e) => handleCreateChange('address', e.target.value)}
-                    multiline
-                    rows={3}
-                    margin="normal"
-                    variant="outlined"
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <LocationOnIcon color="action" />
-                        </InputAdornment>
-                      ),
-                    }}
-                    sx={{ mb: 2 }}
-                  />
-                </Grid>
-              </Grid>
+              <Box>
+                {/* Contact Information Section */}
+                <Box sx={{ mb: 3 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                    <ContactPhoneIcon color="primary" fontSize="small" />
+                    <Typography variant="h6" fontWeight={600} color="primary.main">
+                      Contact Information
+                    </Typography>
+                  </Box>
+                  <Divider sx={{ mb: 2 }} />
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="Mobile Number"
+                        value={newUser.mobile}
+                        onChange={(e) => handleMobileChange(e.target.value)}
+                        required
+                        error={!!fieldErrors.mobile}
+                        helperText={fieldErrors.mobile}
+                        placeholder="Enter exactly 10 digits"
+                        variant="outlined"
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <PhoneIcon color="action" />
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="Email"
+                        type="email"
+                        value={newUser.email}
+                        onChange={(e) => handleCreateChange('email', e.target.value)}
+                        required
+                        error={!!fieldErrors.email}
+                        helperText={fieldErrors.email}
+                        variant="outlined"
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <EmailIcon color="action" />
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="MPIN"
+                        type={showPassword ? 'text' : 'password'}
+                        value={newUser.password}
+                        onChange={(e) => handlePasswordChange(e.target.value)}
+                        required
+                        error={!!fieldErrors.password}
+                        helperText={fieldErrors.password}
+                        placeholder="Enter exactly 6 digits"
+                        variant="outlined"
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <BadgeIcon color="action" />
+                            </InputAdornment>
+                          ),
+                          endAdornment: (
+                            <InputAdornment position="end">
+                              <IconButton
+                                aria-label="toggle password visibility"
+                                onClick={handleTogglePasswordVisibility}
+                                edge="end"
+                              >
+                                {showPassword ? <VisibilityOff /> : <Visibility />}
+                              </IconButton>
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="Aadhar Number"
+                        value={newUser.aadharNo}
+                        onChange={(e) => handleAadharChange(e.target.value)}
+                        error={!!fieldErrors.aadharNo}
+                        helperText={fieldErrors.aadharNo}
+                        placeholder="Enter exactly 12 digits (optional)"
+                        variant="outlined"
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <CreditCardIcon color="action" />
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sx={{ width: '560px' }}>
+                      <TextField
+                        fullWidth
+                        label="Address"
+                        value={newUser.address}
+                        onChange={(e) => handleCreateChange('address', e.target.value)}
+                        multiline
+                        rows={3}
+                        variant="outlined"
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <LocationIcon color="action" />
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                    </Grid>
+                  </Grid>
+                </Box>
+              </Box>
             )}
 
             {activeStep === 2 && (
-              <Grid container spacing={3}>
-                <Grid item xs={12}>
-                  <Typography variant="h6" fontWeight={600} sx={{ mb: 2, color: 'primary.main' }}>
-                    Team Information
-                  </Typography>
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Team Code"
-                    value={newUser.teamCode}
-                    onChange={(e) => handleCreateChange('teamCode', e.target.value)}
-                    variant="outlined"
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <GroupIcon color="action" />
-                        </InputAdornment>
-                      ),
-                    }}
-                    sx={{ mb: 2 }}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Team Name"
-                    value={newUser.teamName}
-                    onChange={(e) => handleCreateChange('teamName', e.target.value)}
-                    variant="outlined"
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <GroupIcon color="action" />
-                        </InputAdornment>
-                      ),
-                    }}
-                    sx={{ mb: 2 }}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>Is Team Owner</InputLabel>
-                    <Select
-                      value={newUser.isTeamOwner ? 'true' : 'false'}
-                      onChange={(e) => handleCreateChange('isTeamOwner', e.target.value === 'true')}
-                      label="Is Team Owner"
-                      startAdornment={
-                        <InputAdornment position="start">
-                          <GroupIcon color="action" />
-                        </InputAdornment>
-                      }
-                    >
-                      <MenuItem value="false">No</MenuItem>
-                      <MenuItem value="true">Yes</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <FormControl component="fieldset" required>
-                    <Typography variant="subtitle1" sx={{ mb: 1 }}>
-                      Preferred Companies
+              <Box>
+                {/* Team Information Section */}
+                <Box sx={{ mb: 3 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                    <GroupIcon color="primary" fontSize="small" />
+                    <Typography variant="h6" fontWeight={600} color="primary.main">
+                      Team Information
                     </Typography>
-                    <FormGroup row>
-                      {companyOptions.map((company) => (
-                        <FormControlLabel
-                          key={company}
-                          control={
-                            <Checkbox
-                              checked={newUser.preferredCompanies.includes(company)}
-                              onChange={(e) => {
-                                let updated = [...newUser.preferredCompanies];
-                                if (e.target.checked) {
-                                  updated.push(company);
-                                } else {
-                                  if (updated.length === 1) return; // Prevent removing last
-                                  updated = updated.filter((c) => c !== company);
-                                }
-                                setNewUser((prev) => ({ ...prev, preferredCompanies: updated }));
-                                clearFieldErrors('preferredCompanies');
-                              }}
-                              name={company}
-                            />
+                  </Box>
+                  <Divider sx={{ mb: 2 }} />
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="Team Code"
+                        value={newUser.teamCode}
+                        onChange={(e) => handleCreateChange('teamCode', e.target.value)}
+                        variant="outlined"
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <QrCodeIcon color="action" />
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="Team Name"
+                        value={newUser.teamName}
+                        onChange={(e) => handleCreateChange('teamName', e.target.value)}
+                        variant="outlined"
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <GroupIcon color="action" />
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6} sx={{ width: '150px' }}>
+                      <FormControl fullWidth>
+                        <InputLabel>Is Team Owner</InputLabel>
+                        <Select
+                          value={newUser.isTeamOwner ? 'true' : 'false'}
+                          onChange={(e) => handleCreateChange('isTeamOwner', e.target.value === 'true')}
+                          label="Is Team Owner"
+                          startAdornment={
+                            <InputAdornment position="start">
+                              <AdminPanelSettingsIcon color="action" />
+                            </InputAdornment>
                           }
-                          label={company}
-                        />
-                      ))}
-                    </FormGroup>
-                    {fieldErrors.preferredCompanies && (
-                      <Typography variant="caption" color="error">
-                        {fieldErrors.preferredCompanies}
-                      </Typography>
-                    )}
-                  </FormControl>
-                </Grid>
-              </Grid>
+                        >
+                          <MenuItem value="false">No</MenuItem>
+                          <MenuItem value="true">Yes</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                  </Grid>
+                </Box>
+
+                {/* Additional Information Section */}
+                <Box sx={{ mb: 3 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                    <InfoIcon color="primary" fontSize="small" />
+                    <Typography variant="h6" fontWeight={600} color="primary.main">
+                      Additional Information
+                    </Typography>
+                  </Box>
+                  <Divider sx={{ mb: 2 }} />
+                  <Grid container spacing={2}>
+                    <Grid item xs={12}>
+                      <FormControl component="fieldset" required error={!!fieldErrors.preferredCompanies}>
+                        <Typography variant="subtitle1" sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <BusinessIcon color="action" fontSize="small" />
+                          Preferred Companies
+                        </Typography>
+                        <FormGroup row>
+                          {companyOptions.map((company) => (
+                            <FormControlLabel
+                              key={company}
+                              control={
+                                <Checkbox
+                                  checked={newUser.preferredCompanies.includes(company)}
+                                  onChange={(e) => {
+                                    let updated = [...newUser.preferredCompanies];
+                                    if (e.target.checked) {
+                                      updated.push(company);
+                                    } else {
+                                      if (updated.length === 1) return; // Prevent removing last
+                                      updated = updated.filter((c) => c !== company);
+                                    }
+                                    setNewUser((prev) => ({ ...prev, preferredCompanies: updated }));
+                                    clearFieldErrors('preferredCompanies');
+                                  }}
+                                  name={company}
+                                />
+                              }
+                              label={company}
+                            />
+                          ))}
+                        </FormGroup>
+                        {fieldErrors.preferredCompanies && (
+                          <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block' }}>
+                            {fieldErrors.preferredCompanies}
+                          </Typography>
+                        )}
+                      </FormControl>
+                    </Grid>
+                  </Grid>
+                </Box>
+              </Box>
             )}
           </Box>
         </CardContent>
@@ -576,16 +635,28 @@ export default function UsersCreate() {
           onClick={() => window.history.back()} 
           variant="outlined"
           color="inherit"
-          sx={{ borderRadius: 2, px: 3 }}
+          sx={{ 
+            borderRadius: 2, 
+            px: 3, 
+            py: 1,
+            textTransform: 'none',
+            fontWeight: 500
+          }}
         >
           Back to Users
         </Button>
-        <Box>
+        <Box sx={{ display: 'flex', gap: 1 }}>
           {activeStep > 0 && (
             <Button
               onClick={handleBack}
               variant="outlined"
-              sx={{ borderRadius: 2, px: 3, mr: 1 }}
+              sx={{ 
+                borderRadius: 2, 
+                px: 3, 
+                py: 1,
+                textTransform: 'none',
+                fontWeight: 500
+              }}
             >
               Back
             </Button>
@@ -594,7 +665,14 @@ export default function UsersCreate() {
             <Button
               onClick={handleNext}
               variant="contained"
-              sx={{ borderRadius: 2, px: 3 }}
+              sx={{ 
+                borderRadius: 2, 
+                px: 3, 
+                py: 1,
+                textTransform: 'none',
+                fontWeight: 500,
+                boxShadow: '0 4px 12px rgba(58, 134, 255, 0.2)'
+              }}
             >
               Next
             </Button>
@@ -604,7 +682,14 @@ export default function UsersCreate() {
               variant="contained"
               disabled={loading}
               startIcon={loading ? <CircularProgress size={20} /> : <AddIcon />}
-              sx={{ borderRadius: 2, px: 3 }}
+              sx={{ 
+                borderRadius: 2, 
+                px: 3, 
+                py: 1,
+                textTransform: 'none',
+                fontWeight: 500,
+                boxShadow: '0 4px 12px rgba(58, 134, 255, 0.2)'
+              }}
             >
               Create User
             </Button>
