@@ -59,8 +59,16 @@ import {
   Group as GroupIcon,
   Email as EmailIcon,
   Phone as PhoneIcon,
-  LocationOn as LocationOnIcon,
-  CalendarToday as CalendarTodayIcon
+  LocationOn as LocationIcon,
+  CalendarToday as CalendarTodayIcon,
+  ContactPhone as ContactPhoneIcon,
+  QrCode as QrCodeIcon,
+  AdminPanelSettings as AdminPanelSettingsIcon,
+  Info as InfoIcon,
+  CreditCard as CreditCardIcon,
+  CheckCircle as CheckCircleIcon,
+  Business as BusinessIcon,
+  Schedule as ScheduleIcon
 } from '@mui/icons-material';
 import { db } from '../firebase/config';
 import { collection, getDocs, query, where, doc, updateDoc, deleteDoc, orderBy, addDoc } from 'firebase/firestore';
@@ -580,146 +588,301 @@ export default function Users() {
 
   const renderUserFields = (user) => {
     return (
-      <Grid container spacing={2} sx={{ mt: 1 }} direction="column">
-        <Grid item xs={12} md={6}>
-          <TextField
-            fullWidth
-            label="First Name"
-            value={user?.firstName || ''}
-            InputProps={{ readOnly: true }}
-          />
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <TextField
-            fullWidth
-            label="Last Name"
-            value={user?.lastName || ''}
-            InputProps={{ readOnly: true }}
-          />
-        </Grid>
-        {/* <Grid item xs={12} md={6}>
-          <TextField
-            fullWidth
-            label="User ID"
-            value={user?.userId || ''}
-            InputProps={{ readOnly: true }}
-          />
-        </Grid> */}
-        <Grid item xs={12} md={6}>
-          <TextField
-            fullWidth
-            label="User Type"
-            value={getUserType(user) || ''}
-            InputProps={{ readOnly: true }}
-          />
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <TextField
-            fullWidth
-            label="Email"
-            value={user?.email || ''}
-            InputProps={{ readOnly: true }}
-          />
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <TextField
-            fullWidth
-            label="Mobile"
-            value={user?.mobile || ''}
-            InputProps={{ readOnly: true }}
-          />
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <TextField
-            fullWidth
-            label="Date of Birth"
-            value={user?.dob || ''}
-            InputProps={{ readOnly: true }}
-          />
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <TextField
-            fullWidth
-            label="Aadhar Number"
-            value={user?.aadharNo || ''}
-            InputProps={{ readOnly: true }}
-          />
-        </Grid>
-        <Grid item xs={12}>
-          <TextField
-            fullWidth
-            label="Address"
-            value={user?.address || ''}
-            InputProps={{ readOnly: true }}
-            multiline
-            rows={2}
-          />
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <TextField
-            fullWidth
-            label="Team Name"
-            value={user?.teamName || ''}
-            InputProps={{ readOnly: true }}
-          />
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <TextField
-            fullWidth
-            label="Team Code"
-            value={user?.teamCode || ''}
-            InputProps={{ readOnly: true }}
-          />
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <TextField
-            fullWidth
-            label="Team Member Status"
-            value={user?.teamMemberStatus || ''}
-            InputProps={{ readOnly: true }}
-          />
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <TextField
-            fullWidth
-            label="Team Owner"
-            value={user?.isTeamOwner ? 'Yes' : 'No'}
-            InputProps={{ readOnly: true }}
-          />
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <TextField
-            fullWidth
-            label="Profile Completion"
-            value={`${calculateProfileCompletion(user)}%`}
-            InputProps={{ readOnly: true }}
-          />
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <TextField
-            fullWidth
-            label="Preferred Companies"
-            value={formatPreferredCompanies(user?.preferredCompanies)}
-            InputProps={{ readOnly: true }}
-          />
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <TextField
-            fullWidth
-            label="Created Date"
-            value={formatDate(user?.createdAt)}
-            InputProps={{ readOnly: true }}
-          />
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <TextField
-            fullWidth
-            label="Status"
-            value={user?.isBlocked ? 'Blocked' : 'Active'}
-            InputProps={{ readOnly: true }}
-          />
-        </Grid>
-      </Grid>
+      <Box sx={{ mt: 2 }}>
+        {/* Basic Information Section */}
+        <Box sx={{ mb: 3 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+            <PersonIcon color="primary" fontSize="small" />
+            <Typography variant="h6" fontWeight={600} color="primary.main">
+              Basic Information
+            </Typography>
+          </Box>
+          <Divider sx={{ mb: 2 }} />
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="First Name"
+                value={user?.firstName || ''}
+                InputProps={{ 
+                  readOnly: true,
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <PersonIcon color="action" />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{ '& .MuiInputBase-root': { backgroundColor: '#f8f9fa' } }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Last Name"
+                value={user?.lastName || ''}
+                InputProps={{ 
+                  readOnly: true,
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <PersonIcon color="action" />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{ '& .MuiInputBase-root': { backgroundColor: '#f8f9fa' } }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="User Type"
+                value={getUserType(user) || ''}
+                InputProps={{ 
+                  readOnly: true,
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <BadgeIcon color="action" />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{ '& .MuiInputBase-root': { backgroundColor: '#f8f9fa' } }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Date of Birth"
+                value={user?.dob || ''}
+                InputProps={{ 
+                  readOnly: true,
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <CalendarTodayIcon color="action" />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{ '& .MuiInputBase-root': { backgroundColor: '#f8f9fa' } }}
+              />
+            </Grid>
+          </Grid>
+        </Box>
+
+        {/* Contact Information Section */}
+        <Box sx={{ mb: 3 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+            <ContactPhoneIcon color="primary" fontSize="small" />
+            <Typography variant="h6" fontWeight={600} color="primary.main">
+              Contact Information
+            </Typography>
+          </Box>
+          <Divider sx={{ mb: 2 }} />
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Email"
+                value={user?.email || ''}
+                InputProps={{ 
+                  readOnly: true,
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <EmailIcon color="action" />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{ '& .MuiInputBase-root': { backgroundColor: '#f8f9fa' } }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Mobile"
+                value={user?.mobile || ''}
+                InputProps={{ 
+                  readOnly: true,
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <PhoneIcon color="action" />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{ '& .MuiInputBase-root': { backgroundColor: '#f8f9fa' } }}
+              />
+            </Grid>
+            <Grid item xs={12} sx={{ width: '560px' }}>
+              <TextField
+                fullWidth
+                label="Address"
+                value={user?.address || ''}
+                InputProps={{ 
+                  readOnly: true,
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <LocationIcon color="action" />
+                    </InputAdornment>
+                  ),
+                }}
+                multiline
+                rows={2}
+                sx={{ '& .MuiInputBase-root': { backgroundColor: '#f8f9fa' } }}
+              />
+            </Grid>
+          </Grid>
+        </Box>
+
+        {/* Team Information Section */}
+        <Box sx={{ mb: 3 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+            <GroupIcon color="primary" fontSize="small" />
+            <Typography variant="h6" fontWeight={600} color="primary.main">
+              Team Information
+            </Typography>
+          </Box>
+          <Divider sx={{ mb: 2 }} />
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Team Name"
+                value={user?.teamName || ''}
+                InputProps={{ 
+                  readOnly: true,
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <GroupIcon color="action" />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{ '& .MuiInputBase-root': { backgroundColor: '#f8f9fa' } }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Team Code"
+                value={user?.teamCode || ''}
+                InputProps={{ 
+                  readOnly: true,
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <QrCodeIcon color="action" />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{ '& .MuiInputBase-root': { backgroundColor: '#f8f9fa' } }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Team Member Status"
+                value={user?.teamMemberStatus || ''}
+                InputProps={{ 
+                  readOnly: true,
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <PersonAddIcon color="action" />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{ '& .MuiInputBase-root': { backgroundColor: '#f8f9fa' } }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Team Owner"
+                value={user?.isTeamOwner ? 'Yes' : 'No'}
+                InputProps={{ 
+                  readOnly: true,
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <AdminPanelSettingsIcon color="action" />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{ '& .MuiInputBase-root': { backgroundColor: '#f8f9fa' } }}
+              />
+            </Grid>
+          </Grid>
+        </Box>
+
+        {/* Additional Information Section */}
+        <Box sx={{ mb: 3 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+            <InfoIcon color="primary" fontSize="small" />
+            <Typography variant="h6" fontWeight={600} color="primary.main">
+              Additional Information
+            </Typography>
+          </Box>
+          <Divider sx={{ mb: 2 }} />
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Aadhar Number"
+                value={user?.aadharNo || ''}
+                InputProps={{ 
+                  readOnly: true,
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <CreditCardIcon color="action" />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{ '& .MuiInputBase-root': { backgroundColor: '#f8f9fa' } }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Profile Completion"
+                value={`${calculateProfileCompletion(user)}%`}
+                InputProps={{ 
+                  readOnly: true,
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <CheckCircleIcon color="action" />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{ '& .MuiInputBase-root': { backgroundColor: '#f8f9fa' } }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Preferred Companies"
+                value={formatPreferredCompanies(user?.preferredCompanies)}
+                InputProps={{ 
+                  readOnly: true,
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <BusinessIcon color="action" />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{ '& .MuiInputBase-root': { backgroundColor: '#f8f9fa' } }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Created Date"
+                value={formatDate(user?.createdAt)}
+                InputProps={{ 
+                  readOnly: true,
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <ScheduleIcon color="action" />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{ '& .MuiInputBase-root': { backgroundColor: '#f8f9fa' } }}
+              />
+            </Grid>
+          </Grid>
+        </Box>
+      </Box>
     );
   };
 
@@ -904,12 +1067,26 @@ export default function Users() {
         onClose={() => setViewDialogOpen(false)}
         maxWidth="md"
         fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.1)'
+          }
+        }}
       >
         {selectedUser && (
           <>
-            <DialogTitle>
-              <Box display="flex" justifyContent="space-between" alignItems="center">
-                <Typography variant="h6" fontWeight={600}>User Details</Typography>
+            <DialogTitle sx={{ pb: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                <PersonIcon color="primary" />
+                <Typography variant="h6" fontWeight={600}>
+                  User Details
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Typography variant="body2" color="text.secondary">
+                  View complete user information
+                </Typography>
                 <UserStatusChip
                   label={selectedUser.isBlocked ? 'Blocked' : 'Active'}
                   status={selectedUser.isBlocked ? 'blocked' : 'active'}
@@ -920,8 +1097,18 @@ export default function Users() {
             <DialogContent dividers>
               {renderUserFields(selectedUser)}
             </DialogContent>
-            <DialogActions>
-              <Button onClick={() => setViewDialogOpen(false)}>
+            <DialogActions sx={{ p: 3, gap: 1 }}>
+              <Button 
+                onClick={() => setViewDialogOpen(false)}
+                variant="outlined"
+                sx={{ 
+                  borderRadius: 2,
+                  px: 3,
+                  py: 1,
+                  textTransform: 'none',
+                  fontWeight: 500
+                }}
+              >
                 Close
               </Button>
             </DialogActions>
