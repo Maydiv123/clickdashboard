@@ -794,146 +794,190 @@ export default function PetrolPumpsView() {
                 <Divider sx={{ mb: 2 }} />
               </Grid>
               
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Petrol Pump Name"
-                  value={selectedPump.customerName || ''}
-                  InputProps={{ 
-                    readOnly: true,
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <PersonIcon color="action" />
-                      </InputAdornment>
-                    ),
-                  }}
-                  variant="outlined"
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Dealer Name"
-                  value={selectedPump.dealerName || ''}
-                  InputProps={{ 
-                    readOnly: true,
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <PersonIcon color="action" />
-                      </InputAdornment>
-                    ),
-                  }}
-                  variant="outlined"
-                />
-              </Grid>
-              
-              
-              
-              {/* Company Information */}
-              <Grid item xs={12}>
-                <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'primary.main', mt: 2 }}>
-                  <BusinessIcon />
-                  Company Information
-                </Typography>
-                <Divider sx={{ mb: 2 }} />
-              </Grid>
-              
-              <Grid item xs={12} md={4}>
-                <TextField
-                  fullWidth
-                  label="Zone"
-                  value={selectedPump.zone || ''}
-                  InputProps={{ 
-                    readOnly: true,
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <BusinessIcon color="action" />
-                      </InputAdornment>
-                    ),
-                  }}
-                  variant="outlined"
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Company"
-                  value={selectedPump.company || ''}
-                  InputProps={{ 
-                    readOnly: true,
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <BusinessIcon color="action" />
-                      </InputAdornment>
-                    ),
-                  }}
-                  variant="outlined"
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="SAP Code"
-                  value={selectedPump.sapCode || ''}
-                  InputProps={{ 
-                    readOnly: true,
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <BadgeIcon color="action" />
-                      </InputAdornment>
-                    ),
-                  }}
-                  variant="outlined"
-                />
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <TextField
-                  fullWidth
-                  label="Sales Area"
-                  value={selectedPump.salesArea || ''}
-                  InputProps={{ 
-                    readOnly: true,
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <BusinessIcon color="action" />
-                      </InputAdornment>
-                    ),
-                  }}
-                  variant="outlined"
-                />
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <TextField
-                  fullWidth
-                  label="CO/CL/DO"
-                  value={selectedPump.coClDo || ''}
-                  InputProps={{ 
-                    readOnly: true,
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <BusinessIcon color="action" />
-                      </InputAdornment>
-                    ),
-                  }}
-                  variant="outlined"
-                />
+              <Grid container spacing={2}>
+              <Grid item xs={12} sm={6} sx={{ width: '300px' }}>
+                      <TextField
+                        fullWidth
+                        label="Company"
+                        value={selectedPump.company || ''}
+                        InputProps={{ 
+                          readOnly: true,
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <BusinessIcon color="action" />
+                            </InputAdornment>
+                          ),
+                        }}
+                        variant="outlined"
+                      />
+                    </Grid>
+
+                <Grid item xs={12} sm={6} sx={{ width: '400px' }}>
+                  <TextField
+                    fullWidth
+                    label="Petrol Pump Name"
+                    value={selectedPump.customerName || ''}
+                    InputProps={{ 
+                      readOnly: true,
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <PersonIcon color="action" />
+                        </InputAdornment>
+                      ),
+                    }}
+                    variant="outlined"
+                  />
+                </Grid>
+                
+
+                    <Grid item xs={12} sm={6} sx={{ width: '300px' }}>
+                      <TextField
+                        fullWidth
+                        label="SAP Code"
+                        value={selectedPump.sapCode || ''}
+                        InputProps={{ 
+                          readOnly: true,
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <BadgeIcon color="action" />
+                            </InputAdornment>
+                          ),
+                        }}
+                        variant="outlined"
+                      />
+                    </Grid>
+                <Grid item xs={12} sm={6} sx={{ width: '400px' }}>
+                  <TextField
+                    fullWidth
+                    label="Dealer Name"
+                    value={selectedPump.dealerName || ''}
+                    InputProps={{ 
+                      readOnly: true,
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <PersonIcon color="action" />
+                        </InputAdornment>
+                      ),
+                    }}
+                    variant="outlined"
+                  />
+                </Grid>
               </Grid>
               
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Regional Office"
-                  value={selectedPump.regionalOffice || ''}
-                  InputProps={{ 
-                    readOnly: true,
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <BusinessIcon color="action" />
-                      </InputAdornment>
-                    ),
-                  }}
-                  variant="outlined"
-                />
+              {/* Company Information and Contact Information Sections Side by Side */}
+              <Grid container spacing={3}>
+                {/* Company Information Section - 80% */}
+                <Grid item xs={12} md={8.6} sx={{ width: '650px' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, mt: 2 }}>
+                    <BusinessIcon sx={{ mr: 1, color: 'primary.main' }} />
+                    <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                      Company Information
+                    </Typography>
+                  </Box>
+
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6} sx={{ width: '200px' }}>
+                      <TextField
+                        fullWidth
+                        label="Zone"
+                        value={selectedPump.zone || ''}
+                        InputProps={{ 
+                          readOnly: true,
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <BusinessIcon color="action" />
+                            </InputAdornment>
+                          ),
+                        }}
+                        variant="outlined"
+                      />
+                    </Grid>
+
+                    <Grid item xs={12} sm={6} sx={{ width: '400px' }}>
+                      <TextField
+                        fullWidth
+                        label="Sales Area"
+                        value={selectedPump.salesArea || ''}
+                        InputProps={{ 
+                          readOnly: true,
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <BusinessIcon color="action" />
+                            </InputAdornment>
+                          ),
+                        }}
+                        variant="outlined"
+                      />
+                    </Grid>
+
+                    <Grid item xs={12} sm={6} sx={{ width: '200px' }}>
+                      <TextField
+                        fullWidth
+                        label="CO/CL/DO"
+                        value={selectedPump.coClDo || ''}
+                        InputProps={{ 
+                          readOnly: true,
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <BusinessIcon color="action" />
+                            </InputAdornment>
+                          ),
+                        }}
+                        variant="outlined"
+                      />
+                    </Grid>
+
+                    <Grid item xs={12} sm={6} sx={{ width: '400px' }}>
+                      <TextField
+                        fullWidth
+                        label="Regional Office"
+                        value={selectedPump.regionalOffice || ''}
+                        InputProps={{ 
+                          readOnly: true,
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <BusinessIcon color="action" />
+                            </InputAdornment>
+                          ),
+                        }}
+                        variant="outlined"
+                      />
+                    </Grid>
+
+                    
+                  </Grid>
+                </Grid>
+
+                {/* Contact Information Section - 20% */}
+                <Grid item xs={12} md={3.6} sx={{ width: '300px' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, mt: 2 }}>
+                    <PhoneIcon sx={{ mr: 1, color: 'primary.main' }} />
+                    <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                      Contact Information
+                    </Typography>
+                  </Box>
+
+                  <Grid item xs={12} sm={6} sx={{ width: '300px' }}>
+                    <TextField
+                      fullWidth
+                      label="Contact Details"
+                      value={
+                        typeof selectedPump.contactDetails === 'object' 
+                          ? selectedPump.contactDetails?.phone || 'N/A' 
+                          : (selectedPump.contactDetails || selectedPump.contactDetails === 0) ? String(selectedPump.contactDetails) : 'N/A'
+                      }
+                      InputProps={{ 
+                        readOnly: true,
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <PhoneIcon color="action" />
+                          </InputAdornment>
+                        ),
+                      }}
+                      variant="outlined"
+                    />
+                  </Grid>
+                </Grid>
               </Grid>
               
               {/* Address Information */}
@@ -945,133 +989,105 @@ export default function PetrolPumpsView() {
                 <Divider sx={{ mb: 2 }} />
               </Grid>
               
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Address Line 1"
-                  value={selectedPump.addressLine1 || ''}
-                  InputProps={{ 
-                    readOnly: true,
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <LocationIcon color="action" />
-                      </InputAdornment>
-                    ),
-                  }}
-                  variant="outlined"
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Address Line 2"
-                  value={selectedPump.addressLine2 || ''}
-                  InputProps={{ 
-                    readOnly: true,
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <LocationIcon color="action" />
-                      </InputAdornment>
-                    ),
-                  }}
-                  variant="outlined"
-                />
-              </Grid>
-              
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Address Line 3"
-                  value={selectedPump.addressLine3 || ''}
-                  InputProps={{ 
-                    readOnly: true,
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <LocationIcon color="action" />
-                      </InputAdornment>
-                    ),
-                  }}
-                  variant="outlined"
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Address Line 4"
-                  value={selectedPump.addressLine4 || ''}
-                  InputProps={{ 
-                    readOnly: true,
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <LocationIcon color="action" />
-                      </InputAdornment>
-                    ),
-                  }}
-                  variant="outlined"
-                />
-              </Grid>
-              
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="District"
-                  value={selectedPump.district || ''}
-                  InputProps={{ 
-                    readOnly: true,
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <LocationIcon color="action" />
-                      </InputAdornment>
-                    ),
-                  }}
-                  variant="outlined"
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Pincode"
-                  value={selectedPump.pincode || ''}
-                  InputProps={{ 
-                    readOnly: true,
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <LocationIcon color="action" />
-                      </InputAdornment>
-                    ),
-                  }}
-                  variant="outlined"
-                />
-              </Grid>
-              
-              {/* Contact Information */}
-              <Grid item xs={12}>
-                <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'primary.main', mt: 2 }}>
-                  <PhoneIcon />
-                  Contact Information
-                </Typography>
-                <Divider sx={{ mb: 2 }} />
-              </Grid>
-              
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Contact Details"
-                  value={
-                    typeof selectedPump.contactDetails === 'object' 
-                      ? selectedPump.contactDetails?.phone || 'N/A' 
-                      : (selectedPump.contactDetails || selectedPump.contactDetails === 0) ? String(selectedPump.contactDetails) : 'N/A'
-                  }
-                  InputProps={{ 
-                    readOnly: true,
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <PhoneIcon color="action" />
-                      </InputAdornment>
-                    ),
-                  }}
-                  variant="outlined"
-                />
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6} sx={{ width: '600px' }}>
+                  <TextField
+                    fullWidth
+                    label="Address Line 1"
+                    value={selectedPump.addressLine1 || ''}
+                    InputProps={{ 
+                      readOnly: true,
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <LocationIcon color="action" />
+                        </InputAdornment>
+                      ),
+                    }}
+                    variant="outlined"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6} sx={{ width: '600px' }}>
+                  <TextField
+                    fullWidth
+                    label="Address Line 2"
+                    value={selectedPump.addressLine2 || ''}
+                    InputProps={{ 
+                      readOnly: true,
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <LocationIcon color="action" />
+                        </InputAdornment>
+                      ),
+                    }}
+                    variant="outlined"
+                  />
+                </Grid>
+                
+                {/* <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Address Line 3"
+                    value={selectedPump.addressLine3 || ''}
+                    InputProps={{ 
+                      readOnly: true,
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <LocationIcon color="action" />
+                        </InputAdornment>
+                      ),
+                    }}
+                    variant="outlined"
+                  />
+                </Grid> */}
+                {/* <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Address Line 4"
+                    value={selectedPump.addressLine4 || ''}
+                    InputProps={{ 
+                      readOnly: true,
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <LocationIcon color="action" />
+                        </InputAdornment>
+                      ),
+                    }}
+                    variant="outlined"
+                  />
+                </Grid> */}
+                
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="District"
+                    value={selectedPump.district || ''}
+                    InputProps={{ 
+                      readOnly: true,
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <LocationIcon color="action" />
+                        </InputAdornment>
+                      ),
+                    }}
+                    variant="outlined"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Pincode"
+                    value={selectedPump.pincode || ''}
+                    InputProps={{ 
+                      readOnly: true,
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <LocationIcon color="action" />
+                        </InputAdornment>
+                      ),
+                    }}
+                    variant="outlined"
+                  />
+                </Grid>
               </Grid>
               
               {/* Location Information */}
@@ -1083,37 +1099,39 @@ export default function PetrolPumpsView() {
                 <Divider sx={{ mb: 2 }} />
               </Grid>
 
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Latitude"
-                  value={selectedPump.location?.latitude || selectedPump.Lat || ''}
-                  InputProps={{ 
-                    readOnly: true,
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <MyLocationIcon color="action" />
-                      </InputAdornment>
-                    ),
-                  }}
-                  variant="outlined"
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Longitude"
-                  value={selectedPump.location?.longitude || selectedPump.Long || ''}
-                  InputProps={{ 
-                    readOnly: true,
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <MyLocationIcon color="action" />
-                      </InputAdornment>
-                    ),
-                  }}
-                  variant="outlined"
-                />
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Latitude"
+                    value={selectedPump.location?.latitude || selectedPump.Lat || ''}
+                    InputProps={{ 
+                      readOnly: true,
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <MyLocationIcon color="action" />
+                        </InputAdornment>
+                      ),
+                    }}
+                    variant="outlined"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Longitude"
+                    value={selectedPump.location?.longitude || selectedPump.Long || ''}
+                    InputProps={{ 
+                      readOnly: true,
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <MyLocationIcon color="action" />
+                        </InputAdornment>
+                      ),
+                    }}
+                    variant="outlined"
+                  />
+                </Grid>
               </Grid>
               
               {/* Status Information */}
@@ -1125,37 +1143,39 @@ export default function PetrolPumpsView() {
                 <Divider sx={{ mb: 2 }} />
               </Grid>
               
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Verification Status"
-                  value={selectedPump.isVerified || selectedPump.verified ? 'Verified' : 'Unverified'}
-                  InputProps={{ 
-                    readOnly: true,
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <VerifiedIcon color={selectedPump.isVerified || selectedPump.verified ? "success" : "action"} />
-                      </InputAdornment>
-                    ),
-                  }}
-                  variant="outlined"
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Active Status"
-                  value={selectedPump.active === false ? 'Inactive' : 'Active'}
-                  InputProps={{ 
-                    readOnly: true,
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <CheckIcon color={selectedPump.active === false ? "error" : "success"} />
-                      </InputAdornment>
-                    ),
-                  }}
-                  variant="outlined"
-                />
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Verification Status"
+                    value={selectedPump.isVerified || selectedPump.verified ? 'Verified' : 'Unverified'}
+                    InputProps={{ 
+                      readOnly: true,
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <VerifiedIcon color={selectedPump.isVerified || selectedPump.verified ? "success" : "action"} />
+                        </InputAdornment>
+                      ),
+                    }}
+                    variant="outlined"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Active Status"
+                    value={selectedPump.active === false ? 'Inactive' : 'Active'}
+                    InputProps={{ 
+                      readOnly: true,
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <CheckIcon color={selectedPump.active === false ? "error" : "success"} />
+                        </InputAdornment>
+                      ),
+                    }}
+                    variant="outlined"
+                  />
+                </Grid>
               </Grid>
             </Grid>
           )}
