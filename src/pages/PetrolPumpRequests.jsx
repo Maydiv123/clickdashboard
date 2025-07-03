@@ -54,7 +54,12 @@ import {
   Person as PersonIcon,
   Phone as PhoneIcon,
   Badge as BadgeIcon,
-  CalendarToday as CalendarTodayIcon
+  CalendarToday as CalendarTodayIcon,
+  Business as BusinessIcon,
+  LocationOn as LocationIcon,
+  MyLocation as MyLocationIcon,
+  Image as ImageIcon,
+  Cancel as CancelIcon
 } from '@mui/icons-material';
 import { collection, getDocs, doc, updateDoc, addDoc, query, orderBy, where, getDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase/config';
@@ -608,191 +613,346 @@ const PetrolPumpRequests = () => {
   // Render request form fields for view/edit/create
   const renderRequestFields = (request, isEditable = false, onChange = null) => {
     return (
-      <Grid container spacing={2} sx={{ mt: 1 }} direction="column">
-        <Grid item xs={12} md={6}>
-          <TextField
-            fullWidth
-            label="Company"
-            value={request?.company || ''}
-            InputProps={{ readOnly: !isEditable }}
-            onChange={isEditable ? (e) => onChange('company', e.target.value) : undefined}
-            select={isEditable}
-          >
-            {isEditable && ['HPCL', 'BPCL', 'IOCL'].map(option => (
-              <MenuItem key={option} value={option}>
-                {option}
-              </MenuItem>
-            ))}
-          </TextField>
+      <Grid container spacing={2} direction="column">
+        {/* Basic Information */}
+        <Grid item xs={12}>
+          <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'primary.main' }}>
+            <BusinessIcon />
+            Basic Information
+          </Typography>
+          <Divider sx={{ mb: 2 }} />
         </Grid>
-        <Grid item xs={12} md={6}>
-          <TextField
-            fullWidth
-            label="Customer Name"
-            value={request?.customerName || ''}
-            InputProps={{ readOnly: !isEditable }}
-            onChange={isEditable ? (e) => onChange('customerName', e.target.value) : undefined}
-          />
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <TextField
-            fullWidth
-            label="Zone"
-            value={request?.zone || ''}
-            InputProps={{ readOnly: !isEditable }}
-            onChange={isEditable ? (e) => onChange('zone', e.target.value) : undefined}
-          />
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <TextField
-            fullWidth
-            label="Sales Area"
-            value={request?.salesArea || ''}
-            InputProps={{ readOnly: !isEditable }}
-            onChange={isEditable ? (e) => onChange('salesArea', e.target.value) : undefined}
-          />
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <TextField
-            fullWidth
-            label="CO/CL/DO"
-            value={request?.coClDo || ''}
-            InputProps={{ readOnly: !isEditable }}
-            onChange={isEditable ? (e) => onChange('coClDo', e.target.value) : undefined}
-          />
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <TextField
-            fullWidth
-            label="Regional Office"
-            value={request?.regionalOffice || ''}
-            InputProps={{ readOnly: !isEditable }}
-            onChange={isEditable ? (e) => onChange('regionalOffice', e.target.value) : undefined}
-          />
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <TextField
-            fullWidth
-            label="District"
-            value={request?.district || ''}
-            InputProps={{ readOnly: !isEditable }}
-            onChange={isEditable ? (e) => onChange('district', e.target.value) : undefined}
-          />
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <TextField
-            fullWidth
-            label="SAP Code"
-            value={request?.sapCode || ''}
-            InputProps={{ readOnly: !isEditable }}
-            onChange={isEditable ? (e) => onChange('sapCode', e.target.value) : undefined}
-          />
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <TextField
-            fullWidth
-            label="Address Line 1"
-            value={request?.addressLine1 || ''}
-            InputProps={{ readOnly: !isEditable }}
-            onChange={isEditable ? (e) => onChange('addressLine1', e.target.value) : undefined}
-          />
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <TextField
-            fullWidth
-            label="Address Line 2"
-            value={request?.addressLine2 || ''}
-            InputProps={{ readOnly: !isEditable }}
-            onChange={isEditable ? (e) => onChange('addressLine2', e.target.value) : undefined}
-          />
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <TextField
-            fullWidth
-            label="Pincode"
-            value={request?.pincode || ''}
-            InputProps={{ readOnly: !isEditable }}
-            onChange={isEditable ? (e) => onChange('pincode', e.target.value) : undefined}
-          />
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <TextField
-            fullWidth
-            label="Dealer Name"
-            value={request?.dealerName || ''}
-            InputProps={{ readOnly: !isEditable }}
-            onChange={isEditable ? (e) => onChange('dealerName', e.target.value) : undefined}
-          />
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <TextField
-            fullWidth
-            label="Contact Details"
-            value={request?.contactDetails || ''}
-            InputProps={{ readOnly: !isEditable }}
-            onChange={isEditable ? (e) => onChange('contactDetails', e.target.value) : undefined}
-          />
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <TextField
-            fullWidth
-            label="Latitude"
-            value={request?.latitude || ''}
-            InputProps={{ readOnly: !isEditable }}
-            onChange={isEditable ? (e) => onChange('latitude', e.target.value) : undefined}
-          />
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <TextField
-            fullWidth
-            label="Longitude"
-            value={request?.longitude || ''}
-            InputProps={{ readOnly: !isEditable }}
-            onChange={isEditable ? (e) => onChange('longitude', e.target.value) : undefined}
-          />
-        </Grid>
-        {!isEditable && request?.bannerImageUrl && (
-          <Grid item xs={12} md={6}>
-            <Typography variant="subtitle2" gutterBottom>Banner Image</Typography>
-            <Box component="img" src={request.bannerImageUrl} alt="Banner" 
-              sx={{ maxWidth: '100%', maxHeight: 200, objectFit: 'contain', border: '1px solid #eee' }} 
-            />
-          </Grid>
-        )}
-        {!isEditable && request?.boardImageUrl && (
-          <Grid item xs={12} md={6}>
-            <Typography variant="subtitle2" gutterBottom>Board Image</Typography>
-            <Box component="img" src={request.boardImageUrl} alt="Board" 
-              sx={{ maxWidth: '100%', maxHeight: 200, objectFit: 'contain', border: '1px solid #eee' }} 
-            />
-          </Grid>
-        )}
-        {!isEditable && request?.billSlipImageUrl && (
-          <Grid item xs={12} md={6}>
-            <Typography variant="subtitle2" gutterBottom>Bill Slip Image</Typography>
-            <Box component="img" src={request.billSlipImageUrl} alt="Bill Slip" 
-              sx={{ maxWidth: '100%', maxHeight: 200, objectFit: 'contain', border: '1px solid #eee' }} 
-            />
-          </Grid>
-        )}
-        {!isEditable && request?.governmentDocImageUrl && (
-          <Grid item xs={12} md={6}>
-            <Typography variant="subtitle2" gutterBottom>Government Document</Typography>
-            <Box component="img" src={request.governmentDocImageUrl} alt="Government Document" 
-              sx={{ maxWidth: '100%', maxHeight: 200, objectFit: 'contain', border: '1px solid #eee' }} 
-            />
-          </Grid>
-        )}
-        {!isEditable && request?.status === 'rejected' && request?.rejectionReason && (
-          <Grid item xs={12}>
+        
+        <Grid container spacing={2}>
+          <Grid item xs={12} sm={6} sx={{ width: '300px' }}>
             <TextField
               fullWidth
-              label="Rejection Reason"
+              label="Company"
+              value={request?.company || ''}
+              InputProps={{ readOnly: !isEditable }}
+              onChange={isEditable ? (e) => onChange('company', e.target.value) : undefined}
+              select={isEditable}
+              variant="outlined"
+              size="small"
+            >
+              {isEditable && ['HPCL', 'BPCL', 'IOCL'].map(option => (
+                <MenuItem key={option} value={option}>
+                  {option}
+                </MenuItem>
+              ))}
+            </TextField>
+          </Grid>
+          <Grid item xs={12} sm={6} sx={{ width: '400px' }}>
+            <TextField
+              fullWidth
+              label="Petrol Pump Name"
+              value={request?.customerName || ''}
+              InputProps={{ readOnly: !isEditable }}
+              onChange={isEditable ? (e) => onChange('customerName', e.target.value) : undefined}
+              variant="outlined"
+              size="small"
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} sx={{ width: '300px' }}>
+            <TextField
+              fullWidth
+              label="SAP Code"
+              value={request?.sapCode || ''}
+              InputProps={{ readOnly: !isEditable }}
+              onChange={isEditable ? (e) => onChange('sapCode', e.target.value) : undefined}
+              variant="outlined"
+              size="small"
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} sx={{ width: '400px' }}>
+            <TextField
+              fullWidth
+              label="Dealer Name"
+              value={request?.dealerName || ''}
+              InputProps={{ readOnly: !isEditable }}
+              onChange={isEditable ? (e) => onChange('dealerName', e.target.value) : undefined}
+              variant="outlined"
+              size="small"
+            />
+          </Grid>
+        </Grid>
+        
+        {/* Company Information and Contact Information Sections Side by Side */}
+        <Grid container spacing={3}>
+          {/* Company Information Section - 80% */}
+          <Grid item xs={12} md={8.6} sx={{ width: '650px' }}>
+            
+
+            <Grid item xs={12}>
+          <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'primary.main' }}>
+            <BusinessIcon />
+            Company Information
+          </Typography>
+          <Divider sx={{ mb: 2 }} />
+        </Grid>
+
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6} sx={{ width: '200px' }}>
+                <TextField
+                  fullWidth
+                  label="Zone"
+                  value={request?.zone || ''}
+                  InputProps={{ readOnly: !isEditable }}
+                  onChange={isEditable ? (e) => onChange('zone', e.target.value) : undefined}
+                  variant="outlined"
+                  size="small"
+                />
+              </Grid>
+              <Grid item xs={12} sm={6} sx={{ width: '400px' }}>
+                <TextField
+                  fullWidth
+                  label="Sales Area"
+                  value={request?.salesArea || ''}
+                  InputProps={{ readOnly: !isEditable }}
+                  onChange={isEditable ? (e) => onChange('salesArea', e.target.value) : undefined}
+                  variant="outlined"
+                  size="small"
+                />
+              </Grid>
+              <Grid item xs={12} sm={6} sx={{ width: '200px' }}>
+                <TextField
+                  fullWidth
+                  label="CO/CL/DO"
+                  value={request?.coClDo || ''}
+                  InputProps={{ readOnly: !isEditable }}
+                  onChange={isEditable ? (e) => onChange('coClDo', e.target.value) : undefined}
+                  variant="outlined"
+                  size="small"
+                />
+              </Grid>
+              <Grid item xs={12} sm={6} sx={{ width: '400px' }}>
+                <TextField
+                  fullWidth
+                  label="Regional Office"
+                  value={request?.regionalOffice || ''}
+                  InputProps={{ readOnly: !isEditable }}
+                  onChange={isEditable ? (e) => onChange('regionalOffice', e.target.value) : undefined}
+                  variant="outlined"
+                  size="small"
+                />
+              </Grid>
+            </Grid>
+          </Grid>
+
+          {/* Contact Information Section - 20% */}
+          <Grid item xs={12} md={3.6} sx={{ width: '300px' }}>
+            
+            <Grid item xs={12}>
+          <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'primary.main' }}>
+          <PhoneIcon sx={{ mr: 1, color: 'primary.main' }} />
+            Contact Information
+          </Typography>
+          <Divider sx={{ mb: 2 }} />
+        </Grid>
+
+            <Grid item xs={12} sm={6} sx={{ width: '300px' }}>
+              <TextField
+                fullWidth
+                label="Contact Details"
+                value={request?.contactDetails || ''}
+                InputProps={{ readOnly: !isEditable }}
+                onChange={isEditable ? (e) => onChange('contactDetails', e.target.value) : undefined}
+                variant="outlined"
+                size="small"
+                multiline
+                // rows={3}
+              />
+            </Grid>
+          </Grid>
+        </Grid>
+        
+        {/* Address Information */}
+        <Grid item xs={12}>
+          <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'primary.main', mt: 2 }}>
+            <LocationIcon />
+            Address Information
+          </Typography>
+          <Divider sx={{ mb: 2 }} />
+        </Grid>
+        
+        <Grid container spacing={2}>
+        <Grid item xs={12} sm={6} sx={{ width: '300px' }}>
+            <TextField
+              fullWidth
+              label="District"
+              value={request?.district || ''}
+              InputProps={{ readOnly: !isEditable }}
+              onChange={isEditable ? (e) => onChange('district', e.target.value) : undefined}
+              variant="outlined"
+              size="small"
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} sx={{ width: '280px' }}>
+            <TextField
+              fullWidth
+              label="Pincode"
+              value={request?.pincode || ''}
+              InputProps={{ readOnly: !isEditable }}
+              onChange={isEditable ? (e) => onChange('pincode', e.target.value) : undefined}
+              variant="outlined"
+              size="small"
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} sx={{ width: '600px' }}>
+            <TextField
+              fullWidth
+              label="Address Line 1"
+              value={request?.addressLine1 || ''}
+              InputProps={{ readOnly: !isEditable }}
+              onChange={isEditable ? (e) => onChange('addressLine1', e.target.value) : undefined}
+              variant="outlined"
+              size="small"
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} sx={{ width: '600px' }}>
+            <TextField
+              fullWidth
+              label="Address Line 2"
+              value={request?.addressLine2 || ''}
+              InputProps={{ readOnly: !isEditable }}
+              onChange={isEditable ? (e) => onChange('addressLine2', e.target.value) : undefined}
+              variant="outlined"
+              size="small"
+            />
+          </Grid>
+          
+        </Grid>
+        
+        {/* Location Information */}
+        <Grid item xs={12}>
+          <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'primary.main', mt: 2 }}>
+            <MyLocationIcon />
+            Location Coordinates
+          </Typography>
+          <Divider sx={{ mb: 2 }} />
+        </Grid>
+        
+        <Grid container spacing={2}>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Latitude"
+              value={request?.latitude || ''}
+              InputProps={{ readOnly: !isEditable }}
+              onChange={isEditable ? (e) => onChange('latitude', e.target.value) : undefined}
+              variant="outlined"
+              size="small"
+              helperText="Enter latitude (e.g., 20.5937)"
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Longitude"
+              value={request?.longitude || ''}
+              InputProps={{ readOnly: !isEditable }}
+              onChange={isEditable ? (e) => onChange('longitude', e.target.value) : undefined}
+              variant="outlined"
+              size="small"
+              helperText="Enter longitude (e.g., 78.9629)"
+            />
+          </Grid>
+        </Grid>
+
+        {/* Images Section */}
+        {/* {!isEditable && (
+          <Grid item xs={12}>
+            <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'primary.main', mt: 2 }}>
+              <ImageIcon />
+              Attached Images
+            </Typography>
+            <Divider sx={{ mb: 2 }} />
+            <Grid container spacing={2}>
+              {request?.bannerImageUrl && (
+                <Grid item xs={12} sm={6} md={3}>
+                  <Typography variant="caption" gutterBottom>Banner Image</Typography>
+                  <Box component="img" src={request.bannerImageUrl} alt="Banner" 
+                    sx={{ 
+                      width: '100%', 
+                      height: 150, 
+                      objectFit: 'cover', 
+                      border: '1px solid #eee',
+                      borderRadius: 1
+                    }} 
+                  />
+                </Grid>
+              )}
+              {request?.boardImageUrl && (
+                <Grid item xs={12} sm={6} md={3}>
+                  <Typography variant="caption" gutterBottom>Board Image</Typography>
+                  <Box component="img" src={request.boardImageUrl} alt="Board" 
+                    sx={{ 
+                      width: '100%', 
+                      height: 150, 
+                      objectFit: 'cover', 
+                      border: '1px solid #eee',
+                      borderRadius: 1
+                    }} 
+                  />
+                </Grid>
+              )}
+              {request?.billSlipImageUrl && (
+                <Grid item xs={12} sm={6} md={3}>
+                  <Typography variant="caption" gutterBottom>Bill Slip Image</Typography>
+                  <Box component="img" src={request.billSlipImageUrl} alt="Bill Slip" 
+                    sx={{ 
+                      width: '100%', 
+                      height: 150, 
+                      objectFit: 'cover', 
+                      border: '1px solid #eee',
+                      borderRadius: 1
+                    }} 
+                  />
+                </Grid>
+              )}
+              {request?.governmentDocImageUrl && (
+                <Grid item xs={12} sm={6} md={3}>
+                  <Typography variant="caption" gutterBottom>Government Document</Typography>
+                  <Box component="img" src={request.governmentDocImageUrl} alt="Government Document" 
+                    sx={{ 
+                      width: '100%', 
+                      height: 150, 
+                      objectFit: 'cover', 
+                      border: '1px solid #eee',
+                      borderRadius: 1
+                    }} 
+                  />
+                </Grid>
+              )}
+            </Grid>
+          </Grid>
+        )} */}
+
+        {/* Rejection Reason */}
+        {!isEditable && request?.status === 'rejected' && request?.rejectionReason && (
+          <Grid item xs={12}>
+            <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'error.main', mt: 2 }}>
+              <CancelIcon />
+              Rejection Reason
+            </Typography>
+            <Divider sx={{ mb: 2 }} />
+            <TextField
+              fullWidth
               value={request.rejectionReason}
               InputProps={{ readOnly: true }}
               multiline
-              rows={2}
-              sx={{ mt: 2, bgcolor: 'error.light', borderRadius: 1 }}
+              rows={3}
+              variant="outlined"
+              size="small"
+              sx={{ 
+                bgcolor: 'error.light', 
+                borderRadius: 1,
+                '& .MuiOutlinedInput-root': {
+                  '& fieldset': {
+                    borderColor: 'error.main',
+                  },
+                }
+              }}
             />
           </Grid>
         )}
@@ -1056,12 +1216,23 @@ const PetrolPumpRequests = () => {
         onClose={() => setViewDialogOpen(false)}
         maxWidth="md"
         fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.1)'
+          }
+        }}
       >
         {selectedRequest && (
           <>
-            <DialogTitle>
-              <Box display="flex" justifyContent="space-between" alignItems="center">
-                <Typography variant="h6" fontWeight={600}>Petrol Pump Request Details</Typography>
+            <DialogTitle sx={{ pb: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'space-between' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <BusinessIcon color="primary" />
+                  <Typography variant="h6" fontWeight={600}>
+                    Petrol Pump Request Details: {selectedRequest.customerName}
+                  </Typography>
+                </Box>
                 <StatusChip
                   label={selectedRequest.status}
                   status={selectedRequest.status}
@@ -1070,15 +1241,18 @@ const PetrolPumpRequests = () => {
               </Box>
             </DialogTitle>
             <DialogContent dividers>
-              {/* Submitted By Information */}
-              {submittedByUser && (
-                <Card sx={{ mb: 3, bgcolor: 'grey.50' }}>
-                  <CardContent>
-                    <Typography variant="h6" fontWeight={600} sx={{ mb: 2, color: 'primary.main' }}>
-                      Submitted By
+              <Grid container spacing={3} direction="column">
+                {/* Submitted By Information */}
+                {submittedByUser && (
+                  <Grid item xs={12}>
+                    <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'primary.main' }}>
+                      <PersonIcon />
+                      Submitted By Information
                     </Typography>
+                    <Divider sx={{ mb: 2 }} />
+                    
                     <Grid container spacing={2}>
-                      <Grid item xs={12} md={6}>
+                      <Grid item xs={12} sm={6}>
                         <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                           <PersonIcon sx={{ mr: 1, color: 'text.secondary' }} />
                           <Typography variant="body2" color="text.secondary">
@@ -1086,7 +1260,7 @@ const PetrolPumpRequests = () => {
                           </Typography>
                         </Box>
                       </Grid>
-                      <Grid item xs={12} md={6}>
+                      <Grid item xs={12} sm={6}>
                         <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                           <PhoneIcon sx={{ mr: 1, color: 'text.secondary' }} />
                           <Typography variant="body2" color="text.secondary">
@@ -1094,7 +1268,7 @@ const PetrolPumpRequests = () => {
                           </Typography>
                         </Box>
                       </Grid>
-                      <Grid item xs={12} md={6}>
+                      <Grid item xs={12} sm={6}>
                         <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                           <BadgeIcon sx={{ mr: 1, color: 'text.secondary' }} />
                           <Typography variant="body2" color="text.secondary">
@@ -1102,7 +1276,7 @@ const PetrolPumpRequests = () => {
                           </Typography>
                         </Box>
                       </Grid>
-                      <Grid item xs={12} md={6}>
+                      <Grid item xs={12} sm={6}>
                         <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                           <CalendarTodayIcon sx={{ mr: 1, color: 'text.secondary' }} />
                           <Typography variant="body2" color="text.secondary">
@@ -1111,17 +1285,22 @@ const PetrolPumpRequests = () => {
                         </Box>
                       </Grid>
                     </Grid>
-                  </CardContent>
-                </Card>
-              )}
+                  </Grid>
+                )}
 
-              {/* Request Details */}
-              <Typography variant="h6" fontWeight={600} sx={{ mb: 2, color: 'primary.main' }}>
-                Request Details
-              </Typography>
-              {renderRequestFields(selectedRequest)}
+                {/* Request Details */}
+                <Grid item xs={12}>
+                  <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'primary.main', mt: 2 }}>
+                    <BusinessIcon />
+                    Request Details
+                  </Typography>
+                  <Divider sx={{ mb: 2 }} />
+                </Grid>
+                
+                {renderRequestFields(selectedRequest)}
+              </Grid>
             </DialogContent>
-            <DialogActions>
+            <DialogActions sx={{ px: 3, py: 2 }}>
               {selectedRequest.status === 'pending' && (
                 <>
                   <Button
@@ -1129,6 +1308,7 @@ const PetrolPumpRequests = () => {
                     color="success"
                     startIcon={<CheckIcon />}
                     variant="contained"
+                    sx={{ borderRadius: 2, px: 3 }}
                   >
                     Approve
                   </Button>
@@ -1137,12 +1317,18 @@ const PetrolPumpRequests = () => {
                     color="error"
                     startIcon={<CloseIcon />}
                     variant="outlined"
+                    sx={{ borderRadius: 2, px: 3 }}
                   >
                     Reject
                   </Button>
                 </>
               )}
-              <Button onClick={() => setViewDialogOpen(false)}>
+              <Button 
+                onClick={() => setViewDialogOpen(false)}
+                variant="outlined"
+                color="inherit"
+                sx={{ borderRadius: 2, px: 3 }}
+              >
                 Close
               </Button>
             </DialogActions>

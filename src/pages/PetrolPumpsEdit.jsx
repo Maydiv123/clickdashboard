@@ -891,7 +891,7 @@ export default function PetrolPumpsEdit() {
               <Grid item xs={12} sm={6} sx={{ width: '400px' }}>
                 <TextField
                   fullWidth
-                  label="Customer Name"
+                  label="Petrol Pump Name"
                   value={editFormData.customerName || ''}
                   onChange={(e) => handleEditInputChange('customerName', e.target.value)}
                   required
