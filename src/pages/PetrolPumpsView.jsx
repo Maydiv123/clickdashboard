@@ -189,14 +189,14 @@ export default function PetrolPumpsView() {
     if (searchTerm.trim() !== '') {
       const searchLower = searchTerm.toLowerCase();
       filtered = filtered.filter(pump => 
-        (pump.customerName && pump.customerName.toLowerCase().includes(searchLower)) ||
-        (pump.dealerName && pump.dealerName.toLowerCase().includes(searchLower)) ||
-        (pump.addressLine1 && pump.addressLine1.toLowerCase().includes(searchLower)) ||
-        (pump.district && pump.district.toLowerCase().includes(searchLower)) ||
-        (pump.zone && pump.zone.toLowerCase().includes(searchLower)) ||
-        (pump.salesArea && pump.salesArea.toLowerCase().includes(searchLower)) ||
+        (typeof pump.customerName === 'string' && pump.customerName.toLowerCase().includes(searchLower)) ||
+        (typeof pump.dealerName === 'string' && pump.dealerName.toLowerCase().includes(searchLower)) ||
+        (typeof pump.addressLine1 === 'string' && pump.addressLine1.toLowerCase().includes(searchLower)) ||
+        (typeof pump.district === 'string' && pump.district.toLowerCase().includes(searchLower)) ||
+        (typeof pump.zone === 'string' && pump.zone.toLowerCase().includes(searchLower)) ||
+        (typeof pump.salesArea === 'string' && pump.salesArea.toLowerCase().includes(searchLower)) ||
         (pump.sapCode && pump.sapCode.toString().includes(searchLower)) ||
-        (pump.company && pump.company.toLowerCase().includes(searchLower)) ||
+        (typeof pump.company === 'string' && pump.company.toLowerCase().includes(searchLower)) ||
         (pump.contactDetails && pump.contactDetails.toString().includes(searchLower))
       );
     }
@@ -237,14 +237,14 @@ export default function PetrolPumpsView() {
     if (searchTerm.trim() !== '') {
       const searchLower = searchTerm.toLowerCase();
       filtered = filtered.filter(pump => 
-        (pump.customerName && pump.customerName.toLowerCase().includes(searchLower)) ||
-        (pump.dealerName && pump.dealerName.toLowerCase().includes(searchLower)) ||
-        (pump.addressLine1 && pump.addressLine1.toLowerCase().includes(searchLower)) ||
-        (pump.district && pump.district.toLowerCase().includes(searchLower)) ||
-        (pump.zone && pump.zone.toLowerCase().includes(searchLower)) ||
-        (pump.salesArea && pump.salesArea.toLowerCase().includes(searchLower)) ||
+        (typeof pump.customerName === 'string' && pump.customerName.toLowerCase().includes(searchLower)) ||
+        (typeof pump.dealerName === 'string' && pump.dealerName.toLowerCase().includes(searchLower)) ||
+        (typeof pump.addressLine1 === 'string' && pump.addressLine1.toLowerCase().includes(searchLower)) ||
+        (typeof pump.district === 'string' && pump.district.toLowerCase().includes(searchLower)) ||
+        (typeof pump.zone === 'string' && pump.zone.toLowerCase().includes(searchLower)) ||
+        (typeof pump.salesArea === 'string' && pump.salesArea.toLowerCase().includes(searchLower)) ||
         (pump.sapCode && pump.sapCode.toString().includes(searchLower)) ||
-        (pump.company && pump.company.toLowerCase().includes(searchLower)) ||
+        (typeof pump.company === 'string' && pump.company.toLowerCase().includes(searchLower)) ||
         (pump.contactDetails && pump.contactDetails.toString().includes(searchLower))
       );
     }
@@ -285,14 +285,14 @@ export default function PetrolPumpsView() {
     if (searchTerm.trim() !== '') {
       const searchLower = searchTerm.toLowerCase();
       filtered = filtered.filter(pump => 
-        (pump.customerName && pump.customerName.toLowerCase().includes(searchLower)) ||
-        (pump.dealerName && pump.dealerName.toLowerCase().includes(searchLower)) ||
-        (pump.addressLine1 && pump.addressLine1.toLowerCase().includes(searchLower)) ||
-        (pump.district && pump.district.toLowerCase().includes(searchLower)) ||
-        (pump.zone && pump.zone.toLowerCase().includes(searchLower)) ||
-        (pump.salesArea && pump.salesArea.toLowerCase().includes(searchLower)) ||
+        (typeof pump.customerName === 'string' && pump.customerName.toLowerCase().includes(searchLower)) ||
+        (typeof pump.dealerName === 'string' && pump.dealerName.toLowerCase().includes(searchLower)) ||
+        (typeof pump.addressLine1 === 'string' && pump.addressLine1.toLowerCase().includes(searchLower)) ||
+        (typeof pump.district === 'string' && pump.district.toLowerCase().includes(searchLower)) ||
+        (typeof pump.zone === 'string' && pump.zone.toLowerCase().includes(searchLower)) ||
+        (typeof pump.salesArea === 'string' && pump.salesArea.toLowerCase().includes(searchLower)) ||
         (pump.sapCode && pump.sapCode.toString().includes(searchLower)) ||
-        (pump.company && pump.company.toLowerCase().includes(searchLower)) ||
+        (typeof pump.company === 'string' && pump.company.toLowerCase().includes(searchLower)) ||
         (pump.contactDetails && pump.contactDetails.toString().includes(searchLower))
       );
     }
@@ -330,14 +330,14 @@ export default function PetrolPumpsView() {
     if (searchTerm.trim() !== '') {
       const searchLower = searchTerm.toLowerCase();
       filtered = filtered.filter(pump => 
-        (pump.customerName && pump.customerName.toLowerCase().includes(searchLower)) ||
-        (pump.dealerName && pump.dealerName.toLowerCase().includes(searchLower)) ||
-        (pump.addressLine1 && pump.addressLine1.toLowerCase().includes(searchLower)) ||
-        (pump.district && pump.district.toLowerCase().includes(searchLower)) ||
-        (pump.zone && pump.zone.toLowerCase().includes(searchLower)) ||
-        (pump.salesArea && pump.salesArea.toLowerCase().includes(searchLower)) ||
+        (typeof pump.customerName === 'string' && pump.customerName.toLowerCase().includes(searchLower)) ||
+        (typeof pump.dealerName === 'string' && pump.dealerName.toLowerCase().includes(searchLower)) ||
+        (typeof pump.addressLine1 === 'string' && pump.addressLine1.toLowerCase().includes(searchLower)) ||
+        (typeof pump.district === 'string' && pump.district.toLowerCase().includes(searchLower)) ||
+        (typeof pump.zone === 'string' && pump.zone.toLowerCase().includes(searchLower)) ||
+        (typeof pump.salesArea === 'string' && pump.salesArea.toLowerCase().includes(searchLower)) ||
         (pump.sapCode && pump.sapCode.toString().includes(searchLower)) ||
-        (pump.company && pump.company.toLowerCase().includes(searchLower)) ||
+        (typeof pump.company === 'string' && pump.company.toLowerCase().includes(searchLower)) ||
         (pump.contactDetails && pump.contactDetails.toString().includes(searchLower))
       );
     }
@@ -1257,4 +1257,4 @@ export default function PetrolPumpsView() {
       </Dialog>
     </Box>
   );
-} 
+}
