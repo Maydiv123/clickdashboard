@@ -167,7 +167,7 @@ export default function UsersCreate() {
         userId: newUser.email // Using email as userId for now
       };
 
-      await addDoc(collection(db, 'users'), userData);
+      await addDoc(collection(db, 'user_data'), userData);
       
       setSuccess(true);
       setNewUser({

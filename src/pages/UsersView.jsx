@@ -135,7 +135,7 @@ export default function UsersView() {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const usersRef = collection(db, 'users');
+              const usersRef = collection(db, 'user_data');
       const q = query(usersRef, orderBy('createdAt', 'desc'));
       const querySnapshot = await getDocs(q);
       

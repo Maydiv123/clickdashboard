@@ -158,7 +158,7 @@ export default function UsersDelete() {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const usersRef = collection(db, 'users');
+              const usersRef = collection(db, 'user_data');
       const q = query(usersRef, orderBy('createdAt', 'desc'));
       const querySnapshot = await getDocs(q);
       
@@ -262,7 +262,7 @@ export default function UsersDelete() {
     try {
       setDeleteLoading(true);
       
-      await deleteDoc(doc(db, 'users', selectedUser.id));
+              await deleteDoc(doc(db, 'user_data', selectedUser.id));
       
       // Update local state
       setUsers(prev => prev.filter(user => user.id !== selectedUser.id));
@@ -319,23 +319,32 @@ export default function UsersDelete() {
   };
 
   const calculateProfileCompletion = (user) => {
-    let completion = 0;
-    const fields = [
-      'firstName', 'lastName', 'mobile', 'email', 'address', 
-      'aadharNo', 'dob', 'preferredCompanies', 'teamCode', 'teamName'
-    ];
+    let completedFields = 0;
+    let totalFields = 0;
     
-    fields.forEach(field => {
-      if (user[field]) {
-        if (Array.isArray(user[field])) {
-          if (user[field].length > 0) completion += 100 / fields.length;
-        } else if (typeof user[field] === 'string' && user[field].trim() !== '') {
-          completion += 100 / fields.length;
-        }
-      }
-    });
+    // Basic Information (40% weight)
+    totalFields += 4;
+    if (user.firstName && user.firstName.trim()) completedFields++;
+    if (user.lastName && user.lastName.trim()) completedFields++;
+    if (user.mobile && user.mobile.trim()) completedFields++;
+    if (user.userId && user.userId.trim()) completedFields++;
     
-    return Math.round(completion);
+    // Contact & Location (30% weight)
+    totalFields += 3;
+    if (user.location && user.location.latitude && user.location.longitude) completedFields++;
+    if (user.lastLocationUpdate) completedFields++;
+    if (user.lastLogin) completedFields++;
+    
+    // Preferences & Team (20% weight)
+    totalFields += 2;
+    if (user.preferredCompanies && user.preferredCompanies.length > 0) completedFields++;
+    if (user.teamId || user.teamName) completedFields++;
+    
+    // Stats & Activity (10% weight)
+    totalFields += 1;
+    if (user.stats && (user.stats.visits > 0 || user.stats.uploads > 0)) completedFields++;
+    
+    return Math.round((completedFields / totalFields) * 100);
   };
 
   const getUserType = (user) => {
