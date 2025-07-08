@@ -278,7 +278,7 @@ const menuItems = [
     hasSubmenu: true,
     submenu: [
       { text: 'View All', icon: <VisibilityIcon />, path: '/teams' },
-      { text: 'Create New', icon: <AddIcon />, path: '/teams/create' },
+      // { text: 'Create New', icon: <AddIcon />, path: '/teams/create' },
       { text: 'Edit', icon: <EditIcon />, path: '/teams/edit' },
       { text: 'Delete', icon: <DeleteIcon />, path: '/teams/delete' },
     ]
