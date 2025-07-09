@@ -365,13 +365,8 @@ export default function ExcelImport() {
       }
     }
 
-    // If we found lat/lng, add as location field
-    if (latitude !== null && longitude !== null) {
-      processedPump.location = { 
-        latitude,
-        longitude
-      };
-    }
+    // Remove location field creation - no location will be added to database
+    // The latitude and longitude will be stored as separate fields if present in Excel
 
     return processedPump;
   };
