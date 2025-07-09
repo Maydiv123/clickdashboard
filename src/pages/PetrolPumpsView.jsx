@@ -50,10 +50,11 @@ import {
   CheckCircle as VerifiedIcon,
   Check as CheckIcon,
   Search as SearchIcon,
-  FilterList as FilterIcon
+  FilterList as FilterIcon,
+  Clear as ClearIcon
 } from '@mui/icons-material';
 import { db } from '../firebase/config';
-import { collection, getDocs, query } from 'firebase/firestore';
+import { collection, getDocs, query, doc, updateDoc } from 'firebase/firestore';
 
 // Styled components matching PetrolPumps.jsx
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
@@ -136,6 +137,7 @@ export default function PetrolPumpsView() {
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [selectedPump, setSelectedPump] = useState(null);
   const [helpDialogOpen, setHelpDialogOpen] = useState(false);
@@ -145,6 +147,7 @@ export default function PetrolPumpsView() {
   const [companyFilter, setCompanyFilter] = useState('all');
   const [districtFilter, setDistrictFilter] = useState('all');
   const [filterAnchorEl, setFilterAnchorEl] = useState(null);
+  const [clearLocationLoading, setClearLocationLoading] = useState(false);
 
   // Get unique districts for filter
   const getUniqueDistricts = () => {
@@ -419,6 +422,8 @@ export default function PetrolPumpsView() {
               addressLine3: data.addressLine3 || data['Address Line3'] || '',
               addressLine4: data.addressLine4 || data['Address Line4'] || '',
               pincode: data.pincode || data.Pincode || '',
+              latitude: data.latitude || data.Latitude || '',
+              longitude: data.longitude || data.Longitude || '',
               location: locationData,
               contactDetails: contactDetails,
               isVerified: data.isVerified || data.verified || false,
@@ -451,6 +456,63 @@ export default function PetrolPumpsView() {
   const handleCloseViewDialog = () => {
     setViewDialogOpen(false);
     setSelectedPump(null);
+  };
+
+  const handleClearLocation = async () => {
+    try {
+      setClearLocationLoading(true);
+      
+      // Get all petrol pump documents
+      const pumpsRef = collection(db, 'petrolPumps');
+      const querySnapshot = await getDocs(pumpsRef);
+      
+      if (querySnapshot.empty) {
+        setError('No petrol pumps found to clear.');
+        return;
+      }
+      
+      // Update all documents
+      const updatePromises = querySnapshot.docs.map(docSnapshot => {
+        const pumpRef = doc(db, 'petrolPumps', docSnapshot.id);
+        return updateDoc(pumpRef, {
+          location: ""
+        });
+      });
+      
+      // Wait for all updates to complete
+      await Promise.all(updatePromises);
+      
+      console.log("Location field cleared for all pumps");
+      
+      // Update the local state for all pumps
+      setPumps(prevPumps => 
+        prevPumps.map(pump => ({
+          ...pump,
+          location: ""
+        }))
+      );
+      
+      // Clear selected pump if any
+      if (selectedPump) {
+        setSelectedPump(prev => ({
+          ...prev,
+          location: ""
+        }));
+      }
+      
+      // Show success message
+      setError(null);
+      setSuccess('Location field cleared successfully for all petrol pumps!');
+      
+      // Clear success message after 5 seconds
+      setTimeout(() => setSuccess(null), 5000);
+      
+    } catch (error) {
+      console.error('Error clearing location field for all pumps:', error);
+      setError('Failed to clear location field for all pumps. Please try again.');
+    } finally {
+      setClearLocationLoading(false);
+    }
   };
 
   const getStatusChip = (pump) => {
@@ -489,19 +551,38 @@ export default function PetrolPumpsView() {
           View Petrol Pumps
         </Typography>
         
-        <Button
-          variant="outlined"
-          startIcon={<HelpIcon />}
-          onClick={() => setHelpDialogOpen(true)}
-          sx={{ borderRadius: 2 }}
-        >
-          Help
-        </Button>
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          {/* <Button
+            onClick={handleClearLocation}
+            variant="outlined"
+            color="warning"
+            startIcon={clearLocationLoading ? <CircularProgress size={16} /> : <ClearIcon />}
+            disabled={clearLocationLoading}
+            sx={{ borderRadius: 2, px: 3 }}
+          >
+            {clearLocationLoading ? 'Clearing Location...' : 'Clear Location Field (All Pumps)'}
+          </Button> */}
+          
+          <Button
+            variant="outlined"
+            startIcon={<HelpIcon />}
+            onClick={() => setHelpDialogOpen(true)}
+            sx={{ borderRadius: 2 }}
+          >
+            Help
+          </Button>
+        </Box>
       </Box>
 
       {error && (
         <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
           {error}
+        </Alert>
+      )}
+
+      {success && (
+        <Alert severity="success" sx={{ mb: 3, borderRadius: 2 }}>
+          {success}
         </Alert>
       )}
 
@@ -1104,7 +1185,7 @@ export default function PetrolPumpsView() {
                   <TextField
                     fullWidth
                     label="Latitude"
-                    value={selectedPump.location?.latitude || selectedPump.Lat || ''}
+                    value={selectedPump.latitude || selectedPump.Lat || ''}
                     InputProps={{ 
                       readOnly: true,
                       startAdornment: (
@@ -1120,7 +1201,7 @@ export default function PetrolPumpsView() {
                   <TextField
                     fullWidth
                     label="Longitude"
-                    value={selectedPump.location?.longitude || selectedPump.Long || ''}
+                    value={selectedPump.longitude || selectedPump.Long || ''}
                     InputProps={{ 
                       readOnly: true,
                       startAdornment: (

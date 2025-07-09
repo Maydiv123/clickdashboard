@@ -398,13 +398,15 @@ export default function PetrolPumpsEdit() {
               addressLine3: data.addressLine3 || data['Address Line3'] || '',
               addressLine4: data.addressLine4 || data['Address Line4'] || '',
               pincode: data.pincode || data.Pincode || '',
+              latitude: data.latitude || data.Latitude || '',
+              longitude: data.longitude || data.Longitude || '',
               location: locationData,
               contactDetails: contactDetails,
               isVerified: data.isVerified || data.verified || false,
               active: data.active !== undefined ? data.active : true,
               importedAt: data.importedAt || null
             };
-          });
+          }); 
           
           setPumps(pumpsData);
           setError(null);
@@ -439,11 +441,10 @@ export default function PetrolPumpsEdit() {
       addressLine3: pump.addressLine3 || '',
       addressLine4: pump.addressLine4 || '',
       pincode: pump.pincode || '',
-      contactDetails: pump.contactDetails || '',
-      location: {
-        latitude: pump.location?.latitude || '',
-        longitude: pump.location?.longitude || ''
-      }
+      latitude: pump.latitude || '',
+      longitude: pump.longitude || '',
+      
+      contactDetails: pump.contactDetails || ''
     });
     setEditDialogOpen(true);
   };
@@ -481,11 +482,11 @@ export default function PetrolPumpsEdit() {
     }
     
     // Validate latitude and longitude if provided
-    if (editFormData.location?.latitude && (isNaN(editFormData.location.latitude) || parseFloat(editFormData.location.latitude) < -90 || parseFloat(editFormData.location.latitude) > 90)) {
+    if (editFormData.latitude && (isNaN(editFormData.latitude) || parseFloat(editFormData.latitude) < -90 || parseFloat(editFormData.latitude) > 90)) {
       errors.push('Latitude must be a valid number between -90 and 90');
     }
     
-    if (editFormData.location?.longitude && (isNaN(editFormData.location.longitude) || parseFloat(editFormData.location.longitude) < -180 || parseFloat(editFormData.location.longitude) > 180)) {
+    if (editFormData.longitude && (isNaN(editFormData.longitude) || parseFloat(editFormData.longitude) < -180 || parseFloat(editFormData.longitude) > 180)) {
       errors.push('Longitude must be a valid number between -180 and 180');
     }
     
@@ -493,20 +494,34 @@ export default function PetrolPumpsEdit() {
   };
 
   const handleSaveEdit = async () => {
-    if (!selectedPump) return;
+    // console.log('Save button clicked');
+    // console.log('Selected pump:', selectedPump);
+    // console.log('Edit form data:', editFormData);
+    
+    if (!selectedPump) {
+      console.log('No selected pump');
+      return;
+    }
 
     const errors = validateEditForm();
+    console.log('Validation errors:', errors);
+    
     if (errors.length > 0) {
       setError(errors.join(', '));
       return;
     }
 
     try {
+      // console.log('Attempting to update pump with ID:', selectedPump.id);
       const pumpRef = doc(db, 'petrolPumps', selectedPump.id);
-      await updateDoc(pumpRef, {
+      
+      const updateData = {
         ...editFormData,
         updatedAt: new Date()
-      });
+      };
+      // console.log('Update data:', updateData);
+      
+      await updateDoc(pumpRef, updateData);
 
       // Update local state
       setPumps(prevPumps => 
@@ -1235,8 +1250,8 @@ export default function PetrolPumpsEdit() {
                   fullWidth
                   label="Latitude"
                   type="number"
-                  value={editFormData.location?.latitude || ''}
-                  onChange={(e) => handleEditInputChange('location.latitude', e.target.value)}
+                  value={editFormData.latitude || ''}
+                  onChange={(e) => handleEditInputChange('latitude', e.target.value)}
                   variant="outlined"
                   InputProps={{
                     startAdornment: (
@@ -1253,8 +1268,8 @@ export default function PetrolPumpsEdit() {
                   fullWidth
                   label="Longitude"
                   type="number"
-                  value={editFormData.location?.longitude || ''}
-                  onChange={(e) => handleEditInputChange('location.longitude', e.target.value)}
+                  value={editFormData.longitude || ''}
+                  onChange={(e) => handleEditInputChange('longitude', e.target.value)}
                   variant="outlined"
                   InputProps={{
                     startAdornment: (

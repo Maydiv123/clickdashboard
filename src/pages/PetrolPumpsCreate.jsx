@@ -43,10 +43,8 @@ export default function PetrolPumpsCreate() {
     addressLine4: '',
     pincode: '',
     contactDetails: '',
-    location: {
-      latitude: '',
-      longitude: ''
-    },
+    latitude: '',
+    longitude: '',
     active: true,
     isVerified: false
   });
@@ -141,13 +139,13 @@ export default function PetrolPumpsCreate() {
   const handleLatitudeChange = (value) => {
     // Allow digits, decimal point, and minus sign
     const cleaned = value.replace(/[^\d.-]/g, '');
-    handleInputChange('location.latitude', cleaned);
+    handleInputChange('latitude', cleaned);
   };
 
   const handleLongitudeChange = (value) => {
     // Allow digits, decimal point, and minus sign
     const cleaned = value.replace(/[^\d.-]/g, '');
-    handleInputChange('location.longitude', cleaned);
+    handleInputChange('longitude', cleaned);
   };
 
   const validateForm = () => {
@@ -225,8 +223,8 @@ export default function PetrolPumpsCreate() {
     }
     
     // Validate latitude and longitude if provided
-    if (formData.location.latitude.trim()) {
-      const lat = parseFloat(formData.location.latitude);
+    if (formData.latitude.trim()) {
+      const lat = parseFloat(formData.latitude);
       if (isNaN(lat) || lat < -90 || lat > 90) {
         errors.latitude = 'Latitude must be a valid number between -90 and 90';
         hasErrors = true;
@@ -236,8 +234,8 @@ export default function PetrolPumpsCreate() {
       hasErrors = true;
     }
     
-    if (formData.location.longitude.trim()) {
-      const lng = parseFloat(formData.location.longitude);
+    if (formData.longitude.trim()) {
+      const lng = parseFloat(formData.longitude);
       if (isNaN(lng) || lng < -180 || lng > 180) {
         errors.longitude = 'Longitude must be a valid number between -180 and 180';
         hasErrors = true;
@@ -290,10 +288,8 @@ export default function PetrolPumpsCreate() {
         addressLine4: '',
         pincode: '',
         contactDetails: '',
-        location: {
-          latitude: '',
-          longitude: ''
-        },
+        latitude: '',
+        longitude: '',
         active: true,
         isVerified: false
       });
@@ -764,7 +760,7 @@ export default function PetrolPumpsCreate() {
                   <TextField
                     fullWidth
                     label="Latitude"
-                    value={formData.location.latitude}
+                    value={formData.latitude}
                     onChange={(e) => handleLatitudeChange(e.target.value)}
                     required
                     error={!!fieldErrors.latitude}
@@ -786,7 +782,7 @@ export default function PetrolPumpsCreate() {
                   <TextField
                     fullWidth
                     label="Longitude"
-                    value={formData.location.longitude}
+                    value={formData.longitude}
                     onChange={(e) => handleLongitudeChange(e.target.value)}
                     required
                     error={!!fieldErrors.longitude}
