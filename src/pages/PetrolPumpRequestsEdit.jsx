@@ -835,9 +835,9 @@ const PetrolPumpRequestsEdit = () => {
                   
                   {selectedRequest.rejectedBy && (
                     <Box sx={{ mt: 2 }}>
-                      <Typography variant="body2" color="text.secondary">
+                      {/* <Typography variant="body2" color="text.secondary">
                         <strong>Rejected by:</strong> {selectedRequest.rejectedBy}
-                      </Typography>
+                      </Typography> */}
                     </Box>
                   )}
                   

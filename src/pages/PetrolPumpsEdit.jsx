@@ -120,6 +120,8 @@ export default function PetrolPumpsEdit() {
   const [tabValue, setTabValue] = useState(0);
   const [companyFilter, setCompanyFilter] = useState('all');
   const [districtFilter, setDistrictFilter] = useState('all');
+  const [startDateFilter, setStartDateFilter] = useState('');
+  const [endDateFilter, setEndDateFilter] = useState('');
   const [filterAnchorEl, setFilterAnchorEl] = useState(null);
 
   // CO/CL/DO options
@@ -161,6 +163,34 @@ export default function PetrolPumpsEdit() {
       filtered = filtered.filter(pump => pump.district === districtFilter);
     }
     
+    // Apply date range filter
+    if (startDateFilter || endDateFilter) {
+      filtered = filtered.filter(pump => {
+        // Try to get the creation date from createdAt or importedAt
+        let pumpDate = null;
+        if (pump.createdAt) {
+          pumpDate = pump.createdAt?.toDate ? pump.createdAt.toDate() : new Date(pump.createdAt);
+        } else if (pump.importedAt) {
+          pumpDate = pump.importedAt?.toDate ? pump.importedAt.toDate() : new Date(pump.importedAt);
+        } else {
+          // If neither field exists, skip this pump
+          return false;
+        }
+        
+        const startDate = startDateFilter ? new Date(startDateFilter) : null;
+        const endDate = endDateFilter ? new Date(endDateFilter) : null;
+        
+        if (startDate && endDate) {
+          return pumpDate >= startDate && pumpDate <= endDate;
+        } else if (startDate) {
+          return pumpDate >= startDate;
+        } else if (endDate) {
+          return pumpDate <= endDate;
+        }
+        return true;
+      });
+    }
+    
     // Apply search term filter
     if (searchTerm.trim() !== '') {
       const searchLower = searchTerm.toLowerCase();
@@ -190,7 +220,7 @@ export default function PetrolPumpsEdit() {
     }
     
     setFilteredPumps(filtered);
-  }, [searchTerm, pumps, companyFilter, districtFilter, tabValue]);
+  }, [searchTerm, pumps, companyFilter, districtFilter, startDateFilter, endDateFilter, tabValue]);
 
   // Handle search input change
   const handleSearchChange = (event) => {
@@ -719,6 +749,38 @@ export default function PetrolPumpsEdit() {
           </Select>
         </FormControl>
         
+        <Box sx={{ mt: 2 }}>
+          <Typography variant="subtitle2" sx={{ mb: 1 }}>
+            Created Date Range
+          </Typography>
+          <Grid container spacing={1}>
+            <Grid item xs={6}>
+              <TextField
+                fullWidth
+                size="small"
+                label="Start Date"
+                type="date"
+                value={startDateFilter}
+                onChange={(e) => setStartDateFilter(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                variant="outlined"
+              />
+            </Grid>
+            <Grid item xs={6}>
+              <TextField
+                fullWidth
+                size="small"
+                label="End Date"
+                type="date"
+                value={endDateFilter}
+                onChange={(e) => setEndDateFilter(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                variant="outlined"
+              />
+            </Grid>
+          </Grid>
+        </Box>
+        
         <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between' }}>
           <Button 
             variant="outlined" 
@@ -726,6 +788,8 @@ export default function PetrolPumpsEdit() {
             onClick={() => {
               setCompanyFilter('all');
               setDistrictFilter('all');
+              setStartDateFilter('');
+              setEndDateFilter('');
               setFilteredPumps(pumps);
               setFilterAnchorEl(null);
             }}
