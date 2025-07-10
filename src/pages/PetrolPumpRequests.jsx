@@ -121,7 +121,7 @@ const PetrolPumpRequests = () => {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
-  const [tabValue, setTabValue] = useState(0); // 0: All, 1: Pending, 2: Approved, 3: Rejected
+  const [tabValue, setTabValue] = useState(0); // 0: Pending, 1: Approved, 2: Rejected
   const [editedRequest, setEditedRequest] = useState(null);
   const [newRequest, setNewRequest] = useState({
     customerName: '',
@@ -245,11 +245,11 @@ const PetrolPumpRequests = () => {
     });
     
     // Filter by status based on tab
-    if (tabValue === 1) { // Pending
+    if (tabValue === 0) { // Pending
       filtered = filtered.filter(req => req.status === 'pending');
-    } else if (tabValue === 2) { // Approved
+    } else if (tabValue === 1) { // Approved
       filtered = filtered.filter(req => req.status === 'approved');
-    } else if (tabValue === 3) { // Rejected
+    } else if (tabValue === 2) { // Rejected
       filtered = filtered.filter(req => req.status === 'rejected');
     }
     
@@ -1023,7 +1023,6 @@ const PetrolPumpRequests = () => {
               textColor="primary"
               sx={{ '.MuiTab-root': { fontWeight: 500, minWidth: 100 } }}
             >
-              <Tab label={`All (${requests.length})`} />
               <Tab label={`Pending (${getStatusCount('pending')})`} />
               <Tab label={`Approved (${getStatusCount('approved')})`} />
               <Tab label={`Rejected (${getStatusCount('rejected')})`} />

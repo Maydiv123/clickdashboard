@@ -482,7 +482,7 @@ export default function PetrolPumpsView() {
       // Wait for all updates to complete
       await Promise.all(updatePromises);
       
-      console.log("Location field cleared for all pumps");
+      // console.log("Location field cleared for all pumps");
       
       // Update the local state for all pumps
       setPumps(prevPumps => 
@@ -604,24 +604,7 @@ export default function PetrolPumpsView() {
                   ),
                 }}
               />
-              
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Button
-                  variant="outlined"
-                  startIcon={<FilterIcon />}
-                  onClick={(e) => setFilterAnchorEl(e.currentTarget)}
-                  size="small"
-                >
-                  Filter
-                </Button>
-                
-                <Typography variant="body2" color="text.secondary">
-                  {filteredPumps.length} of {pumps.length} pumps
-                </Typography>
-              </Box>
-            </Box>
-            
-            <Tabs
+              <Tabs
               value={tabValue}
               onChange={handleTabChange}
               indicatorColor="primary"
@@ -645,6 +628,23 @@ export default function PetrolPumpsView() {
               <Tab label={`BPCL (${pumps.filter(p => p.company === 'BPCL').length})`} />
               <Tab label={`IOCL (${pumps.filter(p => p.company === 'IOCL').length})`} />
             </Tabs>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Button
+                  variant="outlined"
+                  startIcon={<FilterIcon />}
+                  onClick={(e) => setFilterAnchorEl(e.currentTarget)}
+                  size="small"
+                >
+                  Filter
+                </Button>
+                
+                {/* <Typography variant="body2" color="text.secondary">
+                  {filteredPumps.length} of {pumps.length} pumps
+                </Typography> */}
+              </Box>
+            </Box>
+            
+            
           </Box>
         </CardContent>
       </Card>

@@ -518,24 +518,7 @@ export default function PetrolPumpsDelete() {
                   ),
                 }}
               />
-              
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Button
-                  variant="outlined"
-                  startIcon={<FilterIcon />}
-                  onClick={(e) => setFilterAnchorEl(e.currentTarget)}
-                  size="small"
-                >
-                  Filter
-                </Button>
-                
-                <Typography variant="body2" color="text.secondary">
-                  {filteredPumps.length} of {pumps.length} pumps
-                </Typography>
-              </Box>
-            </Box>
-            
-            <Tabs
+              <Tabs
               value={tabValue}
               onChange={handleTabChange}
               indicatorColor="primary"
@@ -559,6 +542,23 @@ export default function PetrolPumpsDelete() {
               <Tab label={`BPCL (${pumps.filter(p => p.company === 'BPCL').length})`} />
               <Tab label={`IOCL (${pumps.filter(p => p.company === 'IOCL').length})`} />
             </Tabs>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Button
+                  variant="outlined"
+                  startIcon={<FilterIcon />}
+                  onClick={(e) => setFilterAnchorEl(e.currentTarget)}
+                  size="small"
+                >
+                  Filter
+                </Button>
+                
+                {/* <Typography variant="body2" color="text.secondary">
+                  {filteredPumps.length} of {pumps.length} pumps
+                </Typography> */}
+              </Box>
+            </Box>
+            
+            
           </Box>
         </CardContent>
       </Card>

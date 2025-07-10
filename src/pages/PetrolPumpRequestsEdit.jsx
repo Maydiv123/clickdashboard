@@ -110,7 +110,7 @@ const PetrolPumpRequestsEdit = () => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editedRequest, setEditedRequest] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
-  const [tabValue, setTabValue] = useState(0);
+  const [tabValue, setTabValue] = useState(0); // 0: Pending, 1: Approved, 2: Rejected
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -166,11 +166,11 @@ const PetrolPumpRequestsEdit = () => {
     }
 
     // Filter by tab
-    if (tabValue === 1) {
+    if (tabValue === 0) {
       filtered = filtered.filter(request => request.status === 'pending');
-    } else if (tabValue === 2) {
+    } else if (tabValue === 1) {
       filtered = filtered.filter(request => request.status === 'approved');
-    } else if (tabValue === 3) {
+    } else if (tabValue === 2) {
       filtered = filtered.filter(request => request.status === 'rejected');
     }
 
@@ -372,7 +372,6 @@ const PetrolPumpRequestsEdit = () => {
               textColor="primary"
               sx={{ '.MuiTab-root': { fontWeight: 500, minWidth: 100 } }}
             >
-              <Tab label={`All (${requests.length})`} />
               <Tab label={`Pending (${getStatusCount('pending')})`} />
               <Tab label={`Approved (${getStatusCount('approved')})`} />
               <Tab label={`Rejected (${getStatusCount('rejected')})`} />
