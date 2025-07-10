@@ -52,6 +52,19 @@ import {
 import { db } from '../firebase/config';
 import { collection, getDocs, query, orderBy, doc, deleteDoc } from 'firebase/firestore';
 
+const professionOptions = [
+  'Plumber',
+  'Electrician', 
+  'Supervisor',
+  'Field boy',
+  'Officer',
+  'Site engineer',
+  'Co-worker',
+  'Mason',
+  'Welder',
+  'Carpenter'
+];
+
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   fontWeight: 500,
   borderBottom: `1px solid ${alpha(theme.palette.divider, 0.7)}`,
@@ -125,7 +138,8 @@ export default function UsersDelete() {
   const [userTypeFilter, setUserTypeFilter] = useState('all');
   const [teamNameFilter, setTeamNameFilter] = useState('all');
   const [profileCompletionFilter, setProfileCompletionFilter] = useState('all');
-  const [createdDateFilter, setCreatedDateFilter] = useState('all');
+  const [startDateFilter, setStartDateFilter] = useState('');
+  const [endDateFilter, setEndDateFilter] = useState('');
 
   // Tab change handler
   const handleTabChange = (event, newValue) => {
@@ -153,7 +167,7 @@ export default function UsersDelete() {
 
   useEffect(() => {
     filterUsers();
-  }, [users, searchTerm, userTypeFilter, teamNameFilter, profileCompletionFilter, createdDateFilter, tabValue]);
+  }, [users, searchTerm, userTypeFilter, teamNameFilter, profileCompletionFilter, startDateFilter, endDateFilter, tabValue]);
 
   const fetchUsers = async () => {
     try {
@@ -184,7 +198,8 @@ export default function UsersDelete() {
         user.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.mobile?.includes(searchTerm) ||
-        user.teamName?.toLowerCase().includes(searchTerm.toLowerCase());
+        user.teamName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.profession?.toLowerCase().includes(searchTerm.toLowerCase());
 
       const matchesUserType = userTypeFilter === 'all' || user.userType === userTypeFilter;
       const matchesTeamName = teamNameFilter === 'all' || user.teamName === teamNameFilter;
@@ -197,18 +212,17 @@ export default function UsersDelete() {
       }
 
       let matchesCreatedDate = true;
-      if (createdDateFilter !== 'all') {
-        const userDate = user.createdAt?.toDate?.() || new Date(user.createdAt);
-        const today = new Date();
-        const filterDate = new Date();
-        if (createdDateFilter === 'today') {
-          filterDate.setDate(today.getDate() - 1);
-        } else if (createdDateFilter === 'week') {
-          filterDate.setDate(today.getDate() - 7);
-        } else if (createdDateFilter === 'month') {
-          filterDate.setMonth(today.getMonth() - 1);
+      if (startDateFilter || endDateFilter) {
+        const userCreatedAt = user.createdAt?.toDate ? user.createdAt.toDate() : new Date(user.createdAt);
+        const startDate = startDateFilter ? new Date(startDateFilter) : null;
+        const endDate = endDateFilter ? new Date(endDateFilter) : null;
+        if (startDate && endDate) {
+          matchesCreatedDate = userCreatedAt >= startDate && userCreatedAt <= endDate;
+        } else if (startDate) {
+          matchesCreatedDate = userCreatedAt >= startDate;
+        } else if (endDate) {
+          matchesCreatedDate = userCreatedAt <= endDate;
         }
-        matchesCreatedDate = userDate >= filterDate;
       }
 
       return matchesSearch && matchesUserType && matchesTeamName && matchesProfileCompletion && matchesCreatedDate;
@@ -288,7 +302,9 @@ export default function UsersDelete() {
     setUserTypeFilter('all');
     setTeamNameFilter('all');
     setProfileCompletionFilter('all');
-    setCreatedDateFilter('all');
+    setStartDateFilter('');
+    setEndDateFilter('');
+    setFilterAnchorEl(null);
   };
 
   const getUniqueTeamNames = () => {
@@ -609,21 +625,37 @@ export default function UsersDelete() {
             <MenuItem value="100">100%</MenuItem>
           </Select>
         </FormControl>
-        <FormControl fullWidth margin="normal" size="small">
-          <InputLabel id="created-date-filter-label">Created Date</InputLabel>
-          <Select
-            labelId="created-date-filter-label"
-            id="created-date-filter"
-            value={createdDateFilter}
-            label="Created Date"
-            onChange={e => setCreatedDateFilter(e.target.value)}
-          >
-            <MenuItem value="all">All Time</MenuItem>
-            <MenuItem value="today">Today</MenuItem>
-            <MenuItem value="week">This Week</MenuItem>
-            <MenuItem value="month">This Month</MenuItem>
-          </Select>
-        </FormControl>
+        <Box sx={{ mt: 2 }}>
+          <Typography variant="subtitle2" sx={{ mb: 1 }}>
+            Created Date Range
+          </Typography>
+          <Grid container spacing={1}>
+            <Grid item xs={6}>
+              <TextField
+                fullWidth
+                size="small"
+                label="Start Date"
+                type="date"
+                value={startDateFilter}
+                onChange={(e) => setStartDateFilter(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                variant="outlined"
+              />
+            </Grid>
+            <Grid item xs={6}>
+              <TextField
+                fullWidth
+                size="small"
+                label="End Date"
+                type="date"
+                value={endDateFilter}
+                onChange={(e) => setEndDateFilter(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                variant="outlined"
+              />
+            </Grid>
+          </Grid>
+        </Box>
         <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between' }}>
           <Button variant="outlined" size="small" onClick={clearFilters}>
             Clear Filters

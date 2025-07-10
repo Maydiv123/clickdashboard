@@ -104,6 +104,18 @@ const SearchField = styled(TextField)(({ theme }) => ({
 }));
 
 const companyOptions = ['HPCL', 'BPCL', 'IOCL'];
+const professionOptions = [
+  'Plumber',
+  'Electrician', 
+  'Supervisor',
+  'Field boy',
+  'Officer',
+  'Site engineer',
+  'Co-worker',
+  'Mason',
+  'Welder',
+  'Carpenter'
+];
 
 export default function UsersEdit() {
   const [users, setUsers] = useState([]);
@@ -123,7 +135,8 @@ export default function UsersEdit() {
   const [userTypeFilter, setUserTypeFilter] = useState('all');
   const [teamNameFilter, setTeamNameFilter] = useState('all');
   const [profileCompletionFilter, setProfileCompletionFilter] = useState('all');
-  const [createdDateFilter, setCreatedDateFilter] = useState('all');
+  const [startDateFilter, setStartDateFilter] = useState('');
+  const [endDateFilter, setEndDateFilter] = useState('');
   const [editFieldErrors, setEditFieldErrors] = useState({});
   const [showEditPassword, setShowEditPassword] = useState(false);
 
@@ -194,6 +207,7 @@ export default function UsersEdit() {
         (user.userType && user.userType.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (user.userId && user.userId.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (user.teamName && user.teamName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (user.profession && user.profession.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (user.preferredCompanies && user.preferredCompanies.some(company => 
           company.toLowerCase().includes(searchTerm.toLowerCase())
         ))
@@ -212,19 +226,20 @@ export default function UsersEdit() {
         return calculatedCompletion >= completion;
       });
     }
-    if (createdDateFilter !== 'all') {
-      const now = new Date();
-      const filterDate = new Date();
-      if (createdDateFilter === 'today') {
-        filterDate.setDate(now.getDate() - 1);
-      } else if (createdDateFilter === 'week') {
-        filterDate.setDate(now.getDate() - 7);
-      } else if (createdDateFilter === 'month') {
-        filterDate.setMonth(now.getMonth() - 1);
-      }
+    if (startDateFilter || endDateFilter) {
       filtered = filtered.filter(user => {
         const userCreatedAt = user.createdAt?.toDate ? user.createdAt.toDate() : new Date(user.createdAt);
-        return userCreatedAt >= filterDate;
+        const startDate = startDateFilter ? new Date(startDateFilter) : null;
+        const endDate = endDateFilter ? new Date(endDateFilter) : null;
+        
+        if (startDate && endDate) {
+          return userCreatedAt >= startDate && userCreatedAt <= endDate;
+        } else if (startDate) {
+          return userCreatedAt >= startDate;
+        } else if (endDate) {
+          return userCreatedAt <= endDate;
+        }
+        return true;
       });
     }
     if (tabValue === 1) {
@@ -241,7 +256,7 @@ export default function UsersEdit() {
       );
     }
     setFilteredUsers(filtered);
-  }, [searchTerm, users, userTypeFilter, teamNameFilter, profileCompletionFilter, createdDateFilter, tabValue]);
+  }, [searchTerm, users, userTypeFilter, teamNameFilter, profileCompletionFilter, startDateFilter, endDateFilter, tabValue]);
 
   // Handle search term change
   const handleSearchChange = (event) => {
@@ -392,7 +407,8 @@ export default function UsersEdit() {
     setUserTypeFilter('all');
     setTeamNameFilter('all');
     setProfileCompletionFilter('all');
-    setCreatedDateFilter('all');
+    setStartDateFilter('');
+    setEndDateFilter('');
     setFilterAnchorEl(null);
   };
   const getUniqueTeamNames = () => {
@@ -792,6 +808,28 @@ export default function UsersEdit() {
                         ),
                       }}
                     />
+                  </Grid>
+                  <Grid item xs={12} sm={6} sx={{ width: '300px' }}>
+                    <FormControl fullWidth>
+                      <InputLabel>Profession</InputLabel>
+                      <Select
+                        value={editedUser.profession || ''}
+                        onChange={(e) => handleEditChange('profession', e.target.value)}
+                        label="Profession"
+                        startAdornment={
+                          <InputAdornment position="start">
+                            <BusinessIcon color="action" />
+                          </InputAdornment>
+                        }
+                      >
+                        <MenuItem value="">Select Profession</MenuItem>
+                        {professionOptions.map((profession) => (
+                          <MenuItem key={profession} value={profession}>
+                            {profession}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
                   </Grid>
                 </Grid>
               </Box>
@@ -1218,21 +1256,37 @@ export default function UsersEdit() {
             <MenuItem value="100">100%</MenuItem>
           </Select>
         </FormControl>
-        <FormControl fullWidth margin="normal" size="small">
-          <InputLabel id="created-date-filter-label">Created Date</InputLabel>
-          <Select
-            labelId="created-date-filter-label"
-            id="created-date-filter"
-            value={createdDateFilter}
-            label="Created Date"
-            onChange={e => setCreatedDateFilter(e.target.value)}
-          >
-            <MenuItem value="all">All Time</MenuItem>
-            <MenuItem value="today">Today</MenuItem>
-            <MenuItem value="week">This Week</MenuItem>
-            <MenuItem value="month">This Month</MenuItem>
-          </Select>
-        </FormControl>
+        <Box sx={{ mt: 2 }}>
+          <Typography variant="subtitle2" sx={{ mb: 1 }}>
+            Created Date Range
+          </Typography>
+          <Grid container spacing={1}>
+            <Grid item xs={6}>
+              <TextField
+                fullWidth
+                size="small"
+                label="Start Date"
+                type="date"
+                value={startDateFilter}
+                onChange={(e) => setStartDateFilter(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                variant="outlined"
+              />
+            </Grid>
+            <Grid item xs={6}>
+              <TextField
+                fullWidth
+                size="small"
+                label="End Date"
+                type="date"
+                value={endDateFilter}
+                onChange={(e) => setEndDateFilter(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                variant="outlined"
+              />
+            </Grid>
+          </Grid>
+        </Box>
         <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between' }}>
           <Button variant="outlined" size="small" onClick={clearFilters}>
             Clear Filters

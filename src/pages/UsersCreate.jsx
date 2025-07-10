@@ -56,6 +56,18 @@ import { db } from '../firebase/config';
 import { collection, addDoc } from 'firebase/firestore';
 
 const companyOptions = ['HPCL', 'BPCL', 'IOCL'];
+const professionOptions = [
+  'Plumber',
+  'Electrician', 
+  'Supervisor',
+  'Field boy',
+  'Officer',
+  'Site engineer',
+  'Co-worker',
+  'Mason',
+  'Welder',
+  'Carpenter'
+];
 
 const steps = ['Basic Information', 'Contact Details', 'Additional Information'];
 
@@ -78,6 +90,7 @@ export default function UsersCreate() {
     address: '',
     aadharNo: '',
     dob: '',
+    profession: '',
     preferredCompanies: ['HPCL'],
     teamCode: '',
     teamName: '',
@@ -199,6 +212,7 @@ export default function UsersCreate() {
         address: '',
         aadharNo: '',
         dob: '',
+        profession: '',
         preferredCompanies: ['HPCL'],
         teamCode: '',
         teamName: '',
@@ -224,7 +238,7 @@ export default function UsersCreate() {
     let completion = 0;
     const fields = [
       'firstName', 'lastName', 'mobile', 'email', 'address', 
-      'aadharNo', 'dob', 'preferredCompanies', 'teamCode', 'teamName'
+      'aadharNo', 'dob', 'profession', 'preferredCompanies', 'teamCode', 'teamName'
     ];
     
     fields.forEach(field => {
@@ -317,7 +331,7 @@ export default function UsersCreate() {
                   </Box>
                   <Divider sx={{ mb: 2 }} />
                   <Grid container spacing={2}>
-                    <Grid item xs={12} sm={6}>
+                    <Grid item xs={12} sm={6} sx={{ width: '200px' }}>
                       <TextField
                         fullWidth
                         label="First Name"
@@ -336,7 +350,7 @@ export default function UsersCreate() {
                         }}
                       />
                     </Grid>
-                    <Grid item xs={12} sm={6}>
+                    <Grid item xs={12} sm={6} sx={{ width: '200px' }}>
                       <TextField
                         fullWidth
                         label="Last Name"
@@ -355,7 +369,7 @@ export default function UsersCreate() {
                         }}
                       />
                     </Grid>
-                    <Grid item xs={12} sm={6} sx={{ width: '150px' }}>
+                    <Grid item xs={12} sm={6} sx={{ width: '200px' }}>
                       <FormControl fullWidth error={!!fieldErrors.userType}>
                         <InputLabel>User Type</InputLabel>
                         <Select
@@ -379,7 +393,7 @@ export default function UsersCreate() {
                         )}
                       </FormControl>
                     </Grid>
-                    <Grid item xs={12} sm={6}>
+                    <Grid item xs={12} sm={6} sx={{ width: '200px' }}>
                       <TextField
                         fullWidth
                         label="Date of Birth"
@@ -405,6 +419,28 @@ export default function UsersCreate() {
                           ),
                         }}
                       />
+                    </Grid>
+                    <Grid item xs={12} sm={6} sx={{ width: '200px' }}>
+                      <FormControl fullWidth>
+                        <InputLabel>Profession</InputLabel>
+                        <Select
+                          value={newUser.profession}
+                          onChange={(e) => handleCreateChange('profession', e.target.value)}
+                          label="Profession"
+                          startAdornment={
+                            <InputAdornment position="start">
+                              <BusinessIcon color="action" />
+                            </InputAdornment>
+                          }
+                        >
+                          <MenuItem value="">Select Profession</MenuItem>
+                          {professionOptions.map((profession) => (
+                            <MenuItem key={profession} value={profession}>
+                              {profession}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
                     </Grid>
                   </Grid>
                 </Box>

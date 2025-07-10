@@ -133,6 +133,18 @@ const UserStatusChip = styled(Chip)(({ theme, status }) => ({
 }));
 
 const companyOptions = ['HPCL', 'BPCL', 'IOCL'];
+const professionOptions = [
+  'Plumber',
+  'Electrician', 
+  'Supervisor',
+  'Field boy',
+  'Officer',
+  'Site engineer',
+  'Co-worker',
+  'Mason',
+  'Welder',
+  'Carpenter'
+];
 
 export default function Users() {
   const [users, setUsers] = useState([]);
@@ -155,6 +167,7 @@ export default function Users() {
     address: '',
     aadharNo: '',
     dob: '',
+    profession: '',
     preferredCompanies: [],
     teamCode: '',
     teamName: '',
@@ -251,6 +264,7 @@ export default function Users() {
         (user.userType && user.userType.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (user.userId && user.userId.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (user.teamName && user.teamName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (user.profession && user.profession.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (user.preferredCompanies && user.preferredCompanies.some(company => 
           company.toLowerCase().includes(searchTerm.toLowerCase())
         ))
@@ -334,6 +348,7 @@ export default function Users() {
       address: '',
       aadharNo: '',
       dob: '',
+      profession: '',
       preferredCompanies: [],
       teamCode: '',
       teamName: '',
@@ -670,6 +685,22 @@ export default function Users() {
                 sx={{ '& .MuiInputBase-root': { backgroundColor: '#f8f9fa' } }}
               />
             </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Profession"
+                value={user?.profession || 'N/A'}
+                InputProps={{ 
+                  readOnly: true,
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <BusinessIcon color="action" />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{ '& .MuiInputBase-root': { backgroundColor: '#f8f9fa' } }}
+              />
+            </Grid>
           </Grid>
         </Box>
 
@@ -988,6 +1019,7 @@ export default function Users() {
                 <StyledTableCell>User</StyledTableCell>
                 <StyledTableCell>Mobile</StyledTableCell>
                 <StyledTableCell>Type</StyledTableCell>
+                <StyledTableCell>Profession</StyledTableCell>
                 <StyledTableCell>Profile Completion</StyledTableCell>
                 <StyledTableCell>Created Date</StyledTableCell>
                 <StyledTableCell>Preferred Companies</StyledTableCell>
@@ -1016,6 +1048,7 @@ export default function Users() {
                     </StyledTableCell>
                     <StyledTableCell>{user.mobile || 'N/A'}</StyledTableCell>
                     <StyledTableCell>{getUserType(user)}</StyledTableCell>
+                    <StyledTableCell>{user.profession || 'N/A'}</StyledTableCell>
                     <StyledTableCell>
                       <Box sx={{ display: 'flex', alignItems: 'center' }}>
                         <Box sx={{ width: '100%', mr: 1 }}>
@@ -1045,7 +1078,7 @@ export default function Users() {
                 ))}
               {filteredUsers.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={7}>
+                  <TableCell colSpan={8}>
                     <Box sx={{ py: 4, textAlign: 'center' }}>
                       <Typography variant="body1" color="text.secondary">
                         No users found
@@ -1216,31 +1249,30 @@ export default function Users() {
                     }}
                   />
                 </Grid>
+                {/* User Type */}
+                
+                
+                {/* Profession - Dropdown to select user's profession from predefined options */}
                 <Grid item xs={12} md={6}>
-                  <FormControl fullWidth required error={!!fieldErrors.userType}>
-                    <InputLabel>User Type</InputLabel>
+                  <FormControl fullWidth>
+                    <InputLabel>Profession</InputLabel>
                     <Select
-                      value={newUser.userType}
-                      onChange={(e) => handleCreateChange('userType', e.target.value)}
-                      label="User Type"
+                      value={newUser.profession}
+                      onChange={(e) => handleCreateChange('profession', e.target.value)}
+                      label="Profession"
                       startAdornment={
                         <InputAdornment position="start">
-                          <BadgeIcon color="action" />
+                          <BusinessIcon color="action" />
                         </InputAdornment>
                       }
                     >
-                      <MenuItem value="user">User</MenuItem>
-                      <MenuItem value="Team Leader">Team Leader</MenuItem>
-                      {/* <MenuItem value="admin">Admin</MenuItem> */}
-                      {/* <MenuItem value="individual">Individual</MenuItem> */}
-                      {/* <MenuItem value="teamMember">Team Member</MenuItem> */}
-                      <MenuItem value="teamOwner">Team Owner</MenuItem>
+                      <MenuItem value="">Select Profession</MenuItem>
+                      {professionOptions.map((profession) => (
+                        <MenuItem key={profession} value={profession}>
+                          {profession}
+                        </MenuItem>
+                      ))}
                     </Select>
-                    {fieldErrors.userType && (
-                      <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.5 }}>
-                        {fieldErrors.userType}
-                      </Typography>
-                    )}
                   </FormControl>
                 </Grid>
               </Grid>

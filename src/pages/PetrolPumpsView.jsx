@@ -742,7 +742,7 @@ export default function PetrolPumpsView() {
             Created Date Range
           </Typography>
           <Grid container spacing={1}>
-            <Grid item xs={6}>
+            <Grid item xs={12} md={6} sx={{ width: '100%' }}>
               <TextField
                 fullWidth
                 size="small"
@@ -754,7 +754,7 @@ export default function PetrolPumpsView() {
                 variant="outlined"
               />
             </Grid>
-            <Grid item xs={6}>
+            <Grid item xs={12} md={6} sx={{ width: '100%' }}>
               <TextField
                 fullWidth
                 size="small"

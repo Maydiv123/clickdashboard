@@ -124,6 +124,8 @@ const PetrolPumpRequestsEdit = () => {
     district: 'all',
     dateRange: 'all'
   });
+  const [startDateFilter, setStartDateFilter] = useState('');
+  const [endDateFilter, setEndDateFilter] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -132,7 +134,7 @@ const PetrolPumpRequestsEdit = () => {
 
   useEffect(() => {
     filterRequests();
-  }, [tabValue, requests, searchQuery, filterOptions]);
+  }, [tabValue, requests, searchQuery, filterOptions, startDateFilter, endDateFilter]);
 
   const fetchRequests = async () => {
     try {
@@ -204,6 +206,31 @@ const PetrolPumpRequestsEdit = () => {
       filtered = filtered.filter(request => {
         const requestDate = request.createdAt?.toDate ? request.createdAt.toDate() : new Date(request.createdAt);
         return requestDate >= filterDate;
+      });
+    }
+
+    // Filter by custom date range
+    if (startDateFilter && endDateFilter) {
+      const startDate = new Date(startDateFilter);
+      const endDate = new Date(endDateFilter);
+      endDate.setHours(23, 59, 59, 999); // Set to end of day
+      
+      filtered = filtered.filter(request => {
+        const requestDate = request.createdAt?.toDate ? request.createdAt.toDate() : new Date(request.createdAt);
+        return requestDate >= startDate && requestDate <= endDate;
+      });
+    } else if (startDateFilter) {
+      const startDate = new Date(startDateFilter);
+      filtered = filtered.filter(request => {
+        const requestDate = request.createdAt?.toDate ? request.createdAt.toDate() : new Date(request.createdAt);
+        return requestDate >= startDate;
+      });
+    } else if (endDateFilter) {
+      const endDate = new Date(endDateFilter);
+      endDate.setHours(23, 59, 59, 999); // Set to end of day
+      filtered = filtered.filter(request => {
+        const requestDate = request.createdAt?.toDate ? request.createdAt.toDate() : new Date(request.createdAt);
+        return requestDate <= endDate;
       });
     }
 
@@ -314,6 +341,8 @@ const PetrolPumpRequestsEdit = () => {
       district: 'all',
       dateRange: 'all'
     });
+    setStartDateFilter('');
+    setEndDateFilter('');
   };
 
   const formatDate = (date) => {
@@ -479,6 +508,32 @@ const PetrolPumpRequestsEdit = () => {
             <MenuItem value="month">Last 30 Days</MenuItem>
           </Select>
         </FormControl>
+
+        <Typography variant="subtitle2" sx={{ mb: 1, mt: 2 }}>Created Date Range</Typography>
+        <Grid container spacing={2} sx={{ mb: 2 }}>
+          <Grid item xs={6}>
+            <TextField
+              fullWidth
+              label="Start Date"
+              type="date"
+              value={startDateFilter}
+              onChange={(e) => setStartDateFilter(e.target.value)}
+              InputLabelProps={{ shrink: true }}
+              size="small"
+            />
+          </Grid>
+          <Grid item xs={6}>
+            <TextField
+              fullWidth
+              label="End Date"
+              type="date"
+              value={endDateFilter}
+              onChange={(e) => setEndDateFilter(e.target.value)}
+              InputLabelProps={{ shrink: true }}
+              size="small"
+            />
+          </Grid>
+        </Grid>
 
         <Box sx={{ display: 'flex', gap: 1 }}>
           <Button
