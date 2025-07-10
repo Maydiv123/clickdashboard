@@ -51,7 +51,9 @@ import {
   MyLocation as MyLocationIcon,
   Cancel as CancelIcon,
   Search as SearchIcon,
-  FilterList as FilterIcon
+  FilterList as FilterIcon,
+  Info as InfoIcon,
+  Visibility as VisibilityIcon
 } from '@mui/icons-material';
 import { collection, getDocs, doc, updateDoc, query, orderBy } from 'firebase/firestore';
 import { db, auth } from '../firebase/config';
@@ -109,6 +111,8 @@ const PetrolPumpRequestsEdit = () => {
   const [loading, setLoading] = useState(true);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editedRequest, setEditedRequest] = useState(null);
+  const [reasonDialogOpen, setReasonDialogOpen] = useState(false);
+  const [selectedRequest, setSelectedRequest] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [tabValue, setTabValue] = useState(0); // 0: Pending, 1: Approved, 2: Rejected
   const [searchQuery, setSearchQuery] = useState('');
@@ -209,6 +213,16 @@ const PetrolPumpRequestsEdit = () => {
   const handleEditRequest = (request) => {
     setEditedRequest({...request});
     setEditDialogOpen(true);
+  };
+
+  const handleViewReason = (request) => {
+    setSelectedRequest(request);
+    setReasonDialogOpen(true);
+  };
+
+  const handleViewApprovalDetails = (request) => {
+    setSelectedRequest(request);
+    setReasonDialogOpen(true);
   };
 
   const handleSaveEditedRequest = async () => {
@@ -519,15 +533,43 @@ const PetrolPumpRequestsEdit = () => {
                       />
                     </StyledTableCell>
                     <StyledTableCell align="right">
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        startIcon={<EditIcon />}
-                        onClick={() => handleEditRequest(request)}
-                        sx={{ borderRadius: 2 }}
-                      >
-                        Edit
-                      </Button>
+                      <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
+                        {request.status === 'pending' && (
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            startIcon={<EditIcon />}
+                            onClick={() => handleEditRequest(request)}
+                            sx={{ borderRadius: 2 }}
+                          >
+                            Edit
+                          </Button>
+                        )}
+                        {request.status === 'approved' && (
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            startIcon={<VisibilityIcon />}
+                            onClick={() => handleViewApprovalDetails(request)}
+                            sx={{ borderRadius: 2 }}
+                            color="success"
+                          >
+                            View Details
+                          </Button>
+                        )}
+                        {request.status === 'rejected' && (
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            startIcon={<InfoIcon />}
+                            onClick={() => handleViewReason(request)}
+                            sx={{ borderRadius: 2 }}
+                            color="error"
+                          >
+                            View Reason
+                          </Button>
+                        )}
+                      </Box>
                     </StyledTableCell>
                   </StyledTableRow>
                 ))}
@@ -695,6 +737,128 @@ const PetrolPumpRequestsEdit = () => {
             startIcon={<SaveIcon />}
           >
             Save Changes
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Request Details Dialog */}
+      <Dialog
+        open={reasonDialogOpen}
+        onClose={() => setReasonDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            {selectedRequest?.status === 'approved' ? (
+              <VisibilityIcon color="success" />
+            ) : (
+              <InfoIcon color="error" />
+            )}
+            <Typography variant="h6">
+              {selectedRequest?.status === 'approved' ? 'Approval Details' : 'Rejection Reason'}
+            </Typography>
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          {selectedRequest && (
+            <Box sx={{ mt: 1 }}>
+              <Typography variant="body1" sx={{ mb: 2 }}>
+                <strong>Request Details:</strong>
+              </Typography>
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                  <strong>Customer Name:</strong> {selectedRequest.customerName}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                  <strong>Company:</strong> {selectedRequest.company}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                  <strong>District:</strong> {selectedRequest.district}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                  <strong>Requested On:</strong> {formatDate(selectedRequest.createdAt)}
+                </Typography>
+              </Box>
+              
+              <Divider sx={{ my: 2 }} />
+              
+              {selectedRequest.status === 'approved' ? (
+                <>
+                  <Typography variant="body1" sx={{ mb: 2 }}>
+                    <strong>Approval Details:</strong>
+                  </Typography>
+                  <Box sx={{ 
+                    p: 2, 
+                    bgcolor: 'success.light', 
+                    borderRadius: 1,
+                    border: '1px solid',
+                    borderColor: 'success.main'
+                  }}>
+                    <Typography variant="body1">
+                      {selectedRequest.approvalReason || 'No approval notes provided'}
+                    </Typography>
+                  </Box>
+                  
+                  {selectedRequest.approvedBy && (
+                    <Box sx={{ mt: 2 }}>
+                      {/* <Typography variant="body2" color="text.secondary">
+                        <strong>Approved by:</strong> {selectedRequest.approvedBy}
+                      </Typography> */}
+                    </Box>
+                  )}
+                  
+                  {selectedRequest.approvedAt && (
+                    <Box sx={{ mt: 1 }}>
+                      <Typography variant="body2" color="text.secondary">
+                        <strong>Approved on:</strong> {formatDate(selectedRequest.approvedAt)}
+                      </Typography>
+                    </Box>
+                  )}
+                </>
+              ) : (
+                <>
+                  <Typography variant="body1" sx={{ mb: 2 }}>
+                    <strong>Rejection Reason:</strong>
+                  </Typography>
+                  <Box sx={{ 
+                    p: 2, 
+                    bgcolor: 'error.light', 
+                    borderRadius: 1,
+                    border: '1px solid',
+                    borderColor: 'error.main'
+                  }}>
+                    <Typography variant="body1">
+                      {selectedRequest.rejectionReason || 'No reason provided'}
+                    </Typography>
+                  </Box>
+                  
+                  {selectedRequest.rejectedBy && (
+                    <Box sx={{ mt: 2 }}>
+                      <Typography variant="body2" color="text.secondary">
+                        <strong>Rejected by:</strong> {selectedRequest.rejectedBy}
+                      </Typography>
+                    </Box>
+                  )}
+                  
+                  {selectedRequest.rejectedAt && (
+                    <Box sx={{ mt: 1 }}>
+                      <Typography variant="body2" color="text.secondary">
+                        <strong>Rejected on:</strong> {formatDate(selectedRequest.rejectedAt)}
+                      </Typography>
+                    </Box>
+                  )}
+                </>
+              )}
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button 
+            onClick={() => setReasonDialogOpen(false)}
+            variant="outlined"
+          >
+            Close
           </Button>
         </DialogActions>
       </Dialog>

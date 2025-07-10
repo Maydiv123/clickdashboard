@@ -307,60 +307,10 @@ export default function Dashboard() {
       
       {/* Charts */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
-        {/* Growth Chart */}
-        <Grid item xs={12} md={6}>
-          <Card sx={{ borderRadius: 3, height: '100%' }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                <Typography variant="h6" fontWeight="bold">
-                  Growth Overview
-                </Typography>
-                <IconButton size="small">
-                  <MoreVertIcon />
-                </IconButton>
-              </Box>
-              
-              <Box sx={{ height: 250 , width: 500 }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart
-                    data={growthData}
-                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis dataKey="name" axisLine={false} tickLine={false} />
-                    <YAxis axisLine={false} tickLine={false} />
-                    <Tooltip 
-                      contentStyle={{
-                        borderRadius: 8,
-                        border: 'none',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
-                      }}
-                    />
-                    <Legend />
-                    <Line 
-                      type="monotone" 
-                      dataKey="users" 
-                      stroke={COLORS[0]} 
-                      strokeWidth={3}
-                      activeDot={{ r: 8 }}
-                      dot={{ r: 4 }}
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="pumps" 
-                      stroke={COLORS[1]} 
-                      strokeWidth={3}
-                      dot={{ r: 4 }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
+        
         
         {/* Team Members Chart */}
-        <Grid item xs={12} md={6}>
+        {/* <Grid item xs={12} md={6}>
           <Card sx={{ borderRadius: 3, height: '100%' , width: 500 }}>
             <CardContent>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
@@ -403,22 +353,124 @@ export default function Dashboard() {
               </Box>
             </CardContent>
           </Card>
-        </Grid>
+        </Grid> */}
         
-        {/* Recent Users */}
+       
+        {/* Weekly Activity */}
         <Grid item xs={12} md={6}>
+          <Card sx={{ borderRadius: 3, width: 500 }}>
+            <CardContent>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                <Typography variant="h6" fontWeight="bold">
+                  Weekly Activity
+                </Typography>
+                {/* <IconButton size="small">
+                  <MoreVertIcon />
+                </IconButton> */}
+              </Box>
+              
+              <Box sx={{ height: 250 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={weeklyActivity} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} />
+                    <YAxis axisLine={false} tickLine={false} />
+                    <Tooltip 
+                      contentStyle={{
+                        borderRadius: 8,
+                        border: 'none',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                      }}
+                    />
+                    <Legend />
+                    <Bar 
+                      dataKey="users" 
+                      fill={COLORS[0]} 
+                      radius={[4, 4, 0, 0]} 
+                      barSize={25}
+                      name="Users"
+                    />
+                    <Bar 
+                      dataKey="pumps" 
+                      fill={COLORS[1]} 
+                      radius={[4, 4, 0, 0]} 
+                      barSize={25}
+                      name="Petrol Pumps"
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Growth Chart */}
+        <Grid item xs={12} md={6}>
+          <Card sx={{ borderRadius: 3, height: '100%' }}>
+            <CardContent>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                <Typography variant="h6" fontWeight="bold">
+                  Growth Overview
+                </Typography>
+                {/* <IconButton size="small">
+                  <MoreVertIcon />
+                </IconButton> */}
+              </Box>
+              
+              <Box sx={{ height: 250 , width: 500 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart
+                    data={growthData}
+                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} />
+                    <YAxis axisLine={false} tickLine={false} />
+                    <Tooltip 
+                      contentStyle={{
+                        borderRadius: 8,
+                        border: 'none',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                      }}
+                    />
+                    <Legend />
+                    <Line 
+                      type="monotone" 
+                      dataKey="users" 
+                      stroke={COLORS[0]} 
+                      strokeWidth={3}
+                      activeDot={{ r: 8 }}
+                      dot={{ r: 4 }}
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="pumps" 
+                      stroke={COLORS[1]} 
+                      strokeWidth={3}
+                      dot={{ r: 4 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+
+       {/* Recent Users */}
+       <Grid item xs={12} md={6}>
           <Card sx={{ borderRadius: 3 , width: 500 }}>
             <CardContent>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                 <Typography variant="h6" fontWeight="bold">
                   Recent Users
                 </Typography>
-                <Button 
+                {/* <Button 
                   endIcon={<ArrowForwardIcon />}
                   sx={{ textTransform: 'none' }}
                 >
                   View All
-                </Button>
+                </Button> */}
               </Box>
               
               <List sx={{ p: 0 }}>
@@ -464,54 +516,6 @@ export default function Dashboard() {
           </Card>
         </Grid>
         
-        {/* Weekly Activity */}
-        <Grid item xs={12} md={6}>
-          <Card sx={{ borderRadius: 3, width: 500 }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                <Typography variant="h6" fontWeight="bold">
-                  Weekly Activity
-                </Typography>
-                <IconButton size="small">
-                  <MoreVertIcon />
-                </IconButton>
-              </Box>
-              
-              <Box sx={{ height: 250 }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={weeklyActivity} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis dataKey="name" axisLine={false} tickLine={false} />
-                    <YAxis axisLine={false} tickLine={false} />
-                    <Tooltip 
-                      contentStyle={{
-                        borderRadius: 8,
-                        border: 'none',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
-                      }}
-                    />
-                    <Legend />
-                    <Bar 
-                      dataKey="users" 
-                      fill={COLORS[0]} 
-                      radius={[4, 4, 0, 0]} 
-                      barSize={25}
-                      name="Users"
-                    />
-                    <Bar 
-                      dataKey="pumps" 
-                      fill={COLORS[1]} 
-                      radius={[4, 4, 0, 0]} 
-                      barSize={25}
-                      name="Petrol Pumps"
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
     </Box>
   );
 } 

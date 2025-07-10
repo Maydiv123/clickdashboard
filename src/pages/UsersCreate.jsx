@@ -115,6 +115,19 @@ export default function UsersCreate() {
     }));
   };
 
+  const calculateAge = (birthDate) => {
+    const today = new Date();
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    
+    return age;
+  };
+
   const validateCurrentStep = () => {
     const errors = {};
 
@@ -123,6 +136,12 @@ export default function UsersCreate() {
         if (!newUser.firstName.trim()) errors.firstName = 'First name is required';
         if (!newUser.lastName.trim()) errors.lastName = 'Last name is required';
         if (!newUser.userType) errors.userType = 'User type is required';
+        if (newUser.dob) {
+          const age = calculateAge(newUser.dob);
+          if (age < 18) {
+            errors.dob = 'User must be at least 18 years old';
+          }
+        }
         break;
       
       case 1: // Contact Details
@@ -368,7 +387,16 @@ export default function UsersCreate() {
                         value={newUser.dob}
                         onChange={(e) => handleCreateChange('dob', e.target.value)}
                         variant="outlined"
+                        error={!!fieldErrors.dob}
+                        helperText={fieldErrors.dob}
                         InputLabelProps={{ shrink: true }}
+                        inputProps={{
+                          max: (() => {
+                            const today = new Date();
+                            const maxDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
+                            return maxDate.toISOString().split('T')[0];
+                          })()
+                        }}
                         InputProps={{
                           startAdornment: (
                             <InputAdornment position="start">

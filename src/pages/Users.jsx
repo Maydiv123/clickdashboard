@@ -46,6 +46,7 @@ import {
   Checkbox,
   FormGroup,
   FormControlLabel,
+  Autocomplete,
 } from '@mui/material';
 import { styled, alpha } from '@mui/material/styles';
 import { 
@@ -53,6 +54,7 @@ import {
   Add as AddIcon,
   FilterList as FilterIcon,
   Visibility as VisibilityIcon,
+  VisibilityOff as VisibilityOffIcon,
   PersonAdd as PersonAddIcon,
   Person as PersonIcon,
   Badge as BadgeIcon,
@@ -169,9 +171,10 @@ export default function Users() {
   const steps = ['Basic Information', 'Contact Details', 'Additional Information'];
   const [filterAnchorEl, setFilterAnchorEl] = useState(null);
   const [userTypeFilter, setUserTypeFilter] = useState('all');
-  const [teamNameFilter, setTeamNameFilter] = useState('all');
+  const [teamNameFilter, setTeamNameFilter] = useState('');
   const [profileCompletionFilter, setProfileCompletionFilter] = useState('all');
-  const [createdDateFilter, setCreatedDateFilter] = useState('all');
+  const [startDateFilter, setStartDateFilter] = useState('');
+  const [endDateFilter, setEndDateFilter] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
 
@@ -256,8 +259,10 @@ export default function Users() {
     if (userTypeFilter !== 'all') {
       filtered = filtered.filter(user => user.userType === userTypeFilter);
     }
-    if (teamNameFilter !== 'all') {
-      filtered = filtered.filter(user => user.teamName === teamNameFilter);
+    if (teamNameFilter.trim() !== '') {
+      filtered = filtered.filter(user => 
+        user.teamName && user.teamName.toLowerCase().includes(teamNameFilter.toLowerCase())
+      );
     }
     if (profileCompletionFilter !== 'all') {
       const completion = parseInt(profileCompletionFilter);
@@ -269,19 +274,20 @@ export default function Users() {
       });
       console.log('Filtered users after profile completion filter:', filtered.length);
     }
-    if (createdDateFilter !== 'all') {
-      const now = new Date();
-      const filterDate = new Date();
-      if (createdDateFilter === 'today') {
-        filterDate.setDate(now.getDate() - 1);
-      } else if (createdDateFilter === 'week') {
-        filterDate.setDate(now.getDate() - 7);
-      } else if (createdDateFilter === 'month') {
-        filterDate.setMonth(now.getMonth() - 1);
-      }
+    if (startDateFilter || endDateFilter) {
       filtered = filtered.filter(user => {
         const userCreatedAt = user.createdAt?.toDate ? user.createdAt.toDate() : new Date(user.createdAt);
-        return userCreatedAt >= filterDate;
+        const startDate = startDateFilter ? new Date(startDateFilter) : null;
+        const endDate = endDateFilter ? new Date(endDateFilter) : null;
+        
+        if (startDate && endDate) {
+          return userCreatedAt >= startDate && userCreatedAt <= endDate;
+        } else if (startDate) {
+          return userCreatedAt >= startDate;
+        } else if (endDate) {
+          return userCreatedAt <= endDate;
+        }
+        return true;
       });
     }
     if (tabValue === 1) {
@@ -298,7 +304,7 @@ export default function Users() {
       );
     }
     setFilteredUsers(filtered);
-  }, [searchTerm, users, userTypeFilter, teamNameFilter, profileCompletionFilter, createdDateFilter, tabValue]);
+  }, [searchTerm, users, userTypeFilter, teamNameFilter, profileCompletionFilter, startDateFilter, endDateFilter, tabValue]);
 
   // Handle search term change
   const handleSearchChange = (event) => {
@@ -435,9 +441,10 @@ export default function Users() {
   };
   const clearFilters = () => {
     setUserTypeFilter('all');
-    setTeamNameFilter('all');
+    setTeamNameFilter('');
     setProfileCompletionFilter('all');
-    setCreatedDateFilter('all');
+    setStartDateFilter('');
+    setEndDateFilter('');
     setFilterAnchorEl(null);
   };
   const getUniqueTeamNames = () => {
@@ -1329,7 +1336,7 @@ export default function Users() {
                             onClick={() => handleTogglePasswordVisibility(false)}
                             edge="end"
                           >
-                            {showPassword ? <VisibilityOff /> : <Visibility />}
+                            {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
                           </IconButton>
                         </InputAdornment>
                       ),
@@ -1520,21 +1527,28 @@ export default function Users() {
             ))}
           </Select>
         </FormControl>
-        <FormControl fullWidth margin="normal" size="small">
-          <InputLabel id="team-name-filter-label">Team Name</InputLabel>
-          <Select
-            labelId="team-name-filter-label"
-            id="team-name-filter"
-            value={teamNameFilter}
-            label="Team Name"
-            onChange={e => setTeamNameFilter(e.target.value)}
-          >
-            <MenuItem value="all">All Teams</MenuItem>
-            {getUniqueTeamNames().map(name => (
-              <MenuItem key={name} value={name}>{name}</MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+        <Autocomplete
+          fullWidth
+          size="small"
+          options={getUniqueTeamNames()}
+          value={teamNameFilter}
+          onChange={(event, newValue) => setTeamNameFilter(newValue || '')}
+          onInputChange={(event, newInputValue) => setTeamNameFilter(newInputValue)}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label="Team Name"
+              placeholder="Search team names..."
+              variant="outlined"
+              margin="normal"
+            />
+          )}
+          freeSolo
+          disableClearable={false}
+          clearOnBlur={false}
+          selectOnFocus
+          handleHomeEndKeys
+        />
         <FormControl fullWidth margin="normal" size="small">
           <InputLabel id="profile-completion-filter-label">Profile Completion</InputLabel>
           <Select
@@ -1552,21 +1566,37 @@ export default function Users() {
             <MenuItem value="100">100%</MenuItem>
           </Select>
         </FormControl>
-        <FormControl fullWidth margin="normal" size="small">
-          <InputLabel id="created-date-filter-label">Created Date</InputLabel>
-          <Select
-            labelId="created-date-filter-label"
-            id="created-date-filter"
-            value={createdDateFilter}
-            label="Created Date"
-            onChange={e => setCreatedDateFilter(e.target.value)}
-          >
-            <MenuItem value="all">All Time</MenuItem>
-            <MenuItem value="today">Today</MenuItem>
-            <MenuItem value="week">This Week</MenuItem>
-            <MenuItem value="month">This Month</MenuItem>
-          </Select>
-        </FormControl>
+        <Box sx={{ mt: 2 }}>
+          <Typography variant="subtitle2" sx={{ mb: 1 }}>
+            Created Date Range
+          </Typography>
+          <Grid container spacing={1}>
+            <Grid item xs={12} md={6} sx={{ width: '100%' }}>
+              <TextField
+                fullWidth
+                size="small"
+                label="Start Date"
+                type="date"
+                value={startDateFilter}
+                onChange={(e) => setStartDateFilter(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                variant="outlined"
+              />
+            </Grid>
+            <Grid item xs={12} md={6} sx={{ width: '100%' }}>
+              <TextField
+                fullWidth
+                size="small"
+                label="End Date"
+                type="date"
+                value={endDateFilter}
+                onChange={(e) => setEndDateFilter(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                variant="outlined"
+              />
+            </Grid>
+          </Grid>
+        </Box>
         <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between' }}>
           <Button variant="outlined" size="small" onClick={clearFilters}>
             Clear Filters
