@@ -131,6 +131,8 @@ const ContactCell = styled(Box)(({ theme }) => ({
   }
 }));
 
+
+
 export default function PetrolPumpsView() {
   const [pumps, setPumps] = useState([]);
   const [filteredPumps, setFilteredPumps] = useState([]);
@@ -1322,6 +1324,70 @@ export default function PetrolPumpsView() {
                   />
                 </Grid>
               </Grid>
+              
+              {/* Map Section */}
+              {(selectedPump.latitude || selectedPump.Lat) && (selectedPump.longitude || selectedPump.Long) && (
+                <Grid item xs={12}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                    <Typography variant="subtitle1" fontWeight={600} sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'primary.main', mt: 2 }}>
+                      <MyLocationIcon />
+                      Location Map
+                    </Typography>
+                    
+                    <Button
+                      variant="outlined"
+                      color="primary"
+                      size="small"
+                      startIcon={<MyLocationIcon />}
+                      onClick={() => {
+                        const url = `https://www.google.com/maps?q=${selectedPump.latitude || selectedPump.Lat},${selectedPump.longitude || selectedPump.Long}`;
+                        window.open(url, '_blank');
+                      }}
+                      sx={{ 
+                        borderRadius: 2,
+                        px: 2,
+                        py: 0.5,
+                        fontWeight: 500
+                      }}
+                    >
+                      View in Larger Map
+                    </Button>
+                  </Box>
+                  <Divider sx={{ mb: 2 }} />
+                  
+                  <Box 
+                    sx={{ 
+                      width: '100%', 
+                      height: 300, 
+                      borderRadius: 2, 
+                      overflow: 'hidden',
+                      border: '1px solid',
+                      borderColor: 'divider',
+                      backgroundColor: 'grey.100'
+                    }}
+                  >
+                    <iframe
+                      width="100%"
+                      height="100%"
+                      frameBorder="0"
+                      style={{ border: 0 }}
+                      src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${selectedPump.latitude || selectedPump.Lat},${selectedPump.longitude || selectedPump.Long}`}
+                      allowFullScreen
+                      loading="lazy"
+                      referrerPolicy="no-referrer-when-downgrade"
+                    />
+                  </Box>
+                  
+                  <Box sx={{ mt: 1, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                    <Typography variant="body2" color="text.secondary">
+                      <strong>Latitude:</strong> {selectedPump.latitude || selectedPump.Lat}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      <strong>Longitude:</strong> {selectedPump.longitude || selectedPump.Long}
+                    </Typography>
+                  </Box>
+                </Grid>
+              )}
             </Grid>
           )}
         </DialogContent>
