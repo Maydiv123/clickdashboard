@@ -659,114 +659,323 @@ const PetrolPumpRequestsEdit = () => {
         onClose={() => setEditDialogOpen(false)}
         maxWidth="md"
         fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.1)'
+          }
+        }}
       >
-        <DialogTitle>
+        <DialogTitle sx={{ pb: 1 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <EditIcon color="primary" />
-            <Typography variant="h6">Edit Request</Typography>
+            <Typography variant="h6" fontWeight={600}>
+              Edit Petrol Pump Request: {editedRequest?.customerName}
+            </Typography>
           </Box>
         </DialogTitle>
-        <DialogContent>
-          {editedRequest && (
-            <Grid container spacing={2} sx={{ mt: 1 }}>
-              <Grid item xs={12} sm={6}>
+        <DialogContent dividers>
+          <Grid container spacing={3} direction="column">
+            {/* Basic Information */}
+            <Grid item xs={12}>
+              <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'primary.main' }}>
+                <BusinessIcon />
+                Basic Information
+              </Typography>
+              <Divider sx={{ mb: 2 }} />
+            </Grid>
+            
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6} sx={{ width: '300px' }}>
+                <FormControl fullWidth required>
+                  <InputLabel>Company</InputLabel>
+                  <Select
+                    value={editedRequest?.company || ''}
+                    label="Company"
+                    onChange={(e) => handleEditChange('company', e.target.value)}
+                    startAdornment={
+                      <InputAdornment position="start">
+                        <BusinessIcon color="action" />
+                      </InputAdornment>
+                    }
+                  >
+                    <MenuItem value="HPCL">HPCL</MenuItem>
+                    <MenuItem value="BPCL">BPCL</MenuItem>
+                    <MenuItem value="IOCL">IOCL</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              <Grid item xs={12} sm={6} sx={{ width: '400px' }}>
                 <TextField
                   fullWidth
                   label="Customer Name"
-                  value={editedRequest.customerName || ''}
+                  value={editedRequest?.customerName || ''}
                   onChange={(e) => handleEditChange('customerName', e.target.value)}
+                  required
                   variant="outlined"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <PersonIcon color="action" />
+                      </InputAdornment>
+                    ),
+                  }}
                 />
               </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Company"
-                  value={editedRequest.company || ''}
-                  onChange={(e) => handleEditChange('company', e.target.value)}
-                  variant="outlined"
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="District"
-                  value={editedRequest.district || ''}
-                  onChange={(e) => handleEditChange('district', e.target.value)}
-                  variant="outlined"
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} sm={6} sx={{ width: '300px' }}>
                 <TextField
                   fullWidth
                   label="SAP Code"
-                  value={editedRequest.sapCode || ''}
+                  value={editedRequest?.sapCode || ''}
                   onChange={(e) => handleEditChange('sapCode', e.target.value)}
                   variant="outlined"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <BadgeIcon color="action" />
+                      </InputAdornment>
+                    ),
+                  }}
                 />
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} sm={6} sx={{ width: '400px' }}>
                 <TextField
                   fullWidth
                   label="Dealer Name"
-                  value={editedRequest.dealerName || ''}
+                  value={editedRequest?.dealerName || ''}
                   onChange={(e) => handleEditChange('dealerName', e.target.value)}
                   variant="outlined"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <PersonIcon color="action" />
+                      </InputAdornment>
+                    ),
+                  }}
                 />
               </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Contact Details"
-                  value={editedRequest.contactDetails || ''}
-                  onChange={(e) => handleEditChange('contactDetails', e.target.value)}
-                  variant="outlined"
-                />
+            </Grid>
+            
+            {/* Company Information and Contact Information Sections Side by Side */}
+            <Grid container spacing={3}>
+              {/* Company Information Section - 80% */}
+              <Grid item xs={12} md={8.6} sx={{ width: '650px' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, mt: 2 }}>
+                  <BusinessIcon sx={{ mr: 1, color: 'primary.main' }} />
+                  <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                    Company Information
+                  </Typography>
+                </Box>
+
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={6} sx={{ width: '200px' }}>
+                    <TextField
+                      fullWidth
+                      label="Zone"
+                      value={editedRequest?.zone || ''}
+                      onChange={(e) => handleEditChange('zone', e.target.value)}
+                      variant="outlined"
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <BusinessIcon color="action" />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} sm={6} sx={{ width: '400px' }}>
+                    <TextField
+                      fullWidth
+                      label="Sales Area"
+                      value={editedRequest?.salesArea || ''}
+                      onChange={(e) => handleEditChange('salesArea', e.target.value)}
+                      variant="outlined"
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <BusinessIcon color="action" />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} sm={6} sx={{ width: '200px' }}>
+                    <FormControl fullWidth>
+                      <InputLabel>CO/CL/DO</InputLabel>
+                      <Select
+                        value={editedRequest?.coClDo || ''}
+                        onChange={(e) => handleEditChange('coClDo', e.target.value)}
+                        startAdornment={
+                          <InputAdornment position="start">
+                            <BusinessIcon color="action" />
+                          </InputAdornment>
+                        }
+                      >
+                        <MenuItem value="CO">CO</MenuItem>
+                        <MenuItem value="CL">CL</MenuItem>
+                        <MenuItem value="DO">DO</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
+
+                  <Grid item xs={12} sm={6} sx={{ width: '400px' }}>
+                    <TextField
+                      fullWidth
+                      label="Regional Office"
+                      value={editedRequest?.regionalOffice || ''}
+                      onChange={(e) => handleEditChange('regionalOffice', e.target.value)}
+                      variant="outlined"
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <BusinessIcon color="action" />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Grid>
+                </Grid>
               </Grid>
-              <Grid item xs={12}>
+
+              {/* Contact Information Section - 20% */}
+              <Grid item xs={12} md={3.6} sx={{ width: '300px' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, mt: 2 }}>
+                  <PhoneIcon sx={{ mr: 1, color: 'primary.main' }} />
+                  <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                    Contact Information
+                  </Typography>
+                </Box>
+
+                <Grid item xs={12} sm={6} sx={{ width: '300px' }}>
+                  <TextField
+                    fullWidth
+                    label="Contact Details"
+                    value={editedRequest?.contactDetails || ''}
+                    onChange={(e) => handleEditChange('contactDetails', e.target.value)}
+                    required
+                    variant="outlined"
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <PhoneIcon color="action" />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Grid>
+              </Grid>
+            </Grid>
+            
+            {/* Address Information */}
+            <Grid item xs={12}>
+              <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'primary.main', mt: 2 }}>
+                <LocationIcon />
+                Address Information
+              </Typography>
+              <Divider sx={{ mb: 2 }} />
+            </Grid>
+            
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6} sx={{ width: '600px' }}>
                 <TextField
                   fullWidth
                   label="Address Line 1"
-                  value={editedRequest.addressLine1 || ''}
+                  value={editedRequest?.addressLine1 || ''}
                   onChange={(e) => handleEditChange('addressLine1', e.target.value)}
                   variant="outlined"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <LocationIcon color="action" />
+                      </InputAdornment>
+                    ),
+                  }}
                 />
               </Grid>
-              <Grid item xs={12}>
+              <Grid item xs={12} sm={6} sx={{ width: '600px' }}>
                 <TextField
                   fullWidth
                   label="Address Line 2"
-                  value={editedRequest.addressLine2 || ''}
+                  value={editedRequest?.addressLine2 || ''}
                   onChange={(e) => handleEditChange('addressLine2', e.target.value)}
                   variant="outlined"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <LocationIcon color="action" />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Grid>
+              
+              <Grid item xs={12} sm={6} sx={{ width: '300px' }}>
+                <TextField
+                  fullWidth
+                  label="District"
+                  value={editedRequest?.district || ''}
+                  onChange={(e) => handleEditChange('district', e.target.value)}
+                  required
+                  variant="outlined"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <LocationIcon color="action" />
+                      </InputAdornment>
+                    ),
+                  }}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
                   label="Pincode"
-                  value={editedRequest.pincode || ''}
+                  value={editedRequest?.pincode || ''}
                   onChange={(e) => handleEditChange('pincode', e.target.value)}
+                  required
                   variant="outlined"
+                  inputProps={{ maxLength: 6 }}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <LocationIcon color="action" />
+                      </InputAdornment>
+                    ),
+                  }}
                 />
               </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Regional Office"
-                  value={editedRequest.regionalOffice || ''}
-                  onChange={(e) => handleEditChange('regionalOffice', e.target.value)}
-                  variant="outlined"
-                />
-              </Grid>
+            </Grid>
+            
+            {/* Location Information */}
+            <Grid item xs={12}>
+              <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'primary.main', mt: 2 }}>
+                <MyLocationIcon />
+                Location Coordinates
+              </Typography>
+              <Divider sx={{ mb: 2 }} />
+            </Grid>
+            
+            <Grid container spacing={2}>
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
                   label="Latitude"
                   type="number"
-                  value={editedRequest.latitude || ''}
+                  value={editedRequest?.latitude || ''}
                   onChange={(e) => handleEditChange('latitude', e.target.value)}
                   variant="outlined"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <MyLocationIcon color="action" />
+                      </InputAdornment>
+                    ),
+                  }}
+                  helperText="Enter latitude (e.g., 20.5937)"
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -774,22 +983,105 @@ const PetrolPumpRequestsEdit = () => {
                   fullWidth
                   label="Longitude"
                   type="number"
-                  value={editedRequest.longitude || ''}
+                  value={editedRequest?.longitude || ''}
                   onChange={(e) => handleEditChange('longitude', e.target.value)}
                   variant="outlined"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <MyLocationIcon color="action" />
+                      </InputAdornment>
+                    ),
+                  }}
+                  helperText="Enter longitude (e.g., 78.9629)"
                 />
               </Grid>
             </Grid>
-          )}
+
+            {/* Location Map */}
+            {(editedRequest?.latitude && editedRequest?.longitude) && (
+              <Grid item xs={12}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                  <Typography variant="subtitle1" fontWeight={600} sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'primary.main', mt: 2 }}>
+                    <MyLocationIcon />
+                    Location Map
+                  </Typography>
+                  
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    size="small"
+                    startIcon={<MyLocationIcon />}
+                    onClick={() => {
+                      const url = `https://www.google.com/maps?q=${editedRequest.latitude},${editedRequest.longitude}`;
+                      window.open(url, '_blank');
+                    }}
+                    sx={{ 
+                      borderRadius: 2,
+                      px: 2,
+                      py: 0.5,
+                      fontWeight: 500
+                    }}
+                  >
+                    View in Larger Map
+                  </Button>
+                </Box>
+                <Divider sx={{ mb: 2 }} />
+                
+                <Box 
+                  sx={{ 
+                    width: '100%', 
+                    height: 300, 
+                    borderRadius: 2, 
+                    overflow: 'hidden',
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    backgroundColor: 'grey.100'
+                  }}
+                >
+                  <iframe
+                    width="100%"
+                    height="100%"
+                    frameBorder="0"
+                    style={{ border: 0 }}
+                    src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${editedRequest.latitude},${editedRequest.longitude}`}
+                    allowFullScreen
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                  />
+                </Box>
+                
+                <Box sx={{ mt: 1, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                  <Typography variant="body2" color="text.secondary">
+                    <strong>Latitude:</strong> {editedRequest.latitude}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    <strong>Longitude:</strong> {editedRequest.longitude}
+                  </Typography>
+                </Box>
+              </Grid>
+            )}
+          </Grid>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setEditDialogOpen(false)}>
+        <DialogActions sx={{ px: 3, py: 2 }}>
+          <Button 
+            onClick={() => setEditDialogOpen(false)} 
+            variant="outlined"
+            color="inherit"
+            startIcon={<CancelIcon />}
+            sx={{ borderRadius: 2, px: 3 }}
+          >
             Cancel
           </Button>
-          <Button
-            onClick={handleSaveEditedRequest}
+          <Button 
+            onClick={handleSaveEditedRequest} 
             variant="contained"
             startIcon={<SaveIcon />}
+            sx={{ 
+              borderRadius: 2, 
+              px: 3,
+              boxShadow: '0 4px 12px rgba(58, 134, 255, 0.2)'
+            }}
           >
             Save Changes
           </Button>
