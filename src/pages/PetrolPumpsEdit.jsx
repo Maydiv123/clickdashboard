@@ -124,6 +124,9 @@ export default function PetrolPumpsEdit() {
   const [endDateFilter, setEndDateFilter] = useState('');
   const [filterAnchorEl, setFilterAnchorEl] = useState(null);
 
+  // Zone options
+  const zoneOptions = ['North', 'South', 'East', 'West', 'North East', 'Central', 'South East'];
+
   // CO/CL/DO options
   const coClDoOptions = ['CO', 'CL', 'DO'];
 
@@ -1034,20 +1037,24 @@ export default function PetrolPumpsEdit() {
                 <Grid container spacing={2}>
                   
                   <Grid item xs={12} sm={6} sx={{ width: '200px' }}>
-                    <TextField
-                      fullWidth
-                      label="Zone"
-                      value={editFormData.zone || ''}
-                      onChange={(e) => handleEditInputChange('zone', e.target.value)}
-                      variant="outlined"
-                      InputProps={{
-                        startAdornment: (
+                    <FormControl fullWidth>
+                      <InputLabel>Zone</InputLabel>
+                      <Select
+                        value={editFormData.zone || ''}
+                        onChange={(e) => handleEditInputChange('zone', e.target.value)}
+                        startAdornment={
                           <InputAdornment position="start">
                             <BusinessIcon color="action" />
                           </InputAdornment>
-                        ),
-                      }}
-                    />
+                        }
+                      >
+                        {zoneOptions.map((zone) => (
+                          <MenuItem key={zone} value={zone}>
+                            {zone}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
                   </Grid>
 
                   <Grid item xs={12} sm={6} sx={{ width: '400px' }}>
