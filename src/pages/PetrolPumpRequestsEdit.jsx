@@ -35,7 +35,8 @@ import {
   CardContent,
   Menu,
   ListItemIcon,
-  ListItemText
+  ListItemText,
+  Autocomplete
 } from '@mui/material';
 import { styled, alpha } from '@mui/material/styles';
 import {
@@ -126,7 +127,15 @@ const PetrolPumpRequestsEdit = () => {
   });
   const [startDateFilter, setStartDateFilter] = useState('');
   const [endDateFilter, setEndDateFilter] = useState('');
+  const [districts, setDistricts] = useState([]);
+  const [fetchingDistricts, setFetchingDistricts] = useState(true);
   const navigate = useNavigate();
+
+  // Zone options
+  const zoneOptions = ['North', 'South', 'East', 'West', 'North East', 'Central', 'South East'];
+
+  // CO/CL/DO options
+  const coClDoOptions = ['CO', 'CL', 'DO'];
 
   useEffect(() => {
     fetchRequests();
@@ -135,6 +144,36 @@ const PetrolPumpRequestsEdit = () => {
   useEffect(() => {
     filterRequests();
   }, [tabValue, requests, searchQuery, filterOptions, startDateFilter, endDateFilter]);
+
+  // Fetch districts from database
+  useEffect(() => {
+    const fetchDistricts = async () => {
+      try {
+        setFetchingDistricts(true);
+        const pumpsRef = collection(db, 'petrolPumps');
+        const q = query(pumpsRef);
+        const querySnapshot = await getDocs(q);
+        
+        if (!querySnapshot.empty) {
+          const districtsData = querySnapshot.docs.map(doc => {
+            const data = doc.data();
+            const district = data.district || data.District || '';
+            return district.trim().toUpperCase();
+          }).filter(district => district !== '');
+
+          // Remove duplicates and sort
+          const uniqueDistricts = [...new Set(districtsData)].sort();
+          setDistricts(uniqueDistricts);
+        }
+      } catch (err) {
+        console.error('Error fetching districts:', err);
+      } finally {
+        setFetchingDistricts(false);
+      }
+    };
+
+    fetchDistricts();
+  }, []);
 
   const fetchRequests = async () => {
     try {
@@ -770,20 +809,24 @@ const PetrolPumpRequestsEdit = () => {
 
                 <Grid container spacing={2}>
                   <Grid item xs={12} sm={6} sx={{ width: '200px' }}>
-                    <TextField
-                      fullWidth
-                      label="Zone"
-                      value={editedRequest?.zone || ''}
-                      onChange={(e) => handleEditChange('zone', e.target.value)}
-                      variant="outlined"
-                      InputProps={{
-                        startAdornment: (
+                    <FormControl fullWidth>
+                      <InputLabel>Zone</InputLabel>
+                      <Select
+                        value={editedRequest?.zone || ''}
+                        onChange={(e) => handleEditChange('zone', e.target.value)}
+                        startAdornment={
                           <InputAdornment position="start">
                             <BusinessIcon color="action" />
                           </InputAdornment>
-                        ),
-                      }}
-                    />
+                        }
+                      >
+                        {zoneOptions.map((zone) => (
+                          <MenuItem key={zone} value={zone}>
+                            {zone}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
                   </Grid>
 
                   <Grid item xs={12} sm={6} sx={{ width: '400px' }}>
@@ -914,20 +957,78 @@ const PetrolPumpRequestsEdit = () => {
               </Grid>
               
               <Grid item xs={12} sm={6} sx={{ width: '300px' }}>
-                <TextField
-                  fullWidth
-                  label="District"
+                <Autocomplete
+                  freeSolo
                   value={editedRequest?.district || ''}
-                  onChange={(e) => handleEditChange('district', e.target.value)}
-                  required
-                  variant="outlined"
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <LocationIcon color="action" />
-                      </InputAdornment>
-                    ),
+                  onChange={(event, newValue) => {
+                    if (typeof newValue === 'string') {
+                      handleEditChange('district', newValue);
+                    } else if (newValue && newValue.inputValue) {
+                      handleEditChange('district', newValue.inputValue);
+                    } else if (newValue) {
+                      handleEditChange('district', newValue.title);
+                    }
                   }}
+                  onInputChange={(event, newInputValue) => {
+                    handleEditChange('district', newInputValue);
+                  }}
+                  options={districts.map((district) => ({
+                    title: district,
+                    inputValue: district
+                  }))}
+                  getOptionLabel={(option) => {
+                    if (typeof option === 'string') {
+                      return option;
+                    }
+                    if (option.inputValue) {
+                      return option.inputValue;
+                    }
+                    return option.title;
+                  }}
+                  filterOptions={(options, params) => {
+                    const filtered = options.filter((option) =>
+                      option.title.toLowerCase().includes(params.inputValue.toLowerCase())
+                    );
+                    
+                    const { inputValue } = params;
+                    const isExisting = options.some((option) => inputValue === option.title);
+                    if (inputValue !== '' && !isExisting) {
+                      filtered.push({
+                        inputValue,
+                        title: `Add "${inputValue}"`,
+                      });
+                    }
+                    
+                    return filtered;
+                  }}
+                  renderOption={(props, option) => (
+                    <li {...props}>
+                      {option.title}
+                    </li>
+                  )}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="District"
+                      required
+                      InputProps={{
+                        ...params.InputProps,
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <LocationIcon color="action" />
+                          </InputAdornment>
+                        ),
+                        endAdornment: (
+                          <>
+                            {fetchingDistricts ? (
+                              <CircularProgress size={20} sx={{ mr: 1 }} />
+                            ) : null}
+                            {params.InputProps.endAdornment}
+                          </>
+                        ),
+                      }}
+                    />
+                  )}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
