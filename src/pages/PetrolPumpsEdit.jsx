@@ -1155,38 +1155,7 @@ export default function PetrolPumpsEdit() {
             </Grid>
             
             <Grid container spacing={2}>
-              <Grid item xs={12} sm={6} sx={{ width: '600px' }}>
-                <TextField
-                  fullWidth
-                  label="Address Line 1"
-                  value={editFormData.addressLine1 || ''}
-                  onChange={(e) => handleEditInputChange('addressLine1', e.target.value)}
-                  variant="outlined"
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <LocationIcon color="action" />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6} sx={{ width: '600px' }}>
-                <TextField
-                  fullWidth
-                  label="Address Line 2"
-                  value={editFormData.addressLine2 || ''}
-                  onChange={(e) => handleEditInputChange('addressLine2', e.target.value)}
-                  variant="outlined"
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <LocationIcon color="action" />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-              </Grid>
+              
               
               {/* <Grid item xs={12} sm={6}>
                 <TextField
@@ -1297,6 +1266,38 @@ export default function PetrolPumpsEdit() {
                   required
                   variant="outlined"
                   inputProps={{ maxLength: 6 }}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <LocationIcon color="action" />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6} sx={{ width: '600px' }}>
+                <TextField
+                  fullWidth
+                  label="Address Line 1"
+                  value={editFormData.addressLine1 || ''}
+                  onChange={(e) => handleEditInputChange('addressLine1', e.target.value)}
+                  variant="outlined"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <LocationIcon color="action" />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6} sx={{ width: '600px' }}>
+                <TextField
+                  fullWidth
+                  label="Address Line 2"
+                  value={editFormData.addressLine2 || ''}
+                  onChange={(e) => handleEditInputChange('addressLine2', e.target.value)}
+                  variant="outlined"
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">

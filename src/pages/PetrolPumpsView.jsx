@@ -1137,38 +1137,7 @@ export default function PetrolPumpsView() {
               </Grid>
               
               <Grid container spacing={2}>
-                <Grid item xs={12} sm={6} sx={{ width: '600px' }}>
-                  <TextField
-                    fullWidth
-                    label="Address Line 1"
-                    value={selectedPump.addressLine1 || ''}
-                    InputProps={{ 
-                      readOnly: true,
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <LocationIcon color="action" />
-                        </InputAdornment>
-                      ),
-                    }}
-                    variant="outlined"
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6} sx={{ width: '600px' }}>
-                  <TextField
-                    fullWidth
-                    label="Address Line 2"
-                    value={selectedPump.addressLine2 || ''}
-                    InputProps={{ 
-                      readOnly: true,
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <LocationIcon color="action" />
-                        </InputAdornment>
-                      ),
-                    }}
-                    variant="outlined"
-                  />
-                </Grid>
+                
                 
                 {/* <Grid item xs={12} sm={6}>
                   <TextField
@@ -1219,11 +1188,44 @@ export default function PetrolPumpsView() {
                     variant="outlined"
                   />
                 </Grid>
+                
                 <Grid item xs={12} sm={6}>
                   <TextField
                     fullWidth
                     label="Pincode"
                     value={selectedPump.pincode || ''}
+                    InputProps={{ 
+                      readOnly: true,
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <LocationIcon color="action" />
+                        </InputAdornment>
+                      ),
+                    }}
+                    variant="outlined"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6} sx={{ width: '600px' }}>
+                  <TextField
+                    fullWidth
+                    label="Address Line 1"
+                    value={selectedPump.addressLine1 || ''}
+                    InputProps={{ 
+                      readOnly: true,
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <LocationIcon color="action" />
+                        </InputAdornment>
+                      ),
+                    }}
+                    variant="outlined"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6} sx={{ width: '600px' }}>
+                  <TextField
+                    fullWidth
+                    label="Address Line 2"
+                    value={selectedPump.addressLine2 || ''}
                     InputProps={{ 
                       readOnly: true,
                       startAdornment: (

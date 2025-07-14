@@ -400,15 +400,15 @@ export default function ExcelImport() {
       <Paper 
         elevation={0}
         sx={{ 
-          p: 3,
+          p: 2,
           borderRadius: 3,
-          mb: 4,
+          mb: 1,
           border: '1px solid',
           borderColor: 'divider',
           backgroundColor: 'background.paper'
         }}
       >
-        <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
+        <Stepper activeStep={activeStep} sx={{ mb: 1 }}>
           {steps.map((label) => (
             <Step key={label}>
               <StepLabel>{label}</StepLabel>
@@ -416,14 +416,14 @@ export default function ExcelImport() {
           ))}
         </Stepper>
 
-        <Divider sx={{ mb: 4 }} />
+        <Divider sx={{ mb: 1 }} />
 
         {activeStep === 0 && (
           <Box>
             <Grid container spacing={3}>
               <Grid item xs={12} md={6}>
-                <Card sx={{ p: 3, height: '100%', textAlign: 'center' }}>
-                  <DescriptionIcon color="primary" sx={{ fontSize: 48, mb: 2 }} />
+                <Card sx={{ p: 2, height: '100%', textAlign: 'center' }}>
+                  <DescriptionIcon color="primary" sx={{ fontSize: 38, mb: 1 }} />
                   <Typography variant="h6" gutterBottom>
                     Download Sample Format
                   </Typography>
@@ -434,38 +434,38 @@ export default function ExcelImport() {
                     variant="outlined"
                     startIcon={<DownloadIcon />}
                     onClick={downloadSampleFormat}
-                    sx={{ mb: 2 }}
+                    sx={{ mb: 1 }}
                   >
                     Download Template
                   </Button>
-                  <Box sx={{ mt: 2, textAlign: 'left' }}>
+                  <Box sx={{ mt: 1, textAlign: 'left' }}>
                     <Typography variant="subtitle2" gutterBottom sx={{ color: 'error.main', fontWeight: 'bold' }}>
                       Compulsory Fields (Required):
                     </Typography>
                     <Typography variant="body2" color="text.secondary" component="div" sx={{ mb: 2 }}>
-                      • Customer Name<br/>
-                      • Dealer Name<br/>
+                      • Customer Name 
+                      • Dealer Name <tab> </tab>
                       • Company (HPCL/BPCL/IOCL)<br/>
-                      • District<br/>
-                      • Zone<br/>
+                      • District <t></t>
+                      • Zone <t></t>
                       • Sales Area<br/>
-                      • CO/CL/DO<br/>
-                      • Regional office<br/>
-                      • SAP Code<br/>
+                      • CO/CL/DO <t></t>
+                      • Regional office <t></t>
+                      • SAP Code <t></t>
                       • Address Line1<br/>
-                      • Pincode<br/>
-                      • Contact details<br/>
-                      • latitude, longitude
+                      • Pincode <t></t>
+                      • Contact details <t></t>
+                      • latitude, longitude <t></t>
                     </Typography>
                     
-                    <Typography variant="subtitle2" gutterBottom sx={{ color: 'text.secondary', fontWeight: 'bold' }}>
+                    {/* <Typography variant="subtitle2" gutterBottom sx={{ color: 'text.secondary', fontWeight: 'bold' }}>
                       Optional Fields:
                     </Typography>
                     <Typography variant="body2" color="text.secondary" component="div">
                       • Address Line2<br/>
                       • Address Line3<br/>
                       • Address Line4
-                    </Typography>
+                    </Typography> */}
                     
                     <Alert severity="warning" sx={{ mt: 2, fontSize: '0.875rem' }}>
                       <Typography variant="body2">
@@ -476,8 +476,8 @@ export default function ExcelImport() {
                 </Card>
               </Grid>
               
-              <Grid item xs={12} md={6}>
-                <UploadBox component="label">
+              <Grid item xs={12} md={6} width={'35%'}> 
+                <UploadBox component="label" height={'400px'}>
                   <CloudUploadIcon color="primary" sx={{ fontSize: 60, mb: 2 }} />
                   <Typography variant="h6" gutterBottom>
                     Upload Excel File
