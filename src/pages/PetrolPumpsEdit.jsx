@@ -130,13 +130,14 @@ export default function PetrolPumpsEdit() {
   // Get unique districts for filter
   const getUniqueDistricts = () => {
     const districts = pumps
-      .map(pump => pump.district)
-      .filter(district => district && district.trim() !== '')
+      .map(pump => (pump.district || '').trim().toUpperCase())
+      .filter(district => district !== '')
       .filter((value, index, self) => self.indexOf(value) === index)
       .sort();
-    
+  
     return districts;
   };
+  
 
   // Get unique companies for filter
   const getUniqueCompanies = () => {
