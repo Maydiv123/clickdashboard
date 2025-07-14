@@ -62,7 +62,6 @@ export default function PetrolPumpsCreate() {
   // CO/CL/DO options
   const coClDoOptions = ['CO', 'CL', 'DO'];
 
-  // Fetch districts from database
   useEffect(() => {
     const fetchDistricts = async () => {
       try {
@@ -74,9 +73,10 @@ export default function PetrolPumpsCreate() {
         if (!querySnapshot.empty) {
           const districtsData = querySnapshot.docs.map(doc => {
             const data = doc.data();
-            return data.district || data.District || '';
-          }).filter(district => district && district.trim() !== '');
-          
+            const district = data.district || data.District || '';
+            return district.trim().toUpperCase();
+          }).filter(district => district !== '');
+  
           // Remove duplicates and sort
           const uniqueDistricts = [...new Set(districtsData)].sort();
           setDistricts(uniqueDistricts);
@@ -87,9 +87,10 @@ export default function PetrolPumpsCreate() {
         setFetchingDistricts(false);
       }
     };
-
+  
     fetchDistricts();
   }, []);
+  
 
   const handleInputChange = (field, value) => {
     if (field.includes('.')) {
