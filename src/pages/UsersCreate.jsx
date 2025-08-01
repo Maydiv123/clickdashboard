@@ -159,7 +159,12 @@ export default function UsersCreate() {
       
       case 1: // Contact Details
         if (!newUser.mobile.trim()) errors.mobile = 'Mobile number is required';
-        else if (!/^\d{10}$/.test(newUser.mobile)) errors.mobile = 'Mobile number must be 10 digits';
+        else {
+          const normalizedMobile = normalizePhoneNumber(newUser.mobile);
+          if (normalizedMobile.length !== 10) {
+            errors.mobile = 'Mobile number must be 10 digits (with or without country code)';
+          }
+        }
         if (!newUser.email.trim()) errors.email = 'Email is required';
         else if (!/\S+@\S+\.\S+/.test(newUser.email)) errors.email = 'Invalid email format';
         if (!newUser.password.trim()) errors.password = 'Password is required';
@@ -194,12 +199,26 @@ export default function UsersCreate() {
         return { exists: true, field: 'email', message: 'A user with this email already exists.' };
       }
       
-      // Check for existing user with same mobile number
-      const mobileQuery = query(usersRef, where('mobile', '==', mobile));
-      const mobileSnapshot = await getDocs(mobileQuery);
+      // Normalize the mobile number for comparison
+      const normalizedMobile = normalizePhoneNumber(mobile);
       
-      if (!mobileSnapshot.empty) {
-        return { exists: true, field: 'mobile', message: 'A user with this mobile number already exists.' };
+      // Get all users to check for mobile number matches (since we need to normalize existing numbers)
+      const allUsersQuery = query(usersRef);
+      const allUsersSnapshot = await getDocs(allUsersQuery);
+      
+      // Check if any existing user has the same normalized mobile number
+      for (const doc of allUsersSnapshot.docs) {
+        const userData = doc.data();
+        if (userData.mobile) {
+          const existingNormalized = normalizePhoneNumber(userData.mobile);
+          if (existingNormalized === normalizedMobile) {
+            return { 
+              exists: true, 
+              field: 'mobile', 
+              message: 'A user with this mobile number already exists.' 
+            };
+          }
+        }
       }
       
       return { exists: false };
@@ -207,6 +226,27 @@ export default function UsersCreate() {
       console.error('Error checking existing user:', error);
       throw new Error('Failed to check for existing user. Please try again.');
     }
+  };
+
+  // Function to normalize phone numbers for comparison
+  const normalizePhoneNumber = (phoneNumber) => {
+    if (!phoneNumber) return '';
+    
+    // Remove all non-digit characters
+    let cleaned = phoneNumber.replace(/\D/g, '');
+    
+    // If it starts with 91 and has 12 digits, remove the country code
+    if (cleaned.startsWith('91') && cleaned.length === 12) {
+      cleaned = cleaned.substring(2);
+    }
+    
+    // If it starts with +91 and has 13 characters, remove the country code
+    if (phoneNumber.startsWith('+91') && phoneNumber.length === 13) {
+      cleaned = phoneNumber.substring(3).replace(/\D/g, '');
+    }
+    
+    // Return the last 10 digits (in case there are any other prefixes)
+    return cleaned.slice(-10);
   };
 
   const handleCreateUser = async () => {
@@ -232,8 +272,12 @@ export default function UsersCreate() {
       // Calculate profile completion
       const completion = calculateProfileCompletion();
       
+      // Normalize the mobile number before saving
+      const normalizedMobile = normalizePhoneNumber(newUser.mobile);
+      
       const userData = {
         ...newUser,
+        mobile: normalizedMobile, // Save the normalized mobile number
         profileCompletion: completion,
         createdAt: new Date(),
         userId: newUser.email // Using email as userId for now
@@ -295,10 +339,16 @@ export default function UsersCreate() {
   };
 
   const handleMobileChange = (value) => {
-    const numericValue = value.replace(/\D/g, '');
-    if (numericValue.length <= 10) {
-      handleCreateChange('mobile', numericValue);
-      if (numericValue.length === 10) {
+    // Allow digits, plus sign, and spaces
+    const cleaned = value.replace(/[^\d+\s]/g, '');
+    
+    // Limit to reasonable length (13 chars for +91 + 10 digits)
+    if (cleaned.length <= 13) {
+      handleCreateChange('mobile', cleaned);
+      
+      // Clear errors if the normalized number is valid
+      const normalized = normalizePhoneNumber(cleaned);
+      if (normalized.length === 10) {
         clearFieldErrors('mobile');
       }
     }
@@ -508,7 +558,7 @@ export default function UsersCreate() {
                         required
                         error={!!fieldErrors.mobile}
                         helperText={fieldErrors.mobile}
-                        placeholder="Enter exactly 10 digits"
+                        placeholder="e.g., 9953309005 or +919953309005"
                         variant="outlined"
                         InputProps={{
                           startAdornment: (
