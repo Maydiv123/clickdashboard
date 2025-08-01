@@ -53,7 +53,7 @@ import {
   CheckCircle as CheckCircleIcon,
 } from '@mui/icons-material';
 import { db } from '../firebase/config';
-import { collection, addDoc } from 'firebase/firestore';
+import { collection, addDoc, query, where, getDocs } from 'firebase/firestore';
 
 const companyOptions = ['HPCL', 'BPCL', 'IOCL'];
 const professionOptions = [
@@ -182,12 +182,52 @@ export default function UsersCreate() {
     return Object.keys(errors).length === 0;
   };
 
+  const checkExistingUser = async (email, mobile) => {
+    try {
+      const usersRef = collection(db, 'user_data');
+      
+      // Check for existing user with same email
+      const emailQuery = query(usersRef, where('email', '==', email));
+      const emailSnapshot = await getDocs(emailQuery);
+      
+      if (!emailSnapshot.empty) {
+        return { exists: true, field: 'email', message: 'A user with this email already exists.' };
+      }
+      
+      // Check for existing user with same mobile number
+      const mobileQuery = query(usersRef, where('mobile', '==', mobile));
+      const mobileSnapshot = await getDocs(mobileQuery);
+      
+      if (!mobileSnapshot.empty) {
+        return { exists: true, field: 'mobile', message: 'A user with this mobile number already exists.' };
+      }
+      
+      return { exists: false };
+    } catch (error) {
+      console.error('Error checking existing user:', error);
+      throw new Error('Failed to check for existing user. Please try again.');
+    }
+  };
+
   const handleCreateUser = async () => {
     if (!validateCurrentStep()) return;
 
     try {
       setLoading(true);
       setError(null);
+
+      // Check for existing user before creating
+      const existingUserCheck = await checkExistingUser(newUser.email, newUser.mobile);
+      
+      if (existingUserCheck.exists) {
+        setError(existingUserCheck.message);
+        // Set field error for the specific field
+        setFieldErrors(prev => ({
+          ...prev,
+          [existingUserCheck.field]: existingUserCheck.message
+        }));
+        return;
+      }
 
       // Calculate profile completion
       const completion = calculateProfileCompletion();

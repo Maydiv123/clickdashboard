@@ -1640,7 +1640,7 @@ export default function Users() {
       </Popover>
 
       {/* Floating Action Button */}
-      <Fab 
+      {/* <Fab 
         color="primary" 
         aria-label="add" 
         onClick={handleOpenCreateDialog}
@@ -1652,7 +1652,7 @@ export default function Users() {
         }}
       >
         <AddIcon />
-      </Fab>
+      </Fab> */}
     </Box>
   );
 } 
