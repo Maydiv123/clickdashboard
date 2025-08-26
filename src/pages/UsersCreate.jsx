@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Box, 
   Paper, 
@@ -29,6 +29,7 @@ import {
   DialogActions,
   FormGroup,
   Divider,
+  InputBase,
 } from '@mui/material';
 import { styled, alpha } from '@mui/material/styles';
 import { 
@@ -71,6 +72,38 @@ const professionOptions = [
 
 const steps = ['Basic Information', 'Contact Details', 'Additional Information'];
 
+// Custom styled input for mobile number with country code
+const MobileInput = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  border: `1px solid ${theme.palette.mode === 'light' ? 'rgba(0, 0, 0, 0.23)' : 'rgba(255, 255, 255, 0.23)'}`,
+  borderRadius: theme.shape.borderRadius,
+  backgroundColor: theme.palette.background.paper,
+  '&:hover': {
+    borderColor: theme.palette.primary.main,
+  },
+  '&.Mui-focused': {
+    borderColor: theme.palette.primary.main,
+    borderWidth: 2,
+  },
+  '&.Mui-error': {
+    borderColor: theme.palette.error.main,
+  },
+}));
+
+const CountryCodeDisplay = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  padding: '16.5px 14px',
+  backgroundColor: theme.palette.grey[100],
+  borderRight: `1px solid ${theme.palette.divider}`,
+  color: theme.palette.text.secondary,
+  fontWeight: 500,
+  fontSize: '1rem',
+  minWidth: '60px',
+  justifyContent: 'center',
+}));
+
 export default function UsersCreate() {
   const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -79,6 +112,10 @@ export default function UsersCreate() {
   const [showPassword, setShowPassword] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({});
   const [openCreateDialog, setOpenCreateDialog] = useState(true);
+  const [mobileChecking, setMobileChecking] = useState(false);
+  const [mobileCheckTimeout, setMobileCheckTimeout] = useState(null);
+  const [emailChecking, setEmailChecking] = useState(false);
+  const [emailCheckTimeout, setEmailCheckTimeout] = useState(null);
 
   const [newUser, setNewUser] = useState({
     firstName: '',
@@ -119,6 +156,12 @@ export default function UsersCreate() {
       [field]: value
     }));
     clearFieldErrors(field);
+    
+    // Handle email duplication checking
+    if (field === 'email' && value.trim()) {
+      // Use setTimeout to avoid recursive calls
+      setTimeout(() => handleEmailChange(value), 0);
+    }
   };
 
   const clearFieldErrors = (field) => {
@@ -147,7 +190,7 @@ export default function UsersCreate() {
     switch (activeStep) {
       case 0: // Basic Information
         if (!newUser.firstName.trim()) errors.firstName = 'First name is required';
-        if (!newUser.lastName.trim()) errors.lastName = 'Last name is required';
+        //if (!newUser.lastName.trim()) errors.lastName = 'Last name is required';
         if (!newUser.userType) errors.userType = 'User type is required';
         if (newUser.dob) {
           const age = calculateAge(newUser.dob);
@@ -157,20 +200,18 @@ export default function UsersCreate() {
         }
         break;
       
-      case 1: // Contact Details
-        if (!newUser.mobile.trim()) errors.mobile = 'Mobile number is required';
-        else {
-          const normalizedMobile = normalizePhoneNumber(newUser.mobile);
-          if (normalizedMobile.length !== 10) {
-            errors.mobile = 'Mobile number must be 10 digits (with or without country code)';
-          }
-        }
-        if (!newUser.email.trim()) errors.email = 'Email is required';
-        else if (!/\S+@\S+\.\S+/.test(newUser.email)) errors.email = 'Invalid email format';
-        if (!newUser.password.trim()) errors.password = 'Password is required';
-        else if (newUser.password.length !== 6 || !/^\d+$/.test(newUser.password)) {
-          errors.password = 'Password must be exactly 6 digits';
-        }
+             case 1: // Contact Details
+         if (!newUser.mobile.trim()) errors.mobile = 'Mobile number is required';
+         else if (newUser.mobile.length !== 10) {
+           errors.mobile = 'Mobile number must be exactly 10 digits';
+         }
+         if (newUser.email.trim() && !/\S+@\S+\.\S+/.test(newUser.email)) {
+           errors.email = 'Invalid email format';
+         }
+         if (!newUser.password.trim()) errors.password = 'Password is required';
+         else if (newUser.password.length !== 6 || !/^\d+$/.test(newUser.password)) {
+           errors.password = 'Password must be exactly 6 digits';
+         }
         break;
       
       case 2: // Additional Information
@@ -187,17 +228,19 @@ export default function UsersCreate() {
     return Object.keys(errors).length === 0;
   };
 
-  const checkExistingUser = async (email, mobile) => {
-    try {
-      const usersRef = collection(db, 'user_data');
-      
-      // Check for existing user with same email
-      const emailQuery = query(usersRef, where('email', '==', email));
-      const emailSnapshot = await getDocs(emailQuery);
-      
-      if (!emailSnapshot.empty) {
-        return { exists: true, field: 'email', message: 'A user with this email already exists.' };
-      }
+     const checkExistingUser = async (email, mobile) => {
+     try {
+       const usersRef = collection(db, 'user_data');
+       
+       // Check for existing user with same email (only if email is provided)
+       if (email && email.trim()) {
+         const emailQuery = query(usersRef, where('email', '==', email));
+         const emailSnapshot = await getDocs(emailQuery);
+         
+         if (!emailSnapshot.empty) {
+           return { exists: true, field: 'email', message: 'A user with this email already exists.' };
+         }
+       }
       
       // Normalize the mobile number for comparison
       const normalizedMobile = normalizePhoneNumber(mobile);
@@ -232,20 +275,11 @@ export default function UsersCreate() {
   const normalizePhoneNumber = (phoneNumber) => {
     if (!phoneNumber) return '';
     
-    // Remove all non-digit characters
+    // Remove +91 prefix if present and return last 10 digits
     let cleaned = phoneNumber.replace(/\D/g, '');
-    
-    // If it starts with 91 and has 12 digits, remove the country code
     if (cleaned.startsWith('91') && cleaned.length === 12) {
       cleaned = cleaned.substring(2);
     }
-    
-    // If it starts with +91 and has 13 characters, remove the country code
-    if (phoneNumber.startsWith('+91') && phoneNumber.length === 13) {
-      cleaned = phoneNumber.substring(3).replace(/\D/g, '');
-    }
-    
-    // Return the last 10 digits (in case there are any other prefixes)
     return cleaned.slice(-10);
   };
 
@@ -257,7 +291,7 @@ export default function UsersCreate() {
       setError(null);
 
       // Check for existing user before creating
-      const existingUserCheck = await checkExistingUser(newUser.email, newUser.mobile);
+      const existingUserCheck = await checkExistingUser(newUser.email, `+91${newUser.mobile}`);
       
       if (existingUserCheck.exists) {
         setError(existingUserCheck.message);
@@ -272,12 +306,12 @@ export default function UsersCreate() {
       // Calculate profile completion
       const completion = calculateProfileCompletion();
       
-      // Normalize the mobile number before saving
-      const normalizedMobile = normalizePhoneNumber(newUser.mobile);
+      // Save mobile number with +91 prefix
+      const mobileWithPrefix = `+91${newUser.mobile}`;
       
       const userData = {
         ...newUser,
-        mobile: normalizedMobile, // Save the normalized mobile number
+        mobile: mobileWithPrefix, // Save with +91 prefix
         profileCompletion: completion,
         createdAt: new Date(),
         userId: newUser.email // Using email as userId for now
@@ -318,39 +352,101 @@ export default function UsersCreate() {
     }
   };
 
-  const calculateProfileCompletion = () => {
-    let completion = 0;
-    const fields = [
-      'firstName', 'lastName', 'mobile', 'email', 'address', 
-      'aadharNo', 'dob', 'profession', 'preferredCompanies', 'teamCode', 'teamName'
-    ];
+     const calculateProfileCompletion = () => {
+     let completion = 0;
+     const requiredFields = [
+       'firstName', 'mobile', 'address', 
+       'aadharNo', 'dob', 'profession', 'preferredCompanies', 'teamCode', 'teamName'
+     ];
+     
+     // Add points for required fields
+     requiredFields.forEach(field => {
+       if (newUser[field]) {
+         if (Array.isArray(newUser[field])) {
+           if (newUser[field].length > 0) completion += 100 / requiredFields.length;
+         } else if (typeof newUser[field] === 'string' && newUser[field].trim() !== '') {
+           completion += 100 / requiredFields.length;
+         }
+       }
+     });
+     
+     // Add bonus points for optional email if provided
+     if (newUser.email && newUser.email.trim()) {
+       completion += 5; // Bonus points for providing email
+     }
+     
+     return Math.min(100, Math.round(completion));
+   };
+
+  const handleEmailChange = async (value) => {
+    // Clear previous timeout if exists
+    if (emailCheckTimeout) {
+      clearTimeout(emailCheckTimeout);
+    }
     
-    fields.forEach(field => {
-      if (newUser[field]) {
-        if (Array.isArray(newUser[field])) {
-          if (newUser[field].length > 0) completion += 100 / fields.length;
-        } else if (typeof newUser[field] === 'string' && newUser[field].trim() !== '') {
-          completion += 100 / fields.length;
+    // Add a small delay to avoid too many database calls
+    const timeout = setTimeout(async () => {
+      // Check for duplicate email in database
+      setEmailChecking(true);
+      try {
+        const usersRef = collection(db, 'user_data');
+        const emailQuery = query(usersRef, where('email', '==', value));
+        const emailSnapshot = await getDocs(emailQuery);
+        
+        if (!emailSnapshot.empty) {
+          setFieldErrors(prev => ({
+            ...prev,
+            email: 'Email already exists in the system'
+          }));
         }
+      } catch (error) {
+        console.error('Error checking email:', error);
+      } finally {
+        setEmailChecking(false);
       }
-    });
+    }, 500); // 500ms delay
     
-    return Math.round(completion);
+    setEmailCheckTimeout(timeout);
   };
 
-  const handleMobileChange = (value) => {
-    // Allow digits, plus sign, and spaces
-    const cleaned = value.replace(/[^\d+\s]/g, '');
+  const handleMobileChange = async (value) => {
+    // Only allow digits and limit to 10 characters
+    const cleaned = value.replace(/\D/g, '').slice(0, 10);
+    handleCreateChange('mobile', cleaned);
     
-    // Limit to reasonable length (13 chars for +91 + 10 digits)
-    if (cleaned.length <= 13) {
-      handleCreateChange('mobile', cleaned);
+    // Clear previous timeout if exists
+    if (mobileCheckTimeout) {
+      clearTimeout(mobileCheckTimeout);
+    }
+    
+    // Clear errors if the number is valid
+    if (cleaned.length === 10) {
+      clearFieldErrors('mobile');
       
-      // Clear errors if the normalized number is valid
-      const normalized = normalizePhoneNumber(cleaned);
-      if (normalized.length === 10) {
-        clearFieldErrors('mobile');
-      }
+      // Add a small delay to avoid too many database calls
+      const timeout = setTimeout(async () => {
+        // Check for duplicate mobile number in database
+        setMobileChecking(true);
+        try {
+          const mobileWithPrefix = `+91${cleaned}`;
+          const usersRef = collection(db, 'user_data');
+          const mobileQuery = query(usersRef, where('mobile', '==', mobileWithPrefix));
+          const mobileSnapshot = await getDocs(mobileQuery);
+          
+          if (!mobileSnapshot.empty) {
+            setFieldErrors(prev => ({
+              ...prev,
+              mobile: 'Mobile number already exists in the system'
+            }));
+          }
+        } catch (error) {
+          console.error('Error checking mobile number:', error);
+        } finally {
+          setMobileChecking(false);
+        }
+      }, 500); // 500ms delay
+      
+      setMobileCheckTimeout(timeout);
     }
   };
 
@@ -377,6 +473,18 @@ export default function UsersCreate() {
   const handleTogglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (mobileCheckTimeout) {
+        clearTimeout(mobileCheckTimeout);
+      }
+      if (emailCheckTimeout) {
+        clearTimeout(emailCheckTimeout);
+      }
+    };
+  }, [mobileCheckTimeout, emailCheckTimeout]);
 
   return (
     <Box sx={{ p: 3 }}>
@@ -446,9 +554,9 @@ export default function UsersCreate() {
                         label="Last Name"
                         value={newUser.lastName}
                         onChange={(e) => handleCreateChange('lastName', e.target.value)}
-                        required
-                        error={!!fieldErrors.lastName}
-                        helperText={fieldErrors.lastName}
+              
+                        
+                        
                         variant="outlined"
                         InputProps={{
                           startAdornment: (
@@ -510,28 +618,31 @@ export default function UsersCreate() {
                         }}
                       />
                     </Grid>
-                    <Grid item xs={12} sm={6} sx={{ width: '200px' }}>
-                      <FormControl fullWidth>
-                        <InputLabel>Profession</InputLabel>
-                        <Select
-                          value={newUser.profession}
-                          onChange={(e) => handleCreateChange('profession', e.target.value)}
-                          label="Profession"
-                          startAdornment={
-                            <InputAdornment position="start">
-                              <BusinessIcon color="action" />
-                            </InputAdornment>
-                          }
-                        >
-                          <MenuItem value="">Select Profession</MenuItem>
-                          {professionOptions.map((profession) => (
-                            <MenuItem key={profession} value={profession}>
-                              {profession}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
-                    </Grid>
+                                         <Grid item xs={12} sm={6} sx={{ width: '200px' }}>
+                       <FormControl fullWidth>
+                         <InputLabel>Profession</InputLabel>
+                         <Select
+                           value={newUser.profession}
+                           onChange={(e) => handleCreateChange('profession', e.target.value)}
+                           label="Profession"
+                           startAdornment={
+                             <InputAdornment position="start">
+                               <BusinessIcon color="action" />
+                             </InputAdornment>
+                           }
+                         >
+                           <MenuItem value="">Select Profession</MenuItem>
+                           {professionOptions.map((profession) => (
+                             <MenuItem key={profession} value={profession}>
+                               {profession}
+                             </MenuItem>
+                           ))}
+                         </Select>
+                         <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+                           Select your profession from the available options
+                         </Typography>
+                       </FormControl>
+                     </Grid>
                   </Grid>
                 </Box>
               </Box>
@@ -550,77 +661,128 @@ export default function UsersCreate() {
                   <Divider sx={{ mb: 2 }} />
                   <Grid container spacing={2}>
                     <Grid item xs={12} sm={6}>
-                      <TextField
-                        fullWidth
-                        label="Mobile Number"
-                        value={newUser.mobile}
-                        onChange={(e) => handleMobileChange(e.target.value)}
-                        required
-                        error={!!fieldErrors.mobile}
-                        helperText={fieldErrors.mobile}
-                        placeholder="e.g., 9953309005 or +919953309005"
-                        variant="outlined"
-                        InputProps={{
-                          startAdornment: (
-                            <InputAdornment position="start">
-                              <PhoneIcon color="action" />
-                            </InputAdornment>
-                          ),
-                        }}
-                      />
+                      <Box>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                          Mobile Number *
+                        </Typography>
+                        <MobileInput 
+                          className={`${fieldErrors.mobile ? 'Mui-error' : ''} ${newUser.mobile.length === 10 ? 'Mui-focused' : ''}`}
+                        >
+                          <CountryCodeDisplay>
+                            +91
+                          </CountryCodeDisplay>
+                          <InputBase
+                            placeholder="Enter 10 digit mobile number"
+                            value={newUser.mobile}
+                            onChange={(e) => handleMobileChange(e.target.value)}
+                            sx={{
+                              flex: 1,
+                              px: 2,
+                              py: 1.5,
+                              '& input': {
+                                fontSize: '1rem',
+                                '&::placeholder': {
+                                  opacity: 0.7,
+                                },
+                              },
+                            }}
+                            inputProps={{
+                              maxLength: 10,
+                              pattern: '[0-9]*',
+                            }}
+                          />
+                          {mobileChecking && (
+                            <Box sx={{ px: 2, display: 'flex', alignItems: 'center' }}>
+                              <CircularProgress size={16} />
+                            </Box>
+                          )}
+                        </MobileInput>
+                        {fieldErrors.mobile && (
+                          <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block' }}>
+                            {fieldErrors.mobile}
+                          </Typography>
+                        )}
+                        {newUser.mobile.length > 0 && newUser.mobile.length < 10 && (
+                          <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+                            {10 - newUser.mobile.length} digits remaining
+                          </Typography>
+                        )}
+                        {newUser.mobile.length === 10 && !fieldErrors.mobile && !mobileChecking && (
+                          <Typography variant="caption" color="success.main" sx={{ mt: 0.5, display: 'block', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                            <CheckCircleIcon fontSize="small" />
+                            Mobile number is available
+                          </Typography>
+                        )}
+                      </Box>
                     </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        fullWidth
-                        label="Email"
-                        type="email"
-                        value={newUser.email}
-                        onChange={(e) => handleCreateChange('email', e.target.value)}
-                        required
-                        error={!!fieldErrors.email}
-                        helperText={fieldErrors.email}
-                        variant="outlined"
-                        InputProps={{
-                          startAdornment: (
-                            <InputAdornment position="start">
-                              <EmailIcon color="action" />
-                            </InputAdornment>
-                          ),
-                        }}
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        fullWidth
-                        label="MPIN"
-                        type={showPassword ? 'text' : 'password'}
-                        value={newUser.password}
-                        onChange={(e) => handlePasswordChange(e.target.value)}
-                        required
-                        error={!!fieldErrors.password}
-                        helperText={fieldErrors.password}
-                        placeholder="Enter exactly 6 digits"
-                        variant="outlined"
-                        InputProps={{
-                          startAdornment: (
-                            <InputAdornment position="start">
-                              <BadgeIcon color="action" />
-                            </InputAdornment>
-                          ),
-                          endAdornment: (
-                            <InputAdornment position="end">
-                              <IconButton
-                                aria-label="toggle password visibility"
-                                onClick={handleTogglePasswordVisibility}
-                                edge="end"
-                              >
-                                {showPassword ? <VisibilityOff /> : <Visibility />}
-                              </IconButton>
-                            </InputAdornment>
-                          ),
-                        }}
-                      />
-                    </Grid>
+                                                              <Grid item xs={12} sm={6}>
+                        <TextField
+                          fullWidth
+                          label="Email (Optional)"
+                          type="email"
+                          value={newUser.email}
+                          onChange={(e) => handleCreateChange('email', e.target.value)}
+                          error={!!fieldErrors.email}
+                          helperText={fieldErrors.email}
+                          placeholder="Enter email address (optional)"
+                          variant="outlined"
+                          InputProps={{
+                            startAdornment: (
+                              <InputAdornment position="start">
+                                <EmailIcon color="action" />
+                              </InputAdornment>
+                            ),
+                            endAdornment: emailChecking && (
+                              <InputAdornment position="end">
+                                <CircularProgress size={16} />
+                              </InputAdornment>
+                            ),
+                          }}
+                        />
+                        {fieldErrors.email && (
+                          <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block' }}>
+                            {fieldErrors.email}
+                          </Typography>
+                        )}
+                        {newUser.email && !fieldErrors.email && !emailChecking && (
+                          <Typography variant="caption" color="success.main" sx={{ mt: 0.5, display: 'block', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                            <CheckCircleIcon fontSize="small" />
+                            Email is available
+                          </Typography>
+                        )}
+                      </Grid>
+                                         <Grid item xs={12} sm={6}>
+                       <TextField
+                         fullWidth
+                         label="Password"
+                         type={showPassword ? 'text' : 'password'}
+                         value={newUser.password}
+                         onChange={(e) => handlePasswordChange(e.target.value)}
+                         required
+                         error={!!fieldErrors.password}
+                         helperText={fieldErrors.password}
+                         placeholder="Enter exactly 6 digits"
+                         variant="outlined"
+                         InputProps={{
+                           startAdornment: (
+                             <InputAdornment position="start">
+                               <BadgeIcon color="action" />
+                             </InputAdornment>
+                           ),
+                           endAdornment: (
+                             <InputAdornment position="end">
+                               <IconButton
+                                 aria-label="toggle password visibility"
+                                 onClick={handleTogglePasswordVisibility}
+                                 edge="end"
+                               >
+                                 {showPassword ? <VisibilityOff /> : <Visibility />}
+                               </IconButton>
+                             </InputAdornment>
+                           ),
+                         }}
+                       />
+                     </Grid>
                     <Grid item xs={12} sm={6}>
                       <TextField
                         fullWidth
