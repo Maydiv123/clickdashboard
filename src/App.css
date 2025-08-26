@@ -142,3 +142,123 @@ body {
 .read-the-docs {
   color: #888;
 }
+
+/* Custom Form Enhancements */
+.form-field-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.form-field-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.form-field-focus {
+  box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.15);
+}
+
+/* Enhanced Input Styling */
+.enhanced-input {
+  border-radius: 12px !important;
+  transition: all 0.3s ease !important;
+}
+
+.enhanced-input:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12) !important;
+  transform: translateY(-1px) !important;
+}
+
+.enhanced-input:focus-within {
+  box-shadow: 0 0 0 4px rgba(25, 118, 210, 0.12) !important;
+}
+
+/* Mobile Input Enhancement */
+.mobile-input-enhanced {
+  border-radius: 12px !important;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.mobile-input-enhanced:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+/* Country Code Display */
+.country-code-enhanced {
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%) !important;
+  color: #1976d2 !important;
+  font-weight: 600 !important;
+  border-right: 2px solid #90caf9 !important;
+  transition: all 0.3s ease !important;
+}
+
+.country-code-enhanced:hover {
+  background: linear-gradient(135deg, #bbdefb 0%, #90caf9 100%) !important;
+  transform: scale(1.02);
+}
+
+/* Form Card Enhancement */
+.form-card-enhanced {
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%) !important;
+  border: 1px solid #e9ecef !important;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1) !important;
+  border-radius: 16px !important;
+}
+
+/* Section Header Enhancement */
+.section-header-enhanced {
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%) !important;
+  border: 1px solid #90caf9 !important;
+  border-radius: 12px !important;
+  padding: 16px !important;
+  margin-bottom: 24px !important;
+}
+
+/* Button Enhancement */
+.btn-enhanced {
+  border-radius: 12px !important;
+  transition: all 0.3s ease !important;
+  font-weight: 600 !important;
+  text-transform: none !important;
+}
+
+.btn-enhanced:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Success Message Enhancement */
+.success-message {
+  background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%) !important;
+  border: 1px solid #81c784 !important;
+  border-radius: 12px !important;
+  color: #2e7d32 !important;
+}
+
+/* Error Message Enhancement */
+.error-message {
+  background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%) !important;
+  border: 1px solid #e57373 !important;
+  border-radius: 12px !important;
+  color: #c62828 !important;
+}
+
+/* Stepper Enhancement */
+.stepper-enhanced .MuiStepLabel-root {
+  font-weight: 600 !important;
+}
+
+.stepper-enhanced .MuiStepLabel-label {
+  color: #666 !important;
+}
+
+.stepper-enhanced .MuiStepLabel-label.Mui-active {
+  color: #1976d2 !important;
+  font-weight: 700 !important;
+}
+
+.stepper-enhanced .MuiStepLabel-label.Mui-completed {
+  color: #2e7d32 !important;
+  font-weight: 600 !important;
+}

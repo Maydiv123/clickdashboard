@@ -95,13 +95,18 @@ const CountryCodeDisplay = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
   padding: '16.5px 14px',
-  backgroundColor: theme.palette.grey[100],
-  borderRight: `1px solid ${theme.palette.divider}`,
-  color: theme.palette.text.secondary,
-  fontWeight: 500,
+  backgroundColor: theme.palette.primary[50],
+  borderRight: `1px solid ${theme.palette.primary[200]}`,
+  color: theme.palette.primary.main,
+  fontWeight: 600,
   fontSize: '1rem',
   minWidth: '60px',
   justifyContent: 'center',
+  borderRadius: '8px 0 0 8px',
+  transition: 'all 0.3s ease',
+  '&:hover': {
+    backgroundColor: theme.palette.primary[100],
+  }
 }));
 
 export default function UsersCreate() {
@@ -506,8 +511,15 @@ export default function UsersCreate() {
         </Alert>
       )}
 
-      <Card sx={{ borderRadius: 3, overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
-        <CardContent sx={{ p: 3 }}>
+      <Card sx={{ 
+        borderRadius: 4, 
+        overflow: 'hidden', 
+        boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
+        border: '1px solid',
+        borderColor: 'divider',
+        background: 'linear-gradient(135deg, #ffffff 0%, #fafbfc 100%)'
+      }}>
+        <CardContent sx={{ p: 4 }}>
           <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
             {steps.map((label) => (
               <Step key={label}>
@@ -651,52 +663,79 @@ export default function UsersCreate() {
             {activeStep === 1 && (
               <Box>
                 {/* Contact Information Section */}
-                <Box sx={{ mb: 3 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                    <ContactPhoneIcon color="primary" fontSize="small" />
-                    <Typography variant="h6" fontWeight={600} color="primary.main">
+                <Box sx={{ mb: 4 }}>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: 1.5, 
+                    mb: 3,
+                    p: 2,
+                    backgroundColor: 'primary.50',
+                    borderRadius: 2,
+                    border: '1px solid',
+                    borderColor: 'primary.100'
+                  }}>
+                    <ContactPhoneIcon color="primary" fontSize="medium" />
+                    <Typography variant="h6" fontWeight={700} color="primary.main">
                       Contact Information
                     </Typography>
                   </Box>
-                  <Divider sx={{ mb: 2 }} />
-                  <Grid container spacing={2}>
+                  <Divider sx={{ mb: 3, opacity: 0.6 }} />
+                  <Grid container spacing={3}>
                     <Grid item xs={12} sm={6}>
-                      <Box>
-                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                      <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5, fontWeight: 600, fontSize: '0.875rem' }}>
                           Mobile Number *
                         </Typography>
-                        <MobileInput 
-                          className={`${fieldErrors.mobile ? 'Mui-error' : ''} ${newUser.mobile.length === 10 ? 'Mui-focused' : ''}`}
-                        >
-                          <CountryCodeDisplay>
-                            +91
-                          </CountryCodeDisplay>
-                          <InputBase
-                            placeholder="Enter 10 digit mobile number"
-                            value={newUser.mobile}
-                            onChange={(e) => handleMobileChange(e.target.value)}
-                            sx={{
-                              flex: 1,
-                              px: 2,
-                              py: 1.5,
-                              '& input': {
-                                fontSize: '1rem',
-                                '&::placeholder': {
-                                  opacity: 0.7,
-                                },
+                        <Box sx={{ flex: 1, display: 'flex', alignItems: 'flex-end' }}>
+                          <MobileInput 
+                            className={`${fieldErrors.mobile ? 'Mui-error' : ''} ${newUser.mobile.length === 10 ? 'Mui-focused' : ''}`}
+                            sx={{ 
+                              height: '56px',
+                              width: '100%',
+                              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                              borderRadius: 2,
+                              '&:hover': {
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                                transform: 'translateY(-1px)'
                               },
+                              '&.Mui-focused': {
+                                boxShadow: '0 0 0 3px rgba(25, 118, 210, 0.1)'
+                              }
                             }}
-                            inputProps={{
-                              maxLength: 10,
-                              pattern: '[0-9]*',
-                            }}
-                          />
-                          {mobileChecking && (
-                            <Box sx={{ px: 2, display: 'flex', alignItems: 'center' }}>
-                              <CircularProgress size={16} />
-                            </Box>
-                          )}
-                        </MobileInput>
+                          >
+                            <CountryCodeDisplay>
+                              +91
+                            </CountryCodeDisplay>
+                            <InputBase
+                              placeholder="Enter 10 digit mobile number"
+                              value={newUser.mobile}
+                              onChange={(e) => handleMobileChange(e.target.value)}
+                              sx={{
+                                flex: 1,
+                                px: 2,
+                                py: 1.5,
+                                height: '100%',
+                                '& input': {
+                                  fontSize: '1rem',
+                                  '&::placeholder': {
+                                    opacity: 0.7,
+                                    color: 'text.secondary'
+                                  },
+                                },
+                              }}
+                              inputProps={{
+                                maxLength: 10,
+                                pattern: '[0-9]*',
+                              }}
+                            />
+                            {mobileChecking && (
+                              <Box sx={{ px: 2, display: 'flex', alignItems: 'center' }}>
+                                <CircularProgress size={16} />
+                              </Box>
+                            )}
+                          </MobileInput>
+                        </Box>
                         {fieldErrors.mobile && (
                           <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block' }}>
                             {fieldErrors.mobile}
@@ -715,30 +754,48 @@ export default function UsersCreate() {
                         )}
                       </Box>
                     </Grid>
-                                                              <Grid item xs={12} sm={6}>
-                        <TextField
-                          fullWidth
-                          label="Email (Optional)"
-                          type="email"
-                          value={newUser.email}
-                          onChange={(e) => handleCreateChange('email', e.target.value)}
-                          error={!!fieldErrors.email}
-                          helperText={fieldErrors.email}
-                          placeholder="Enter email address (optional)"
-                          variant="outlined"
-                          InputProps={{
-                            startAdornment: (
-                              <InputAdornment position="start">
-                                <EmailIcon color="action" />
-                              </InputAdornment>
-                            ),
-                            endAdornment: emailChecking && (
-                              <InputAdornment position="end">
-                                <CircularProgress size={16} />
-                              </InputAdornment>
-                            ),
-                          }}
-                        />
+                    <Grid item xs={12} sm={6}>
+                      <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5, fontWeight: 600, fontSize: '0.875rem' }}>
+                          Email (Optional)
+                        </Typography>
+                        <Box sx={{ flex: 1, display: 'flex', alignItems: 'flex-end' }}>
+                          <TextField
+                            fullWidth
+                            type="email"
+                            value={newUser.email}
+                            onChange={(e) => handleCreateChange('email', e.target.value)}
+                            error={!!fieldErrors.email}
+                            placeholder="Enter email address"
+                            variant="outlined"
+                            sx={{
+                              '& .MuiOutlinedInput-root': {
+                                height: '56px',
+                                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                                borderRadius: 2,
+                                '&:hover': {
+                                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                                  transform: 'translateY(-1px)'
+                                },
+                                '&.Mui-focused': {
+                                  boxShadow: '0 0 0 3px rgba(25, 118, 210, 0.1)'
+                                }
+                              }
+                            }}
+                            InputProps={{
+                              startAdornment: (
+                                <InputAdornment position="start">
+                                  <EmailIcon color="action" />
+                                </InputAdornment>
+                              ),
+                              endAdornment: emailChecking && (
+                                <InputAdornment position="end">
+                                  <CircularProgress size={16} />
+                                </InputAdornment>
+                              ),
+                            }}
+                          />
+                        </Box>
                         {fieldErrors.email && (
                           <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block' }}>
                             {fieldErrors.email}
@@ -750,67 +807,130 @@ export default function UsersCreate() {
                             Email is available
                           </Typography>
                         )}
-                      </Grid>
-                                         <Grid item xs={12} sm={6}>
-                       <TextField
-                         fullWidth
-                         label="Password"
-                         type={showPassword ? 'text' : 'password'}
-                         value={newUser.password}
-                         onChange={(e) => handlePasswordChange(e.target.value)}
-                         required
-                         error={!!fieldErrors.password}
-                         helperText={fieldErrors.password}
-                         placeholder="Enter exactly 6 digits"
-                         variant="outlined"
-                         InputProps={{
-                           startAdornment: (
-                             <InputAdornment position="start">
-                               <BadgeIcon color="action" />
-                             </InputAdornment>
-                           ),
-                           endAdornment: (
-                             <InputAdornment position="end">
-                               <IconButton
-                                 aria-label="toggle password visibility"
-                                 onClick={handleTogglePasswordVisibility}
-                                 edge="end"
-                               >
-                                 {showPassword ? <VisibilityOff /> : <Visibility />}
-                               </IconButton>
-                             </InputAdornment>
-                           ),
-                         }}
-                       />
-                     </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        fullWidth
-                        label="Aadhar Number"
-                        value={newUser.aadharNo}
-                        onChange={(e) => handleAadharChange(e.target.value)}
-                        error={!!fieldErrors.aadharNo}
-                        helperText={fieldErrors.aadharNo}
-                        placeholder="Enter exactly 12 digits (optional)"
-                        variant="outlined"
-                        InputProps={{
-                          startAdornment: (
-                            <InputAdornment position="start">
-                              <CreditCardIcon color="action" />
-                            </InputAdornment>
-                          ),
-                        }}
-                      />
+                      </Box>
                     </Grid>
-                    <Grid item xs={12} sx={{ width: '560px' }}>
+                    <Grid item xs={12} sm={6}>
+                      <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5, fontWeight: 600, fontSize: '0.875rem' }}>
+                          Password *
+                        </Typography>
+                        <Box sx={{ flex: 1, display: 'flex', alignItems: 'flex-end' }}>
+                          <TextField
+                            fullWidth
+                            type={showPassword ? 'text' : 'password'}
+                            value={newUser.password}
+                            onChange={(e) => handlePasswordChange(e.target.value)}
+                            required
+                            error={!!fieldErrors.password}
+                            placeholder="Enter exactly 6 digits"
+                            variant="outlined"
+                            sx={{
+                              '& .MuiOutlinedInput-root': {
+                                height: '56px',
+                                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                                borderRadius: 2,
+                                '&:hover': {
+                                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                                  transform: 'translateY(-1px)'
+                                },
+                                '&.Mui-focused': {
+                                  boxShadow: '0 0 0 3px rgba(25, 118, 210, 0.1)'
+                                }
+                              }
+                            }}
+                            InputProps={{
+                              startAdornment: (
+                                <InputAdornment position="start">
+                                  <BadgeIcon color="action" />
+                                </InputAdornment>
+                              ),
+                              endAdornment: (
+                                <InputAdornment position="end">
+                                  <IconButton
+                                    aria-label="toggle password visibility"
+                                    onClick={handleTogglePasswordVisibility}
+                                    edge="end"
+                                    size="small"
+                                  >
+                                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                                  </IconButton>
+                                </InputAdornment>
+                              ),
+                            }}
+                          />
+                        </Box>
+                        {fieldErrors.password && (
+                          <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block' }}>
+                            {fieldErrors.password}
+                          </Typography>
+                        )}
+                      </Box>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5, fontWeight: 600, fontSize: '0.875rem' }}>
+                          Aadhar Number (Optional)
+                        </Typography>
+                        <Box sx={{ flex: 1, display: 'flex', alignItems: 'flex-end' }}>
+                          <TextField
+                            fullWidth
+                            value={newUser.aadharNo}
+                            onChange={(e) => handleAadharChange(e.target.value)}
+                            error={!!fieldErrors.aadharNo}
+                            placeholder="Enter 12 digits"
+                            variant="outlined"
+                            sx={{
+                              '& .MuiOutlinedInput-root': {
+                                height: '56px',
+                                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                                borderRadius: 2,
+                                '&:hover': {
+                                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                                  transform: 'translateY(-1px)'
+                                },
+                                '&.Mui-focused': {
+                                  boxShadow: '0 0 0 3px rgba(25, 118, 210, 0.1)'
+                                }
+                              }
+                            }}
+                            InputProps={{
+                              startAdornment: (
+                                <InputAdornment position="start">
+                                  <CreditCardIcon color="action" />
+                                </InputAdornment>
+                              ),
+                            }}
+                          />
+                        </Box>
+                        {fieldErrors.aadharNo && (
+                          <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block' }}>
+                            {fieldErrors.aadharNo}
+                          </Typography>
+                        )}
+                      </Box>
+                    </Grid>
+                    <Grid item xs={12}>
                       <TextField
                         fullWidth
-                        label="Address"
+                        label="Address *"
                         value={newUser.address}
                         onChange={(e) => handleCreateChange('address', e.target.value)}
                         multiline
                         rows={3}
                         variant="outlined"
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                            borderRadius: 2,
+                            '&:hover': {
+                              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                              transform: 'translateY(-1px)'
+                            },
+                            '&.Mui-focused': {
+                              boxShadow: '0 0 0 3px rgba(25, 118, 210, 0.1)'
+                            }
+                          }
+                        }}
                         InputProps={{
                           startAdornment: (
                             <InputAdornment position="start">
