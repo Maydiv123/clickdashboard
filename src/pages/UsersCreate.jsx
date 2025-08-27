@@ -52,6 +52,8 @@ import {
   CreditCard as CreditCardIcon,
   Business as BusinessIcon,
   CheckCircle as CheckCircleIcon,
+  PhotoCamera as PhotoCameraIcon,
+  Delete as DeleteIcon,
 } from '@mui/icons-material';
 import { db } from '../firebase/config';
 import { collection, addDoc, query, where, getDocs } from 'firebase/firestore';
@@ -144,6 +146,9 @@ export default function UsersCreate() {
     createdAt: new Date(),
     isDummy: false
   });
+
+  const [profilePhoto, setProfilePhoto] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState(null);
 
   const handleNext = () => {
     if (validateCurrentStep()) {
@@ -347,6 +352,8 @@ export default function UsersCreate() {
         createdAt: new Date(),
         isDummy: false
       });
+      setProfilePhoto(null);
+      setPhotoPreview(null);
       setActiveStep(0);
       setOpenCreateDialog(false);
     } catch (error) {
@@ -477,6 +484,44 @@ export default function UsersCreate() {
 
   const handleTogglePasswordVisibility = () => {
     setShowPassword(!showPassword);
+  };
+
+  const handleProfilePhotoChange = (event) => {
+    const file = event.target.files[0];
+    
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        setError('Please select a valid image file');
+        return;
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setError('Image size should be less than 5MB');
+        return;
+      }
+      
+      setProfilePhoto(file);
+      
+      // Create preview URL
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setPhotoPreview(e.target.result);
+      };
+      
+      reader.onerror = () => {
+        setError('Error reading image file');
+      };
+      
+      reader.readAsDataURL(file);
+      setError(null);
+    }
+  };
+
+  const handleRemoveProfilePhoto = () => {
+    setProfilePhoto(null);
+    setPhotoPreview(null);
   };
 
   // Cleanup timeout on unmount
@@ -654,6 +699,89 @@ export default function UsersCreate() {
                            Select your profession from the available options
                          </Typography>
                        </FormControl>
+                     </Grid>
+                     
+                     {/* Profile Photo Upload */}
+                     <Grid item xs={12}>
+                       <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, p: 3, border: '2px dashed', borderColor: 'primary.200', borderRadius: 2, backgroundColor: 'primary.50' }}>
+                         <Typography variant="h6" color="primary.main" fontWeight={600}>
+                           Profile Photo (Optional)
+                         </Typography>
+                         
+                         {photoPreview ? (
+                           <Box sx={{ position: 'relative', display: 'inline-block' }}>
+                             <Box
+                               component="img"
+                               src={photoPreview}
+                               alt="Profile Preview"
+                               sx={{
+                                 width: 120,
+                                 height: 120,
+                                 borderRadius: '50%',
+                                 objectFit: 'cover',
+                                 border: '3px solid',
+                                 borderColor: 'primary.main',
+                                 boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                               }}
+                             />
+                             <IconButton
+                               onClick={handleRemoveProfilePhoto}
+                               sx={{
+                                 position: 'absolute',
+                                 top: -8,
+                                 right: -8,
+                                 backgroundColor: 'error.main',
+                                 color: 'white',
+                                 '&:hover': {
+                                   backgroundColor: 'error.dark'
+                                 },
+                                 width: 32,
+                                 height: 32
+                               }}
+                             >
+                               <DeleteIcon fontSize="small" />
+                             </IconButton>
+                           </Box>
+                         ) : (
+                           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+                             <PhotoCameraIcon sx={{ fontSize: 60, color: 'primary.main', opacity: 0.7 }} />
+                             <Typography variant="body2" color="text.secondary" textAlign="center">
+                               Click to upload profile photo
+                             </Typography>
+                             <Typography variant="caption" color="text.secondary" textAlign="center">
+                               JPG, PNG or GIF (Max 5MB)
+                             </Typography>
+                           </Box>
+                         )}
+                         
+                         <Button
+                           component="label"
+                           variant="outlined"
+                           color="primary"
+                           startIcon={photoPreview ? <PhotoCameraIcon /> : <AddIcon />}
+                           sx={{
+                             borderRadius: 2,
+                             px: 3,
+                             py: 1,
+                             textTransform: 'none',
+                             fontWeight: 500,
+                             borderWidth: 2,
+                             '&:hover': {
+                               borderWidth: 2,
+                               transform: 'translateY(-1px)',
+                               boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                             }
+                           }}
+                         >
+                           {photoPreview ? 'Change Photo' : 'Upload Photo'}
+                           <input
+                             type="file"
+                             hidden
+                             accept="image/*"
+                             onChange={handleProfilePhotoChange}
+                           />
+                         </Button>
+                       </Box>
                      </Grid>
                   </Grid>
                 </Box>
@@ -960,9 +1088,10 @@ export default function UsersCreate() {
                     <Grid item xs={12} sm={6}>
                       <TextField
                         fullWidth
-                        label="Team Code"
+                        label="Team Code (Optional)"
                         value={newUser.teamCode}
                         onChange={(e) => handleCreateChange('teamCode', e.target.value)}
+                        placeholder="Enter team code"
                         variant="outlined"
                         InputProps={{
                           startAdornment: (
@@ -976,9 +1105,10 @@ export default function UsersCreate() {
                     <Grid item xs={12} sm={6}>
                       <TextField
                         fullWidth
-                        label="Team Name"
+                        label="Team Name (Optional)"
                         value={newUser.teamName}
                         onChange={(e) => handleCreateChange('teamName', e.target.value)}
+                        placeholder="Enter team name"
                         variant="outlined"
                         InputProps={{
                           startAdornment: (
